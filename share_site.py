@@ -7,6 +7,7 @@ docs/index.html = static/index.html + 응답 가로채기(서버 대신 snap.jso
 점검 실행·저장·대화처럼 서버가 필요한 버튼은 '원본 앱에서 실행' 안내만 한다. 회사 이름 표시는 뺀다(공개 페이지).
 
 사용법: python share_site.py  → git add docs share_site.py && git commit && git push  (Pages 소스 = main 브랜치 /docs)
+       python share_site.py --html  → 화면(index.html)만 다시 만든다(숫자는 그대로, 서버 불필요)
 """
 import datetime
 import json
@@ -148,15 +149,23 @@ def build():
     for sub in ("vendor", "avatars"):
         shutil.copytree(ROOT / "static" / sub, OUT / "static" / sub, dirs_exist_ok=True)
     (OUT / ".nojekyll").write_text("", encoding="utf-8")
+    write_html(at)
+    print(f"주소 {len(snap)}개 · 백테스트 {len(runs)}개 · 전체 비교 {len(alls)}개 → {OUT} ({at})")
+
+
+def write_html(at: str):
     html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     html = rep(html, '<span class="org">한화생명</span>', "")
     html = rep(html, '<script src="static/vendor/purify.min.js"></script>', '<script src="static/vendor/purify.min.js"></script>\n' + SHIM)
     html = rep(html, "<main>", "<main>\n" + NOTE.format(at=at))
     (OUT / "index.html").write_text(html, encoding="utf-8")
-    print(f"주소 {len(snap)}개 · 백테스트 {len(runs)}개 · 전체 비교 {len(alls)}개 → {OUT} ({at})")
 
 
 if __name__ == "__main__":
     if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    build()
+    if "--html" in sys.argv:   # 화면만 — 기준 시각은 이미 만든 snap.json 그대로
+        write_html(json.loads((OUT / "snap.json").read_text(encoding="utf-8"))["at"])
+        print("화면만 다시 만듦 →", OUT / "index.html")
+    else:
+        build()

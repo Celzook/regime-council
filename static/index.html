@@ -433,6 +433,41 @@
   .fbar .track { position:relative; height:6px; border-radius:3px; background:rgba(118,118,128,.12); }
   .fbar i { position:absolute; left:0; top:0; bottom:0; border-radius:3px; background:var(--ink2); }
   .fbar b { text-align:right; font-weight:600; font-variant-numeric:tabular-nums; }
+  /* 유니버스 시트 — 결론 → 핵심 숫자 4개 → 상위 10종목(한 줄, 누르면 펼침) */
+  .fs-pills { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }
+  .fs-pill { display:inline-flex; align-items:center; padding:6px 13px; border-radius:99px; font-size:14px; font-weight:650; background:rgba(118,118,128,.1); color:var(--ink); }
+  .fs-pill.cheap { background:var(--watch-bg); color:var(--watch); } .fs-pill.rich { background:var(--warn-bg); color:var(--warn); }
+  .fs-pill.up { background:var(--ok-bg); color:var(--ok); } .fs-pill.down { background:var(--halt-bg); color:var(--halt); }
+  .fs-say { margin:0; font-size:15px; line-height:1.7; color:var(--ink2); max-width:760px; }
+  .fs-kpis { display:grid; grid-template-columns:repeat(4,1fr); margin:22px 0 8px; padding:18px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
+  .fs-kpi { padding:0 20px; border-left:1px solid var(--hair); min-width:0; } .fs-kpi:first-child { padding-left:0; border-left:none; }
+  .fs-kpi .v { font-size:28px; font-weight:700; letter-spacing:-.03em; line-height:1.2; font-variant-numeric:tabular-nums; }
+  .fs-kpi .v small { font-size:15px; font-weight:600; color:var(--muted); margin-left:2px; }
+  .fs-kpi .l { font-size:12.5px; color:var(--muted); margin-top:3px; }
+  .fs-cols, .fs-row { display:grid; grid-template-columns:20px minmax(0,1.5fr) minmax(110px,1fr) 118px 76px 14px; gap:14px; align-items:center; }
+  .fs-cols { padding:14px 8px 6px; font-size:12px; color:var(--muted); } .fs-cols .r { text-align:right; }
+  .fs-row { padding:11px 8px; border-top:1px solid var(--hair); border-radius:10px; cursor:pointer; transition:background .15s; }
+  .fs-row:hover { background:rgba(118,118,128,.06); } .fs-row:focus-visible { outline:2px solid var(--brand); outline-offset:-2px; }
+  .fs-row .rk { font-size:12px; color:var(--muted); text-align:right; font-variant-numeric:tabular-nums; }
+  .fs-row .nm b { display:block; font-size:14.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fs-row .nm span { font-size:12px; color:var(--muted); }
+  .fs-row .wt { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink2); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .fs-row .wt i { flex:none; height:6px; border-radius:3px; background:var(--ink2); opacity:.45; }
+  .fs-row .pe { text-align:right; font-size:14px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .fs-row .pe em { font-style:normal; color:var(--muted); margin:0 4px; }
+  .fs-row .g { text-align:right; font-size:14px; font-weight:650; font-variant-numeric:tabular-nums; }
+  .fs-row .chev { color:var(--muted); transition:transform .2s; } .fs-row.open .chev { transform:rotate(90deg); }
+  .fs-row .loss { color:var(--halt); font-size:13px; font-weight:600; }
+  .fs-more { display:none; flex-wrap:wrap; gap:6px; padding:0 8px 12px 42px; }
+  .fs-row.open + .fs-more { display:flex; }
+  .fs-more span { font-size:12.5px; color:var(--ink2); background:rgba(118,118,128,.08); border-radius:8px; padding:3px 9px; }
+  .fs-more span b { font-weight:600; color:var(--ink); }
+  .fs-foot { font-size:12px; color:var(--muted); margin:8px 8px 0; }
+  @media (max-width:680px){
+    .fs-kpis { grid-template-columns:repeat(2,1fr); row-gap:16px; } .fs-kpi:nth-child(3) { padding-left:0; border-left:none; }
+    .fs-cols, .fs-row { grid-template-columns:16px minmax(0,1fr) 104px 60px 12px; gap:10px; } .fs-cols .wt, .fs-row .wt { display:none; }
+    .fs-more { padding-left:34px; }
+  }
   /* ── 백테스트 — macOS 설정 앱처럼: 왼쪽 전략 목록 · 오른쪽 상세(이름 → 설정 묶음 → 기간 묶음 → 실행) ── */
   .btlayout { display:grid; grid-template-columns:236px minmax(0,1fr); gap:20px; align-items:start; } .btlayout > * { min-width:0; } .btlayout[hidden] { display:none; }
   .btlist { position:sticky; top:72px; padding:10px 8px; max-height:calc(100vh - 96px); overflow-y:auto; scrollbar-width:thin; }
@@ -1344,45 +1379,61 @@ function renderFund(){
       return xs.length ? `<tr class="grp"><td colspan="8"><b>${esc(g.name)}</b> <span class="kv">${esc(g.examples)}</span></td></tr>` + xs.map(row).join('') : ''; }).join('')}</table></div>`;
   $('eqFundNote').textContent = d.notes.join(' ');
 }
+// 쉬운 말 두 문장 — 지금 가격 수준(시장 대비), 1년 뒤 이익 전망
+function fundStory(x){
+  const out = [], vs = x.vs, stock = x.kind === 'nv_stock', g = x.growth;
+  if(x.no_per) out.push(`${x.no_per}. 배당수익률은 ${num(x.div, 1)}%입니다.`);
+  else if(x.per) out.push(`이익 대비 가격(PER)이 ${num(x.per, 1)}배로, ` + (!vs ? '다른 항목을 비교하는 기준 시장입니다.'
+    : vs.word === '비슷' ? `${vs.ref_name}(${num(vs.ref_per, 1)}배)과 비슷합니다.`
+    : `${vs.ref_name}(${num(vs.ref_per, 1)}배)보다 ${Math.abs(vs.diff)}% ${vs.word === '쌈' ? '낮습니다' : '높습니다'}.`));
+  if(g !== null && g !== undefined && x.fper) out.push(`${stock ? '애널리스트 예상으로는' : '상위 10종목은'} 1년 뒤 이익이 ${Math.abs(Math.round(g))}% ${g >= 0 ? '늘어날' : '줄어들'} 것으로 보여, 그 이익 기준 PER은 ${num(x.fper, 1)}배입니다.`);
+  return out;
+}
 function openFund(key){
   const x = (FUND.items || []).find(i => i.key === key); if(!x) return;
-  const b = x.basket || {}, stock = x.kind === 'nv_stock', g = x.growth;
-  const tile = (l, v, sub) => `<div class="vtile"><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div><div class="s">${esc(sub || '')}</div></div>`;
-  const tiles = stock ? [
-    tile('PER', ft(x.per), `EPS ${money(x.eps, x.ccy)}${x.eps_asof ? ` · ${x.eps_asof} 실적` : ''}`),
-    tile('추정 PER', ft(x.fper), `추정 EPS ${money(x.feps, x.ccy)}`),
-    tile('이익 증가 예상', g === null || g === undefined ? '-' : sg(g, 0) + '%', '추정 EPS ÷ EPS − 1'),
-    tile('PBR', ft(x.pbr, '배', 2), `BPS ${money(x.bps, x.ccy)} · ROE ${ft(x.roe, '%')}`),
-    tile('배당', ft(x.div, '%', 2), x.dps ? `주당 ${money(x.dps, x.ccy)}` : ''),
-  ] : [
-    tile('PER', x.no_per ? '-' : ft(x.per), x.no_per || x.per_src || `${x.code} 전체 보유 기준`),
-    tile('선행 PER', ft(x.fper), b.per && x.kind !== 'nv_etf' ? `상위 10종목 묶음 · 지금 ${num(b.per, 1)}배` : '상위 10종목 묶음'),
-    tile('이익 증가 예상', g === null || g === undefined ? '-' : sg(g, 0) + '%', '상위 10종목 묶음'),
-    x.index_eps ? tile('지수 EPS (환산)', num(x.index_eps, 0), `지수 ${num(x.index_last, 0)} ÷ PER`) : tile('PBR', ft(x.pbr, '배', 2), x.kind === 'nv_etf' ? '상위 10종목 묶음' : ''),
-    tile('배당', ft(x.div, '%', 2), x.fee !== null && x.fee !== undefined ? `보수 연 ${num(x.fee, 2)}%` : ''),
-  ];
-  const hs = x.holdings || [], byM = x.holdings_by === 'mcap';
-  const htab = hs.length ? `<div class="section-label">${byM ? '시가총액 상위 10종목' : '상위 10종목'}</div>
-    <div class="tscroll"><table class="btable eqt"><tr><th>종목</th><th class="num">${byM ? '시가총액' : '비중'}</th><th class="num">PER</th><th class="num">선행 PER</th>
-      <th class="num">EPS</th><th class="num">선행 EPS</th><th class="num">이익 증가</th><th class="num">PBR</th><th class="num">배당</th></tr>
-    ${hs.map(h => `<tr${h.error ? ` data-tip="${esc('데이터 없음: ' + h.error)}"` : ''}><td class="nm"><b>${esc(h.name || h.code)}</b><span>${esc(h.code)}${h.sector ? ' · ' + esc(h.sector) : ''}</span></td>
-      <td class="num">${byM ? bigMoney(h.mcap, h.ccy) : fh(h.w, '%', 1)}</td><td class="num">${fh(h.per)}</td><td class="num">${fh(h.fper)}</td>
-      <td class="num">${money(h.eps, h.ccy)}</td><td class="num">${money(h.feps, h.ccy)}</td><td class="num">${pc(h.growth, 0)}</td>
-      <td class="num">${fh(h.pbr, '배', 2)}</td><td class="num">${fh(h.div, '%', 1)}</td></tr>`).join('')}</table></div>
-    <div class="kv" style="margin-top:6px">${x.top_w ? `상위 10종목 = 전체의 ${num(x.top_w, 0)}% · ` : ''}묶음 PER ${ft(b.per)} → 선행 ${ft(b.fper)}${b.cover !== null && b.cover !== undefined && b.cover < 100 ? ` (적자·자료 없는 종목 빼고 ${b.cover}%)` : ''} · 묶음 = 비중만큼 산 바구니의 시가총액 ÷ 이익 · EPS 는 각 종목 통화</div>` : '';
+  const stock = x.kind === 'nv_stock', g = x.growth, vs = x.vs;
+  const pills = [
+    vs && [vs.word === '쌈' ? 'cheap' : vs.word === '비쌈' ? 'rich' : '', vs.word === '비슷' ? `${vs.ref_name}과 비슷` : `${vs.ref_name}보다 ${Math.abs(vs.diff)}% ${vs.word}`],
+    g !== null && g !== undefined && [g >= 0 ? 'up' : 'down', `이익 ${sg(g, 0)}% 예상`],
+    x.no_per && x.div !== null && x.div !== undefined && ['', `배당 ${num(x.div, 1)}%`],
+  ].filter(Boolean);
+  const kpi = (v, d, unit, label) => `<div class="fs-kpi"><div class="v">${v === null || v === undefined ? '–' : num(v, d) + `<small>${unit}</small>`}</div><div class="l">${esc(label)}</div></div>`;
+  const kpis = [kpi(x.no_per ? null : x.per, 1, '배', '이익 대비 가격 (PER)'), kpi(x.fper, 1, '배', stock ? '1년 뒤 예상 이익 기준' : '1년 뒤 이익 기준 · 상위 10종목'),
+    kpi(x.pbr, 2, '배', '장부가치 대비 (PBR)'), kpi(x.div, 2, '%', '배당수익률')].join('');
+  // 상위 10종목 — 한 줄에 이름·비중·PER→1년 뒤·이익 증가, 누르면 나머지
+  const hs = x.holdings || [], byM = x.holdings_by === 'mcap', wv = h => (byM ? h.mcap : h.w) || 0, maxW = Math.max(1e-9, ...hs.map(wv));
+  const pe = h => h.per ? `${num(h.per, 1)}<em>→</em>${h.fper ? num(h.fper, 1) : '–'}배`
+    : (h.eps !== null && h.eps !== undefined && h.eps < 0) ? '<span class="loss">적자</span>' : '<span class="kv">–</span>';
+  const gr = h => h.growth === null || h.growth === undefined ? '<span class="kv">–</span>' : `<span class="${h.growth >= 0 ? 'pos' : 'neg'}">${sg(h.growth, 0)}%</span>`;
+  const more = h => [h.eps !== null && h.eps !== undefined && `EPS <b>${money(h.eps, h.ccy)}</b> → 1년 뒤 <b>${money(h.feps, h.ccy)}</b>`,
+    h.pbr && `PBR <b>${num(h.pbr, 2)}배</b>`, h.div !== null && h.div !== undefined && `배당 <b>${num(h.div, 1)}%</b>`,
+    h.mcap && `시가총액 <b>${bigMoney(h.mcap, h.ccy)}</b>`, h.sector && `업종 ${esc(h.sector)}`, h.error && '일부 데이터 없음'].filter(Boolean);
+  const list = hs.length ? `<div class="section-label">${byM ? '시가총액 상위 10종목' : '상위 10종목'}</div>
+    <div class="fs-cols"><span></span><span>종목</span><span class="wt">${byM ? '시가총액' : '비중'}</span><span class="r">PER → 1년 뒤</span><span class="r">이익 증가</span><span></span></div>
+    ${hs.map((h, k) => `<div class="fs-row" role="button" tabindex="0" aria-expanded="false" onclick="fsToggle(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();fsToggle(this)}">
+      <span class="rk">${k + 1}</span><div class="nm"><b>${esc(h.name || h.code)}</b><span>${esc(h.code)}</span></div>
+      <div class="wt"><i style="width:${Math.max(3, Math.round(wv(h) / maxW * 56))}px"></i>${byM ? bigMoney(h.mcap, h.ccy) : (h.w === null || h.w === undefined ? '–' : num(h.w, 1) + '%')}</div>
+      <div class="pe">${pe(h)}</div><div class="g">${gr(h)}</div><span class="chev">›</span></div>
+      <div class="fs-more">${more(h).map(m => `<span>${m}</span>`).join('')}</div>`).join('')}
+    <div class="fs-foot">${x.top_w ? `이 10종목이 전체의 ${num(x.top_w, 0)}% · ` : ''}줄을 누르면 EPS·PBR·시가총액 · 1년 뒤 = 애널리스트 예상 · EPS 는 각 종목 통화</div>` : '';
   const secs = (x.sectors || []).filter(z => z.w >= 0.5);
-  const facts = [x.issuer && `운용사 ${x.issuer}`, x.base_index && `기초지수 ${x.base_index}`, x.category && `분류 ${x.category}`,
-    x.aum && `순자산 ${bigMoney(x.aum, x.ccy)}`, stock && x.mcap && `시가총액 ${bigMoney(x.mcap, 'KRW')}`, stock && x.foreign && `외국인 보유 ${x.foreign}`,
+  const facts = [stock && x.eps !== null && x.eps !== undefined && `EPS ${money(x.eps, x.ccy)} → 1년 뒤 ${money(x.feps, x.ccy)}${x.eps_asof ? ` (${x.eps_asof} 실적)` : ''}`,
+    stock && x.bps && `BPS ${money(x.bps, x.ccy)} · ROE ${ft(x.roe, '%')}`, stock && x.mcap && `시가총액 ${bigMoney(x.mcap, 'KRW')}`, stock && x.foreign && `외국인 보유 ${x.foreign}`,
+    x.index_eps && `지수 EPS(환산) ${num(x.index_eps, 0)} = 지수 ${num(x.index_last, 0)} ÷ PER`,
+    x.issuer && `운용사 ${x.issuer}`, x.base_index && `기초지수 ${x.base_index}`, x.category && `분류 ${x.category}`,
+    x.fee !== null && x.fee !== undefined && `보수 연 ${num(x.fee, 2)}%`, x.aum && `순자산 ${bigMoney(x.aum, x.ccy)}`,
     `출처 ${x.src}${x.code ? ' · ' + x.code : ''}`, `${FUND.generated_at.replace('T', ' ').slice(5, 16)} 기준`].filter(Boolean);
-  $('boxTitle').textContent = x.name; $('boxTitle').style.fontSize = '22px'; $('boxBody').className = '';   // 마크다운 표 스타일을 끈다
+  $('boxTitle').textContent = x.name; $('boxTitle').style.fontSize = '24px'; $('boxBody').className = '';   // 마크다운 표 스타일을 끈다
   $('boxBody').innerHTML = `${x.memo ? `<div class="fsub">${esc(x.memo)}</div>` : ''}
-    <div class="vd-head"><span class="vd-dot ${x.vs ? (x.vs.word === '쌈' ? 'good' : x.vs.word === '비쌈' ? 'warn' : '') : ''}"></span><div>${esc(x.say)}</div></div>
-    <div class="vtiles" style="--n:5">${tiles.join('')}</div>${htab}
+    ${pills.length ? `<div class="fs-pills">${pills.map(([c, t]) => `<span class="fs-pill ${c}">${esc(t)}</span>`).join('')}</div>` : ''}
+    <p class="fs-say">${fundStory(x).map(esc).join(' ') || esc(x.say)}</p>
+    <div class="fs-kpis">${kpis}</div>${list}
     ${secs.length ? `<div class="section-label">업종 비중</div><div class="fbars">${secs.map(z => `<div class="fbar"><span>${esc(z.name)}</span><div class="track"><i style="width:${Math.min(100, z.w)}%"></i></div><b>${num(z.w, 1)}%</b></div>`).join('')}</div>` : ''}
     <div class="section-label">기본 정보</div><div class="factchips">${facts.map(f => `<span>${esc(f)}</span>`).join('')}</div>
     ${x.error ? `<div class="callout warn" style="margin-top:12px">받기 실패: ${esc(x.error)}</div>` : ''}`;
-  $('overlay').classList.add('show');
+  $('overlay').classList.add('show'); $('box').scrollTop = 0;
 }
+function fsToggle(el){ const on = el.classList.toggle('open'); el.setAttribute('aria-expanded', on); }
 $('btnFund').onclick = async () => { try { const j = await api('/api/equity/fund/refresh', {method: 'POST'}); pollJob(j.job_id, '유니버스 PER·EPS', () => loadFund()); } catch(e){ alert(e.message); } };
 $('btnEq').onclick = async () => { try { const j = await api('/api/equity/refresh', {method: 'POST'}); pollJob(j.job_id, '주식 데이터', () => loadEquity()); } catch(e){ alert(e.message); } };
 
