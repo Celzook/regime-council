@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="FX">
+  <defs>
+    <clipPath id="orb"><circle cx="48" cy="48" r="47"/></clipPath>
+    <filter id="mesh" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="11"/></filter>
+    <radialGradient id="spec" cx="32%" cy="20%" r="58%">
+      <stop offset="0" stop-color="#fff" stop-opacity=".72"/>
+      <stop offset=".42" stop-color="#fff" stop-opacity=".1"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="shade" cx="50%" cy="46%" r="54%">
+      <stop offset=".7" stop-color="#2a0a6b" stop-opacity="0"/>
+      <stop offset="1" stop-color="#2a0a6b" stop-opacity=".32"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#fff" stop-opacity=".12"/>
+    </linearGradient>
+    <filter id="lift" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="1.6" stdDeviation="1.8" flood-color="#2a0a6b" flood-opacity=".38"/>
+    </filter>
+  </defs>
+  <g clip-path="url(#orb)">
+    <rect width="96" height="96" fill="#8a4dff"/>
+    <g filter="url(#mesh)">
+      <circle cx="16" cy="18" r="34" fill="#cdb4ff"/>
+      <circle cx="86" cy="24" r="30" fill="#d07bff"/>
+      <circle cx="76" cy="88" r="38" fill="#ff5fb0"/>
+      <circle cx="12" cy="86" r="26" fill="#6a5cff"/>
+    </g>
+    <circle cx="48" cy="48" r="47" fill="url(#shade)"/>
+    <circle cx="48" cy="48" r="47" fill="url(#spec)"/>
+  </g>
+  <circle cx="48" cy="48" r="46.4" fill="none" stroke="url(#rim)" stroke-width="1.2"/>
+  <!-- 글리프: 순환 화살표(환전) -->
+  <g filter="url(#lift)" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M29.65 43.08 A19 19 0 0 1 66.35 43.08"/>
+    <path d="M69.3 36.7 L66.35 43.08 L60.6 39.1"/>
+    <path d="M66.35 52.92 A19 19 0 0 1 29.65 52.92"/>
+    <path d="M26.7 59.3 L29.65 52.92 L35.4 56.9"/>
+  </g>
+</svg>

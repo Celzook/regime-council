@@ -1,0 +1,538 @@
+{
+ "meta": {
+  "title": "주식 — 유니버스 항목별 데이터 연결과 전략 준비 상태",
+  "note": "공개 데이터(yfinance, 현지 통화 기준)로 대시보드를 채운다. 스타일·팩터·섹터는 데이터가 있는 미국 ETF 중심, 국내는 있는 것만. 미연결 항목은 인포맥스 연결 후 채운다.",
+  "as_of": "2026-10-22"
+ },
+ "groups": [
+  "국내",
+  "선진국",
+  "신흥국",
+  "스타일·팩터",
+  "섹터·테마",
+  "우선주",
+  "변동성"
+ ],
+ "series": [
+  {
+   "key": "kospi",
+   "name": "KOSPI",
+   "short": "한국",
+   "ticker": "^KS11",
+   "item": "PV-EQ-01",
+   "group": "국내"
+  },
+  {
+   "key": "kospi200",
+   "name": "KOSPI200 (대형주, KODEX 200)",
+   "short": "한국 대형주",
+   "ticker": "069500.KS",
+   "item": "PV-EQ-01",
+   "group": "국내",
+   "note": "지수 이력이 공개 데이터에 없어 같은 지수를 따라가는 KODEX 200 으로 대신(배당 재투자 반영)"
+  },
+  {
+   "key": "kosdaq",
+   "name": "KOSDAQ (중소형주 대용)",
+   "short": "코스닥",
+   "ticker": "^KQ11",
+   "item": "PV-EQ-01",
+   "group": "국내",
+   "bench": "kospi200",
+   "note": "중소형주 지수는 공개 데이터에 없어 KOSDAQ 으로 대신"
+  },
+  {
+   "key": "sp500",
+   "name": "S&P500",
+   "short": "미국",
+   "ticker": "^GSPC",
+   "item": "PV-EQ-02",
+   "group": "선진국"
+  },
+  {
+   "key": "ndx",
+   "name": "나스닥100",
+   "short": "미국 기술주",
+   "ticker": "^NDX",
+   "item": "PV-EQ-02",
+   "group": "선진국",
+   "bench": "sp500"
+  },
+  {
+   "key": "sx5e",
+   "name": "유로스톡스50",
+   "short": "유럽",
+   "ticker": "^STOXX50E",
+   "item": "PV-EQ-02",
+   "group": "선진국"
+  },
+  {
+   "key": "nikkei",
+   "name": "닛케이225",
+   "short": "일본",
+   "ticker": "^N225",
+   "item": "PV-EQ-02",
+   "group": "선진국"
+  },
+  {
+   "key": "csi300",
+   "name": "중국 CSI300 (ETF)",
+   "short": "중국",
+   "ticker": "510300.SS",
+   "item": "PV-EQ-03",
+   "group": "신흥국",
+   "note": "지수 이력이 공개 데이터에 없어 CSI300 ETF(510300)로 대신"
+  },
+  {
+   "key": "hsi",
+   "name": "홍콩 항셍",
+   "short": "홍콩",
+   "ticker": "^HSI",
+   "item": "PV-EQ-03",
+   "group": "신흥국"
+  },
+  {
+   "key": "nifty",
+   "name": "인도 Nifty50",
+   "short": "인도",
+   "ticker": "^NSEI",
+   "item": "PV-EQ-03",
+   "group": "신흥국"
+  },
+  {
+   "key": "taiex",
+   "name": "대만 가권",
+   "short": "대만",
+   "ticker": "^TWII",
+   "item": "PV-EQ-03",
+   "group": "신흥국"
+  },
+  {
+   "key": "aaxj",
+   "name": "아시아(일본 제외) ETF",
+   "short": "아시아",
+   "ticker": "AAXJ",
+   "item": "PV-EQ-03",
+   "group": "신흥국"
+  },
+  {
+   "key": "eem",
+   "name": "신흥국 전체 ETF",
+   "short": "신흥국",
+   "ticker": "EEM",
+   "item": "PV-EQ-03",
+   "group": "신흥국"
+  },
+  {
+   "key": "f_div",
+   "name": "배당 (SCHD)",
+   "short": "배당",
+   "ticker": "SCHD",
+   "item": "PV-EQ-04",
+   "group": "스타일·팩터",
+   "bench": "sp500"
+  },
+  {
+   "key": "f_minvol",
+   "name": "저변동성 (USMV)",
+   "short": "저변동성",
+   "ticker": "USMV",
+   "item": "PV-EQ-04",
+   "group": "스타일·팩터",
+   "bench": "sp500"
+  },
+  {
+   "key": "f_quality",
+   "name": "퀄리티 (QUAL)",
+   "short": "퀄리티",
+   "ticker": "QUAL",
+   "item": "PV-EQ-04",
+   "group": "스타일·팩터",
+   "bench": "sp500"
+  },
+  {
+   "key": "f_value",
+   "name": "가치 (VLUE)",
+   "short": "가치",
+   "ticker": "VLUE",
+   "item": "PV-EQ-04",
+   "group": "스타일·팩터",
+   "bench": "sp500"
+  },
+  {
+   "key": "f_growth",
+   "name": "성장 (IWF)",
+   "short": "성장",
+   "ticker": "IWF",
+   "item": "PV-EQ-04",
+   "group": "스타일·팩터",
+   "bench": "sp500"
+  },
+  {
+   "key": "f_mom",
+   "name": "모멘텀 (MTUM)",
+   "short": "모멘텀",
+   "ticker": "MTUM",
+   "item": "PV-EQ-04",
+   "group": "스타일·팩터",
+   "bench": "sp500",
+   "note": "문서 예시 밖 — 참고용"
+  },
+  {
+   "key": "kr_div",
+   "name": "국내 고배당 (PLUS 고배당주)",
+   "short": "국내 고배당",
+   "ticker": "161510.KS",
+   "item": "PV-EQ-04",
+   "group": "스타일·팩터",
+   "bench": "kospi200"
+  },
+  {
+   "key": "s_fin_us",
+   "name": "미국 금융 (XLF)",
+   "short": "미국 금융",
+   "ticker": "XLF",
+   "item": "PV-EQ-05",
+   "group": "섹터·테마",
+   "bench": "sp500"
+  },
+  {
+   "key": "s_hc_us",
+   "name": "미국 헬스케어 (XLV)",
+   "short": "미국 헬스케어",
+   "ticker": "XLV",
+   "item": "PV-EQ-05",
+   "group": "섹터·테마",
+   "bench": "sp500"
+  },
+  {
+   "key": "s_tech_us",
+   "name": "미국 기술 (XLK)",
+   "short": "미국 기술",
+   "ticker": "XLK",
+   "item": "PV-EQ-05",
+   "group": "섹터·테마",
+   "bench": "sp500"
+  },
+  {
+   "key": "s_semi_us",
+   "name": "미국 반도체 (SOXX)",
+   "short": "미국 반도체",
+   "ticker": "SOXX",
+   "item": "PV-EQ-05",
+   "group": "섹터·테마",
+   "bench": "sp500"
+  },
+  {
+   "key": "s_energy_us",
+   "name": "미국 에너지 (XLE)",
+   "short": "미국 에너지",
+   "ticker": "XLE",
+   "item": "PV-EQ-05",
+   "group": "섹터·테마",
+   "bench": "sp500"
+  },
+  {
+   "key": "t_clean",
+   "name": "클린에너지 (ICLN)",
+   "short": "클린에너지",
+   "ticker": "ICLN",
+   "item": "PV-EQ-05",
+   "group": "섹터·테마",
+   "bench": "sp500",
+   "note": "인프라·에너지 전환"
+  },
+  {
+   "key": "t_infra",
+   "name": "미국 인프라 (PAVE)",
+   "short": "인프라",
+   "ticker": "PAVE",
+   "item": "PV-EQ-05",
+   "group": "섹터·테마",
+   "bench": "sp500",
+   "note": "인프라·에너지 전환"
+  },
+  {
+   "key": "s_bank_kr",
+   "name": "국내 은행 (KODEX 은행)",
+   "short": "국내 은행",
+   "ticker": "091170.KS",
+   "item": "PV-EQ-05",
+   "group": "섹터·테마",
+   "bench": "kospi200"
+  },
+  {
+   "key": "s_semi_kr",
+   "name": "국내 반도체 (KODEX 반도체)",
+   "short": "국내 반도체",
+   "ticker": "091160.KS",
+   "item": "PV-EQ-05",
+   "group": "섹터·테마",
+   "bench": "kospi200"
+  },
+  {
+   "key": "s_hc_kr",
+   "name": "국내 헬스케어 (KODEX 헬스케어)",
+   "short": "국내 헬스케어",
+   "ticker": "266420.KS",
+   "item": "PV-EQ-05",
+   "group": "섹터·테마",
+   "bench": "kospi200"
+  },
+  {
+   "key": "samsung",
+   "name": "삼성전자",
+   "short": "삼성전자",
+   "ticker": "005930.KS",
+   "item": "PV-EQ-06",
+   "group": "우선주"
+  },
+  {
+   "key": "samsung_pref",
+   "name": "삼성전자우",
+   "short": "삼성전자우",
+   "ticker": "005935.KS",
+   "item": "PV-EQ-06",
+   "group": "우선주",
+   "bench": "samsung"
+  },
+  {
+   "key": "pff",
+   "name": "미국 우선주 ETF (PFF)",
+   "short": "미국 우선주",
+   "ticker": "PFF",
+   "item": "PV-EQ-06",
+   "group": "우선주"
+  },
+  {
+   "key": "vix",
+   "name": "VIX (S&P500 변동성)",
+   "short": "VIX",
+   "ticker": "^VIX",
+   "item": "DV-FUT-05",
+   "group": "변동성",
+   "level": true
+  },
+  {
+   "key": "vxn",
+   "name": "VXN (나스닥100 변동성)",
+   "short": "VXN",
+   "ticker": "^VXN",
+   "item": "DV-FUT-05",
+   "group": "변동성",
+   "level": true
+  },
+  {
+   "key": "usdkrw",
+   "name": "USD/KRW",
+   "short": "원/달러",
+   "ticker": "KRW=X",
+   "item": null,
+   "group": null,
+   "note": "해외 지수의 원화 환산·환노출 계산용"
+  },
+  {
+   "key": "spy_tr",
+   "name": "SPY (S&P500 총수익)",
+   "short": "SPY",
+   "ticker": "SPY",
+   "item": null,
+   "group": null,
+   "note": "백테스트용 — S&P500 배당 재투자 수익"
+  },
+  {
+   "key": "us_cash",
+   "name": "미국 13주 국채금리",
+   "short": "^IRX",
+   "ticker": "^IRX",
+   "item": null,
+   "group": null,
+   "level": true,
+   "note": "백테스트용 — 미국 현금 수익률"
+  }
+ ],
+ "missing": [
+  {
+   "name": "VKOSPI (KOSPI200 변동성)",
+   "need": "지수 옵션 전략·변동성 판단",
+   "source": "인포맥스(지수 코드 VKOSPI) — 연결 예정"
+  },
+  {
+   "name": "VSTOXX",
+   "need": "유럽 변동성",
+   "source": "공개 데이터 없음 — 인포맥스·블룸버그"
+  },
+  {
+   "name": "KOSPI200·유로스톡스50 배당선물",
+   "need": "배당 관련 전략",
+   "source": "인포맥스·KRX"
+  },
+  {
+   "name": "국내 스타일·팩터 지수 (저변동성·퀄리티·가치·성장)",
+   "need": "국내 팩터 비교",
+   "source": "인포맥스(KRX 팩터 지수)"
+  },
+  {
+   "name": "지수 옵션 가격·내재변동성 이력",
+   "need": "옵션 전략 백테스트",
+   "source": "인포맥스·거래소 — 없으면 VIX·VKOSPI 로 근사"
+  },
+  {
+   "name": "주요 이벤트 일정 (FOMC·CPI·실적)",
+   "need": "이벤트 헤지",
+   "source": "인포맥스 캘린더(조회 방식) 또는 수작업 목록"
+  }
+ ],
+ "readiness_levels": {
+  "ready": "바로 가능 — 공개 데이터로 계산",
+  "proxy": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+  "need": "추가 데이터 필요"
+ },
+ "strategies": {
+  "EQ-FUT-01": {
+   "ready": "ready",
+   "data": [
+    "kospi200",
+    "sp500"
+   ],
+   "backtest": "선물 대신 지수 수익률. 흐름 점수에 따라 노출을 +/− 로 바꾸고 롤 비용은 연 0.3%p 가정"
+  },
+  "EQ-FUT-02": {
+   "ready": "ready",
+   "data": [
+    "sp500",
+    "kospi200",
+    "usdkrw"
+   ],
+   "backtest": "두 지수 수익률 차이(현지 통화). 환노출 손익은 원/달러로 따로 계산"
+  },
+  "EQ-FUT-03": {
+   "ready": "ready",
+   "data": [
+    "kospi200",
+    "sp500"
+   ],
+   "backtest": "노출 = 목표 변동성 ÷ 최근 60일 변동성(상한 100~150%)"
+  },
+  "EQ-FUT-04": {
+   "ready": "need",
+   "data": [
+    "kospi200",
+    "sp500"
+   ],
+   "backtest": "FOMC·CPI·실적 발표일 목록이 있어야 이벤트 전후 수익률을 계산할 수 있음"
+  },
+  "EQ-TRS-01": {
+   "ready": "proxy",
+   "data": [
+    "kospi200",
+    "sp500"
+   ],
+   "backtest": "지수 수익률 − 조달 금리(CD·SOFR) − 스프레드 가정"
+  },
+  "EQ-TRS-02": {
+   "ready": "proxy",
+   "data": [
+    "f_minvol",
+    "f_quality",
+    "f_div",
+    "sp500"
+   ],
+   "backtest": "미국 팩터 ETF 로 대신. 국내 팩터 지수는 인포맥스 연결 후"
+  },
+  "EQ-TRS-03": {
+   "ready": "proxy",
+   "data": [
+    "sp500",
+    "kospi200",
+    "vix"
+   ],
+   "backtest": "거래상대방 지수 대신 추세추종·테일헤지 규칙을 직접 계산"
+  },
+  "EQ-OPT-01": {
+   "ready": "proxy",
+   "data": [
+    "kospi200",
+    "sp500",
+    "vix"
+   ],
+   "backtest": "옵션 가격 이력이 없어 VIX(미국)·VKOSPI(인포맥스)를 내재변동성으로 써서 블랙숄즈로 옵션값 추정"
+  },
+  "EQ-OPT-02": {
+   "ready": "proxy",
+   "data": [
+    "kospi200",
+    "sp500",
+    "vix"
+   ],
+   "backtest": "보호적 풋과 같은 방식(풋 매수 + 콜 매도 가격 추정)"
+  },
+  "EQ-OPT-03": {
+   "ready": "proxy",
+   "data": [
+    "kospi200",
+    "sp500",
+    "vix"
+   ],
+   "backtest": "보호적 풋과 같은 방식(풋 스프레드 + 콜 매도)"
+  },
+  "EQ-OPT-04": {
+   "ready": "proxy",
+   "data": [
+    "kospi200",
+    "sp500",
+    "vix"
+   ],
+   "backtest": "보호적 풋과 같은 방식(OTM 콜 매도 프리미엄 추정)"
+  },
+  "EQ-OPT-05": {
+   "ready": "proxy",
+   "data": [
+    "kospi200",
+    "sp500",
+    "vix"
+   ],
+   "backtest": "단기 금리 + 콜 매수(블랙숄즈 추정)"
+  },
+  "EQ-OPT-06": {
+   "ready": "proxy",
+   "data": [
+    "kospi200",
+    "sp500",
+    "vix"
+   ],
+   "backtest": "콜 매수 + 상위 행사가 콜 매도(블랙숄즈 추정)"
+  },
+  "EQ-OPT-07": {
+   "ready": "need",
+   "data": [
+    "vix"
+   ],
+   "backtest": "VIX 선물 커브·옵션 가격이 필요(VIX 지수만으로는 베이시스를 반영할 수 없음)"
+  },
+  "EQ-STR-01": {
+   "ready": "proxy",
+   "data": [
+    "kospi200",
+    "vix"
+   ],
+   "backtest": "국고채 + 지수 콜옵션(블랙숄즈 추정), 참여율은 가정"
+  },
+  "EQ-STR-02": {
+   "ready": "proxy",
+   "data": [
+    "kospi200",
+    "sp500",
+    "sx5e"
+   ],
+   "backtest": "표준 스텝다운 조건(녹인 50~60%) 가정으로 과거 경로 재현"
+  },
+  "EQ-STR-03": {
+   "ready": "ready",
+   "data": [
+    "kospi200"
+   ],
+   "backtest": "CPPI 규칙(승수·하한)을 그대로 계산, 안전자산은 국고채 금리"
+  }
+ }
+}

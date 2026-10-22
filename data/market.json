@@ -1,0 +1,211 @@
+{
+ "meta": {
+  "generated_at": "2026-10-20T16:29:45+09:00",
+  "note": "모든 수치는 value/unit/as_of/source 묶음. 에이전트는 이 파일의 수치만 인용한다.",
+  "stale_fields": []
+ },
+ "rates_kr": {
+  "ktb_2y": {
+   "value": 3.797,
+   "unit": "%",
+   "as_of": "2026-10-20",
+   "source": "금융투자협회 채권정보센터 최종호가수익률 15:30 (국고채 2년)"
+  },
+  "ktb_3y": {
+   "value": 3.84,
+   "unit": "%",
+   "as_of": "2026-10-20",
+   "source": "금융투자협회 채권정보센터 최종호가수익률 15:30 (국고채 3년)"
+  },
+  "ktb_5y": {
+   "value": 3.99,
+   "unit": "%",
+   "as_of": "2026-10-20",
+   "source": "금융투자협회 채권정보센터 최종호가수익률 15:30 (국고채 5년)"
+  },
+  "ktb_10y": {
+   "value": 4.176,
+   "unit": "%",
+   "as_of": "2026-10-20",
+   "source": "금융투자협회 채권정보센터 최종호가수익률 15:30 (국고채 10년)"
+  },
+  "corp_aa_minus_3y": {
+   "value": 4.534,
+   "unit": "%",
+   "as_of": "2026-10-20",
+   "source": "금융투자협회 채권정보센터 최종호가수익률 15:30 (회사채 AA- 3년)"
+  },
+  "curve_3s10s_bp": {
+   "value": 33.6,
+   "unit": "bp",
+   "as_of": "2026-10-20",
+   "source": "계산(ktb_10y - ktb_3y)"
+  },
+  "spread_aa_minus_bp": {
+   "value": 69.4,
+   "unit": "bp",
+   "as_of": "2026-10-20",
+   "source": "계산(corp_aa_minus_3y - ktb_3y)"
+  }
+ },
+ "rates_us": {
+  "ust_2y": {
+   "value": 4.74,
+   "unit": "%",
+   "as_of": "2026-10-16",
+   "source": "FRED DGS2 (미국채 2년(CMT))"
+  },
+  "ust_10y": {
+   "value": 5.09,
+   "unit": "%",
+   "as_of": "2026-10-16",
+   "source": "FRED DGS10 (미국채 10년(CMT))"
+  },
+  "fed_funds": {
+   "value": 3.88,
+   "unit": "%",
+   "as_of": "2026-10-16",
+   "source": "FRED DFF (연방기금 실효금리)"
+  },
+  "breakeven_10y": {
+   "value": 2.35,
+   "unit": "%",
+   "as_of": "2026-10-19",
+   "source": "FRED T10YIE (미국 10년 기대인플레이션(BEI))"
+  },
+  "ust_2s10s_bp": {
+   "value": 35.0,
+   "unit": "bp",
+   "as_of": "2026-10-16",
+   "source": "계산(ust_10y - ust_2y)"
+  },
+  "kr_minus_us_10y_bp": {
+   "value": -91.4,
+   "unit": "bp",
+   "as_of": "2026-10-16",
+   "source": "계산(rates_kr.ktb_10y 2026-10-20 - rates_us.ust_10y 2026-10-16)"
+  }
+ },
+ "credit_us": {
+  "ig_oas_bp": {
+   "value": 85.0,
+   "unit": "bp",
+   "as_of": "2026-10-16",
+   "source": "FRED BAMLC0A0CM (ICE BofA 미국 IG OAS) ×100 bp 환산"
+  },
+  "hy_oas_bp": {
+   "value": 331.0,
+   "unit": "bp",
+   "as_of": "2026-10-16",
+   "source": "FRED BAMLH0A0HYM2 (ICE BofA 미국 HY OAS) ×100 bp 환산"
+  },
+  "ig_yield": {
+   "value": 5.86,
+   "unit": "%",
+   "as_of": "2026-10-16",
+   "source": "FRED BAMLC0A0CMEY (ICE BofA 미국 IG 유효수익률)"
+  },
+  "hy_yield": {
+   "value": 8.14,
+   "unit": "%",
+   "as_of": "2026-10-16",
+   "source": "FRED BAMLH0A0HYM2EY (ICE BofA 미국 HY 유효수익률)"
+  }
+ },
+ "fx": {
+  "usdkrw": {
+   "value": 1327.14,
+   "unit": "KRW",
+   "as_of": "2026-10-20",
+   "source": "yfinance KRW=X 종가 (USD/KRW)"
+  },
+  "dollar_index": {
+   "value": 101.76,
+   "unit": "pt",
+   "as_of": "2026-10-20",
+   "source": "yfinance DX-Y.NYB 종가 (달러인덱스(ICE))"
+  },
+  "usdjpy": {
+   "value": 158.08,
+   "unit": "JPY",
+   "as_of": "2026-10-20",
+   "source": "yfinance JPY=X 종가 (USD/JPY)"
+  },
+  "eurusd": {
+   "value": 1.1235,
+   "unit": "USD",
+   "as_of": "2026-10-20",
+   "source": "yfinance EURUSD=X 종가 (EUR/USD)"
+  },
+  "usdcny": {
+   "value": 6.6783,
+   "unit": "CNY",
+   "as_of": "2026-10-20",
+   "source": "yfinance CNY=X 종가 (USD/CNY)"
+  }
+ },
+ "equity": {
+  "kospi": {
+   "value": 5552.74,
+   "unit": "pt",
+   "as_of": "2026-10-20",
+   "source": "yfinance ^KS11 종가 (KOSPI)"
+  },
+  "kosdaq": {
+   "value": 781.97,
+   "unit": "pt",
+   "as_of": "2026-10-20",
+   "source": "yfinance ^KQ11 종가 (KOSDAQ)"
+  },
+  "sp500": {
+   "value": 7690.73,
+   "unit": "pt",
+   "as_of": "2026-10-19",
+   "source": "yfinance ^GSPC 종가 (S&P500)"
+  },
+  "nasdaq": {
+   "value": 26430.89,
+   "unit": "pt",
+   "as_of": "2026-10-19",
+   "source": "yfinance ^IXIC 종가 (나스닥 종합)"
+  },
+  "nikkei": {
+   "value": 64075.42,
+   "unit": "pt",
+   "as_of": "2026-10-20",
+   "source": "yfinance ^N225 종가 (닛케이225)"
+  },
+  "stoxx50": {
+   "value": 6104.54,
+   "unit": "pt",
+   "as_of": "2026-10-20",
+   "source": "yfinance ^STOXX50E 종가 (유로스톡스50)"
+  },
+  "eem": {
+   "value": 63.31,
+   "unit": "USD",
+   "as_of": "2026-10-19",
+   "source": "yfinance EEM 종가 (iShares MSCI EM ETF — 신흥국 지수 대용)"
+  },
+  "vix": {
+   "value": 18.44,
+   "unit": "pt",
+   "as_of": "2026-10-19",
+   "source": "yfinance ^VIX 종가 (VIX)"
+  }
+ },
+ "commodities": {
+  "wti": {
+   "value": 99.18,
+   "unit": "USD/bbl",
+   "as_of": "2026-10-20",
+   "source": "yfinance CL=F 종가 (WTI 근월물)"
+  },
+  "gold": {
+   "value": 4150.1,
+   "unit": "USD/oz",
+   "as_of": "2026-10-20",
+   "source": "yfinance GC=F 종가 (금 근월물)"
+  }
+ }
+}

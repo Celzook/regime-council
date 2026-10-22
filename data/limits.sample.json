@@ -1,0 +1,110 @@
+{
+ "meta": {
+  "version": "template",
+  "status": "가안 — 운용 개시 전 투자위원회에서 확정 필요 (한도 수치·소진율 단계·손절선·축소 기한)",
+  "as_of": "2026-10-22",
+  "loss_basis": "YTD 평가손익 기준, 환헤지 비용 차감 후. 레벨 내 순손익 상계 허용. 소진율 = max(0, -순손익)/한도 (이익이면 0%). 스트레스 후 소진율은 시나리오 손실에서 현재 순손익을 상계. reference=true 시나리오(S5)는 표시만 하고 최악·등급 판정에서 제외.",
+  "rationale": "예시 템플릿(가상 설정 Active 5,000억 기준): 전체 300억 = 운용 규모의 6%, 주식 160 / 채권 80 / 환 40, 미배분 20은 재배분 예비. 실제 수치는 투자위원회에서 확정.",
+  "warnings": [
+   "예시 수치 — 실제 운용 개시 전 투자위원회 확정값으로 교체.",
+   "rate_pnl_in_scope=false(ALM 보유분)는 금리 평가손익(pnl_rate_ytd_bn)을 손실한도·손절·스트레스 금리 충격에서 제외하고 스프레드 손익·충격만 포함 — ALM 듀레이션갭 한도로 별도 관리. 범위 확정은 투자위 사항."
+  ]
+ },
+ "total_limit_bn": 300,
+ "asset_limits_bn": {
+  "bond": 80,
+  "equity": 160,
+  "fx": 40
+ },
+ "unallocated_bn": 20,
+ "stages": {
+  "warn_pct": 50,
+  "reduce_pct": 75,
+  "halt_pct": 100
+ },
+ "stop_loss": {
+  "approach_ratio": 0.7,
+  "default_pct": {
+   "bond": -2.0,
+   "equity": -10.0,
+   "mixed": -2.0
+  },
+  "fx_open_default_pct": -6.0
+ },
+ "deadlines": {
+  "warn_response": "당일 17:00",
+  "reduce_days": 5
+ },
+ "staleness_tolerance_days": {
+  "bucket": 3,
+  "mandate": 10
+ },
+ "stress_scenarios": [
+  {
+   "id": "S0",
+   "name": "사이징 기준 (월 1σ, 역방향)",
+   "rate_bp": 30,
+   "spread_bp": 20,
+   "equity_pct": -7,
+   "usdkrw_pct": -4,
+   "sizing": true,
+   "desc": "국고 +30bp, 스프레드 +20bp, 주식 -7%, 원화 강세 4% — 축소·추가 가능 규모 산정용"
+  },
+  {
+   "id": "S1",
+   "name": "금리 급등 (인플레 재점화)",
+   "rate_bp": 60,
+   "spread_bp": 20,
+   "equity_pct": -8,
+   "usdkrw_pct": 3,
+   "desc": "국고 +60bp, 스프레드 +20bp, 주식 -8%, 원화 약세 3%"
+  },
+  {
+   "id": "S2",
+   "name": "신용 경색",
+   "rate_bp": -20,
+   "spread_bp": 60,
+   "equity_pct": -15,
+   "usdkrw_pct": 6,
+   "desc": "국고 -20bp, 스프레드 +60bp, 주식 -15%, 원화 약세 6%"
+  },
+  {
+   "id": "S3",
+   "name": "리스크오프 급락 (2020.3형)",
+   "rate_bp": -40,
+   "spread_bp": 40,
+   "equity_pct": -25,
+   "usdkrw_pct": 8,
+   "desc": "국고 -40bp, 스프레드 +40bp, 주식 -25%, 원화 약세 8%"
+  },
+  {
+   "id": "S4",
+   "name": "원화 급강세",
+   "rate_bp": 10,
+   "spread_bp": -5,
+   "equity_pct": 3,
+   "usdkrw_pct": -8,
+   "desc": "국고 +10bp, 스프레드 -5bp, 주식 +3%, 원화 강세 8% (환오픈분 손실)"
+  },
+  {
+   "id": "S5",
+   "name": "스태그플레이션 (severe, 참고)",
+   "rate_bp": 150,
+   "spread_bp": 80,
+   "equity_pct": -20,
+   "usdkrw_pct": 8,
+   "desc": "국고 +150bp, 스프레드 +80bp, 주식 -20%, 원화 약세 8%",
+   "reference": true
+  }
+ ],
+ "shock_triggers": {
+  "ktb_10y_daily_bp": 20,
+  "usdkrw_daily_pct": 2.0,
+  "vix_level": 30
+ },
+ "mp_band_pp": 2.0,
+ "overrides": {
+  "halted": [],
+  "reapproved": []
+ }
+}

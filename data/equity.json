@@ -1,0 +1,2178 @@
+{
+ "generated_at": "2026-10-22T11:05:31",
+ "price_dates": [
+  "2026-10-19",
+  "2026-10-22"
+ ],
+ "basis": "공개 데이터(yfinance) · 현지 통화 기준(환율 제외) · ETF 는 배당 재투자 반영 가격",
+ "verdict": "오르는 흐름: 미국·일본·대만 · 내리는 흐름: 한국·중국·인도 · 변동성(VIX 16.7) 보통",
+ "sub": "앞서는 스타일: 국내 고배당(+13.8%p) · 뒤처지는 스타일: 모멘텀(-5.5%p) / 앞서는 업종: 국내 헬스케어(+26.4%p) · 뒤처지는 업종: 클린에너지(-13.1%p)",
+ "tiles": [
+  {
+   "label": "한국 (KOSPI) 1개월",
+   "value": "-18.9%",
+   "tone": "bad",
+   "sub": "흐름 약세 · 1년 고점 대비 -37.6% · 10-22"
+  },
+  {
+   "label": "미국 (S&P500) 1개월",
+   "value": "-0.1%",
+   "tone": "bad",
+   "sub": "흐름 강세 · 1년 고점 대비 -0.8% · 10-21"
+  },
+  {
+   "label": "변동성 (VIX)",
+   "value": "16.7 · 보통",
+   "tone": "",
+   "sub": "지난 1년 중 아래에서 43% 위치 · 5년 중앙값 17.6"
+  },
+  {
+   "label": "앞서는 스타일 · 업종 (3개월, 시장 대비)",
+   "value": "국내 고배당 · 국내 헬스케어",
+   "tone": "good",
+   "sub": "+13.8%p · +26.4%p"
+  }
+ ],
+ "groups": [
+  {
+   "name": "국내",
+   "rows": [
+    {
+     "key": "kospi",
+     "name": "KOSPI",
+     "short": "한국",
+     "ticker": "^KS11",
+     "item": "PV-EQ-01",
+     "group": "국내",
+     "note": null,
+     "ok": true,
+     "last": 5688.21,
+     "as_of": "2026-10-22",
+     "r1d": 2.44,
+     "r1w": 2.41,
+     "r1m": -18.95,
+     "r3m": -16.32,
+     "r1y": 46.46,
+     "ytd": 34.98,
+     "dd52": -37.59,
+     "vol60": 63.1,
+     "score": -14.5,
+     "flow": "약세",
+     "tech": {
+      "score": -14.5,
+      "label": "약세",
+      "trend": -0.23,
+      "mom6": -0.12,
+      "mom1": -0.75,
+      "rsi": 32.4,
+      "ret_1m": -15.33,
+      "ret_3m": -16.6,
+      "ret_6m": -4.68,
+      "vol_ann": 54.9,
+      "dd_1y": -37.59
+     }
+    },
+    {
+     "key": "kospi200",
+     "name": "KOSPI200 (대형주, KODEX 200)",
+     "short": "한국 대형주",
+     "ticker": "069500.KS",
+     "item": "PV-EQ-01",
+     "group": "국내",
+     "note": "지수 이력이 공개 데이터에 없어 같은 지수를 따라가는 KODEX 200 으로 대신(배당 재투자 반영)",
+     "ok": true,
+     "last": 89225.0,
+     "as_of": "2026-10-22",
+     "r1d": -0.56,
+     "r1w": 2.53,
+     "r1m": -20.25,
+     "r3m": -17.46,
+     "r1y": 65.58,
+     "ytd": 47.63,
+     "dd52": -39.73,
+     "vol60": 75.0,
+     "score": -11.2,
+     "flow": "약세",
+     "tech": {
+      "score": -11.2,
+      "label": "약세",
+      "trend": -0.19,
+      "mom6": -0.07,
+      "mom1": -0.72,
+      "rsi": 32.8,
+      "ret_1m": -16.05,
+      "ret_3m": -14.11,
+      "ret_6m": -3.09,
+      "vol_ann": 60.9,
+      "dd_1y": -39.73
+     }
+    },
+    {
+     "key": "kosdaq",
+     "name": "KOSDAQ (중소형주 대용)",
+     "short": "코스닥",
+     "ticker": "^KQ11",
+     "item": "PV-EQ-01",
+     "group": "국내",
+     "note": "중소형주 지수는 공개 데이터에 없어 KOSDAQ 으로 대신",
+     "ok": true,
+     "last": 785.29,
+     "as_of": "2026-10-22",
+     "r1d": 0.42,
+     "r1w": 3.22,
+     "r1m": -5.88,
+     "r3m": 4.55,
+     "r1y": -10.68,
+     "ytd": -15.15,
+     "dd52": -35.96,
+     "vol60": 52.1,
+     "score": -38.0,
+     "flow": "매우 약세",
+     "tech": {
+      "score": -38.0,
+      "label": "매우 약세",
+      "trend": -0.43,
+      "mom6": -0.7,
+      "mom1": -0.26,
+      "rsi": 40.8,
+      "ret_1m": -3.76,
+      "ret_3m": -0.83,
+      "ret_6m": -30.0,
+      "vol_ann": 49.0,
+      "dd_1y": -35.96
+     },
+     "ex1m": 18.01,
+     "ex3m": 26.66,
+     "ex1y": -46.06,
+     "bench_name": "한국 대형주"
+    }
+   ]
+  },
+  {
+   "name": "선진국",
+   "rows": [
+    {
+     "key": "sp500",
+     "name": "S&P500",
+     "short": "미국",
+     "ticker": "^GSPC",
+     "item": "PV-EQ-02",
+     "group": "선진국",
+     "note": null,
+     "ok": true,
+     "last": 7757.1699,
+     "as_of": "2026-10-21",
+     "r1d": 0.58,
+     "r1w": 0.5,
+     "r1m": -0.1,
+     "r3m": 3.3,
+     "r1y": 15.17,
+     "ytd": 13.32,
+     "dd52": -0.79,
+     "vol60": 11.1,
+     "score": 41.8,
+     "flow": "강세",
+     "tech": {
+      "score": 41.8,
+      "label": "강세",
+      "trend": 0.52,
+      "mom6": 0.75,
+      "mom1": -0.03,
+      "rsi": 53.6,
+      "ret_1m": -0.1,
+      "ret_3m": 4.71,
+      "ret_6m": 8.68,
+      "vol_ann": 12.7,
+      "dd_1y": -0.79
+     }
+    },
+    {
+     "key": "ndx",
+     "name": "나스닥100",
+     "short": "미국 기술주",
+     "ticker": "^NDX",
+     "item": "PV-EQ-02",
+     "group": "선진국",
+     "note": null,
+     "ok": true,
+     "last": 29822.5176,
+     "as_of": "2026-10-21",
+     "r1d": 1.13,
+     "r1w": -0.43,
+     "r1m": -2.16,
+     "r3m": 2.29,
+     "r1y": 18.69,
+     "ytd": 18.11,
+     "dd52": -4.49,
+     "vol60": 18.4,
+     "score": 31.3,
+     "flow": "강세",
+     "tech": {
+      "score": 31.3,
+      "label": "강세",
+      "trend": 0.39,
+      "mom6": 0.64,
+      "mom1": -0.48,
+      "rsi": 46.2,
+      "ret_1m": -2.96,
+      "ret_3m": 4.81,
+      "ret_6m": 10.71,
+      "vol_ann": 19.8,
+      "dd_1y": -4.49
+     },
+     "ex1m": -2.07,
+     "ex3m": -0.98,
+     "ex1y": 3.05,
+     "bench_name": "미국"
+    },
+    {
+     "key": "sx5e",
+     "name": "유로스톡스50",
+     "short": "유럽",
+     "ticker": "^STOXX50E",
+     "item": "PV-EQ-02",
+     "group": "선진국",
+     "note": null,
+     "ok": true,
+     "last": 6121.6602,
+     "as_of": "2026-10-20",
+     "r1d": -0.38,
+     "r1w": -0.74,
+     "r1m": -1.84,
+     "r3m": -1.7,
+     "r1y": 7.76,
+     "ytd": 5.61,
+     "dd52": -6.56,
+     "vol60": 11.4,
+     "score": 9.2,
+     "flow": "중립",
+     "tech": {
+      "score": 9.2,
+      "label": "중립",
+      "trend": 0.02,
+      "mom6": 0.32,
+      "mom1": -0.6,
+      "rsi": 39.1,
+      "ret_1m": -3.11,
+      "ret_3m": -1.43,
+      "ret_6m": 3.65,
+      "vol_ann": 15.4,
+      "dd_1y": -6.56
+     }
+    },
+    {
+     "key": "nikkei",
+     "name": "닛케이225",
+     "short": "일본",
+     "ticker": "^N225",
+     "item": "PV-EQ-02",
+     "group": "선진국",
+     "note": null,
+     "ok": true,
+     "last": 64394.8281,
+     "as_of": "2026-10-22",
+     "r1d": 0.5,
+     "r1w": -0.05,
+     "r1m": -0.96,
+     "r3m": -2.6,
+     "r1y": 30.6,
+     "ytd": 27.92,
+     "dd52": -11.02,
+     "vol60": 26.9,
+     "score": 30.6,
+     "flow": "강세",
+     "tech": {
+      "score": 30.6,
+      "label": "강세",
+      "trend": 0.19,
+      "mom6": 0.5,
+      "mom1": 0.09,
+      "rsi": 41.1,
+      "ret_1m": 0.74,
+      "ret_3m": -3.65,
+      "ret_6m": 11.26,
+      "vol_ann": 29.1,
+      "dd_1y": -11.02
+     }
+    }
+   ]
+  },
+  {
+   "name": "신흥국",
+   "rows": [
+    {
+     "key": "csi300",
+     "name": "중국 CSI300 (ETF)",
+     "short": "중국",
+     "ticker": "510300.SS",
+     "item": "PV-EQ-03",
+     "group": "신흥국",
+     "note": "지수 이력이 공개 데이터에 없어 CSI300 ETF(510300)로 대신",
+     "ok": true,
+     "last": 4.14,
+     "as_of": "2026-10-22",
+     "r1d": -1.9,
+     "r1w": -2.4,
+     "r1m": -10.25,
+     "r3m": -13.12,
+     "r1y": -9.53,
+     "ytd": -10.63,
+     "dd52": -18.68,
+     "vol60": 15.0,
+     "score": -50.0,
+     "flow": "매우 약세",
+     "tech": {
+      "score": -50.0,
+      "label": "매우 약세",
+      "trend": -0.65,
+      "mom6": -0.75,
+      "mom1": -0.95,
+      "rsi": 16.4,
+      "ret_1m": -9.05,
+      "ret_3m": -12.9,
+      "ret_6m": -12.14,
+      "vol_ann": 17.5,
+      "dd_1y": -18.68
+     }
+    },
+    {
+     "key": "hsi",
+     "name": "홍콩 항셍",
+     "short": "홍콩",
+     "ticker": "^HSI",
+     "item": "PV-EQ-03",
+     "group": "신흥국",
+     "note": null,
+     "ok": true,
+     "last": 23218.8203,
+     "as_of": "2026-10-22",
+     "r1d": -2.72,
+     "r1w": -3.51,
+     "r1m": -7.45,
+     "r3m": -6.72,
+     "r1y": -9.94,
+     "ytd": -9.41,
+     "dd52": -16.98,
+     "vol60": 15.4,
+     "score": -44.1,
+     "flow": "매우 약세",
+     "tech": {
+      "score": -44.1,
+      "label": "매우 약세",
+      "trend": -0.48,
+      "mom6": -0.71,
+      "mom1": -0.81,
+      "rsi": 30.1,
+      "ret_1m": -6.19,
+      "ret_3m": -6.72,
+      "ret_6m": -11.92,
+      "vol_ann": 18.8,
+      "dd_1y": -16.98
+     }
+    },
+    {
+     "key": "nifty",
+     "name": "인도 Nifty50",
+     "short": "인도",
+     "ticker": "^NSEI",
+     "item": "PV-EQ-03",
+     "group": "신흥국",
+     "note": null,
+     "ok": true,
+     "last": 22888.9492,
+     "as_of": "2026-10-19",
+     "r1d": -1.11,
+     "r1w": 2.35,
+     "r1m": -1.96,
+     "r3m": -5.94,
+     "r1y": -10.97,
+     "ytd": -12.4,
+     "dd52": -13.06,
+     "vol60": 11.7,
+     "score": -38.3,
+     "flow": "매우 약세",
+     "tech": {
+      "score": -38.3,
+      "label": "매우 약세",
+      "trend": -0.41,
+      "mom6": -0.55,
+      "mom1": -0.39,
+      "rsi": 47.7,
+      "ret_1m": -1.64,
+      "ret_3m": -5.57,
+      "ret_6m": -6.01,
+      "vol_ann": 13.7,
+      "dd_1y": -13.06
+     }
+    },
+    {
+     "key": "taiex",
+     "name": "대만 가권",
+     "short": "대만",
+     "ticker": "^TWII",
+     "item": "PV-EQ-03",
+     "group": "신흥국",
+     "note": null,
+     "ok": true,
+     "last": 46941.1094,
+     "as_of": "2026-10-22",
+     "r1d": 1.4,
+     "r1w": -0.06,
+     "r1m": -1.8,
+     "r3m": 4.72,
+     "r1y": 69.78,
+     "ytd": 62.07,
+     "dd52": -5.78,
+     "vol60": 27.2,
+     "score": 57.3,
+     "flow": "강세",
+     "tech": {
+      "score": 57.3,
+      "label": "강세",
+      "trend": 0.6,
+      "mom6": 0.89,
+      "mom1": 0.18,
+      "rsi": 45.4,
+      "ret_1m": 1.41,
+      "ret_3m": 6.12,
+      "ret_6m": 27.01,
+      "vol_ann": 27.1,
+      "dd_1y": -5.78
+     }
+    },
+    {
+     "key": "aaxj",
+     "name": "아시아(일본 제외) ETF",
+     "short": "아시아",
+     "ticker": "AAXJ",
+     "item": "PV-EQ-03",
+     "group": "신흥국",
+     "note": null,
+     "ok": true,
+     "last": 108.84,
+     "as_of": "2026-10-20",
+     "r1d": -0.17,
+     "r1w": -4.21,
+     "r1m": -6.37,
+     "r3m": -1.28,
+     "r1y": 17.42,
+     "ytd": 17.3,
+     "dd52": -12.37,
+     "vol60": 22.6,
+     "score": 0.8,
+     "flow": "중립",
+     "tech": {
+      "score": 0.8,
+      "label": "중립",
+      "trend": -0.03,
+      "mom6": 0.16,
+      "mom1": -0.84,
+      "rsi": 33.2,
+      "ret_1m": -9.13,
+      "ret_3m": -3.48,
+      "ret_6m": 2.92,
+      "vol_ann": 26.0,
+      "dd_1y": -12.37
+     }
+    },
+    {
+     "key": "eem",
+     "name": "신흥국 전체 ETF",
+     "short": "신흥국",
+     "ticker": "EEM",
+     "item": "PV-EQ-03",
+     "group": "신흥국",
+     "note": null,
+     "ok": true,
+     "last": 63.32,
+     "as_of": "2026-10-20",
+     "r1d": 0.02,
+     "r1w": -3.68,
+     "r1m": -5.53,
+     "r3m": -0.38,
+     "r1y": 17.55,
+     "ytd": 16.34,
+     "dd52": -11.08,
+     "vol60": 22.1,
+     "score": -0.0,
+     "flow": "중립",
+     "tech": {
+      "score": -0.0,
+      "label": "중립",
+      "trend": -0.01,
+      "mom6": 0.13,
+      "mom1": -0.8,
+      "rsi": 35.1,
+      "ret_1m": -8.01,
+      "ret_3m": -2.57,
+      "ret_6m": 2.25,
+      "vol_ann": 25.2,
+      "dd_1y": -11.08
+     }
+    }
+   ]
+  },
+  {
+   "name": "스타일·팩터",
+   "rows": [
+    {
+     "key": "f_div",
+     "name": "배당 (SCHD)",
+     "short": "배당",
+     "ticker": "SCHD",
+     "item": "PV-EQ-04",
+     "group": "스타일·팩터",
+     "note": null,
+     "ok": true,
+     "last": 34.69,
+     "as_of": "2026-10-20",
+     "r1d": 1.31,
+     "r1w": 3.96,
+     "r1m": 3.82,
+     "r3m": 6.77,
+     "r1y": 33.04,
+     "ytd": 29.58,
+     "dd52": -0.69,
+     "vol60": 11.0,
+     "score": 61.4,
+     "flow": "강세",
+     "tech": {
+      "score": 61.4,
+      "label": "강세",
+      "trend": 0.75,
+      "mom6": 0.94,
+      "mom1": 0.82,
+      "rsi": 69.8,
+      "ret_1m": 3.7,
+      "ret_3m": 6.28,
+      "ret_6m": 13.77,
+      "vol_ann": 11.2,
+      "dd_1y": -0.69
+     },
+     "ex1m": 2.98,
+     "ex3m": 3.04,
+     "ex1y": 16.18,
+     "bench_name": "미국"
+    },
+    {
+     "key": "f_minvol",
+     "name": "저변동성 (USMV)",
+     "short": "저변동성",
+     "ticker": "USMV",
+     "item": "PV-EQ-04",
+     "group": "스타일·팩터",
+     "note": null,
+     "ok": true,
+     "last": 102.32,
+     "as_of": "2026-10-20",
+     "r1d": 1.04,
+     "r1w": 1.66,
+     "r1m": 3.99,
+     "r3m": 6.38,
+     "r1y": 9.73,
+     "ytd": 9.81,
+     "dd52": 0.0,
+     "vol60": 8.5,
+     "score": 58.9,
+     "flow": "강세",
+     "tech": {
+      "score": 58.9,
+      "label": "강세",
+      "trend": 0.69,
+      "mom6": 0.91,
+      "mom1": 0.87,
+      "rsi": 70.5,
+      "ret_1m": 3.28,
+      "ret_3m": 6.66,
+      "ret_6m": 9.45,
+      "vol_ann": 8.6,
+      "dd_1y": 0.0
+     },
+     "ex1m": 3.16,
+     "ex3m": 2.67,
+     "ex1y": -4.17,
+     "bench_name": "미국"
+    },
+    {
+     "key": "f_quality",
+     "name": "퀄리티 (QUAL)",
+     "short": "퀄리티",
+     "ticker": "QUAL",
+     "item": "PV-EQ-04",
+     "group": "스타일·팩터",
+     "note": null,
+     "ok": true,
+     "last": 225.69,
+     "as_of": "2026-10-20",
+     "r1d": 0.21,
+     "r1w": -0.62,
+     "r1m": 2.97,
+     "r3m": 4.26,
+     "r1y": 16.44,
+     "ytd": 14.32,
+     "dd52": -0.89,
+     "vol60": 9.3,
+     "score": 51.3,
+     "flow": "강세",
+     "tech": {
+      "score": 51.3,
+      "label": "강세",
+      "trend": 0.57,
+      "mom6": 0.84,
+      "mom1": 0.34,
+      "rsi": 55.6,
+      "ret_1m": 1.24,
+      "ret_3m": 4.07,
+      "ret_6m": 10.28,
+      "vol_ann": 11.9,
+      "dd_1y": -0.89
+     },
+     "ex1m": 2.14,
+     "ex3m": 0.62,
+     "ex1y": 1.68,
+     "bench_name": "미국"
+    },
+    {
+     "key": "f_value",
+     "name": "가치 (VLUE)",
+     "short": "가치",
+     "ticker": "VLUE",
+     "item": "PV-EQ-04",
+     "group": "스타일·팩터",
+     "note": null,
+     "ok": true,
+     "last": 193.78,
+     "as_of": "2026-10-20",
+     "r1d": 0.59,
+     "r1w": -1.39,
+     "r1m": -3.04,
+     "r3m": 3.03,
+     "r1y": 55.13,
+     "ytd": 43.52,
+     "dd52": -5.26,
+     "vol60": 16.5,
+     "score": 47.3,
+     "flow": "강세",
+     "tech": {
+      "score": 47.3,
+      "label": "강세",
+      "trend": 0.51,
+      "mom6": 0.92,
+      "mom1": -0.59,
+      "rsi": 39.5,
+      "ret_1m": -4.05,
+      "ret_3m": -0.4,
+      "ret_6m": 23.48,
+      "vol_ann": 20.6,
+      "dd_1y": -5.26
+     },
+     "ex1m": -3.82,
+     "ex3m": -0.56,
+     "ex1y": 35.47,
+     "bench_name": "미국"
+    },
+    {
+     "key": "f_growth",
+     "name": "성장 (IWF)",
+     "short": "성장",
+     "ticker": "IWF",
+     "item": "PV-EQ-04",
+     "group": "스타일·팩터",
+     "note": null,
+     "ok": true,
+     "last": 122.41,
+     "as_of": "2026-10-20",
+     "r1d": -0.16,
+     "r1w": -3.71,
+     "r1m": -0.68,
+     "r3m": 2.55,
+     "r1y": 3.97,
+     "ytd": 3.73,
+     "dd52": -5.25,
+     "vol60": 17.5,
+     "score": 14.2,
+     "flow": "우호",
+     "tech": {
+      "score": 14.2,
+      "label": "우호",
+      "trend": 0.17,
+      "mom6": 0.31,
+      "mom1": -0.53,
+      "rsi": 40.8,
+      "ret_1m": -3.04,
+      "ret_3m": 1.32,
+      "ret_6m": 4.09,
+      "vol_ann": 17.8,
+      "dd_1y": -5.25
+     },
+     "ex1m": -1.48,
+     "ex3m": -1.03,
+     "ex1y": -9.21,
+     "bench_name": "미국"
+    },
+    {
+     "key": "f_mom",
+     "name": "모멘텀 (MTUM)",
+     "short": "모멘텀",
+     "ticker": "MTUM",
+     "item": "PV-EQ-04",
+     "group": "스타일·팩터",
+     "note": "문서 예시 밖 — 참고용",
+     "ok": true,
+     "last": 295.84,
+     "as_of": "2026-10-20",
+     "r1d": 0.04,
+     "r1w": -5.52,
+     "r1m": -4.45,
+     "r3m": -2.05,
+     "r1y": 17.16,
+     "ytd": 18.66,
+     "dd52": -14.13,
+     "vol60": 25.3,
+     "score": 18.3,
+     "flow": "우호",
+     "tech": {
+      "score": 18.3,
+      "label": "우호",
+      "trend": 0.12,
+      "mom6": 0.45,
+      "mom1": -0.68,
+      "rsi": 33.7,
+      "ret_1m": -6.45,
+      "ret_3m": -5.67,
+      "ret_6m": 9.27,
+      "vol_ann": 26.8,
+      "dd_1y": -14.13
+     },
+     "ex1m": -5.22,
+     "ex3m": -5.47,
+     "ex1y": 2.31,
+     "bench_name": "미국"
+    },
+    {
+     "key": "kr_div",
+     "name": "국내 고배당 (PLUS 고배당주)",
+     "short": "국내 고배당",
+     "ticker": "161510.KS",
+     "item": "PV-EQ-04",
+     "group": "스타일·팩터",
+     "note": null,
+     "ok": true,
+     "last": 23040.0,
+     "as_of": "2026-10-22",
+     "r1d": -0.09,
+     "r1w": -0.39,
+     "r1m": -7.33,
+     "r3m": -6.03,
+     "r1y": 19.44,
+     "ytd": 11.88,
+     "dd52": -19.93,
+     "vol60": 20.3,
+     "score": -30.1,
+     "flow": "매우 약세",
+     "tech": {
+      "score": -30.1,
+      "label": "매우 약세",
+      "trend": -0.27,
+      "mom6": -0.56,
+      "mom1": -0.73,
+      "rsi": 30.5,
+      "ret_1m": -7.94,
+      "ret_3m": -5.35,
+      "ret_6m": -13.29,
+      "vol_ann": 29.8,
+      "dd_1y": -19.93
+     },
+     "ex1m": 16.2,
+     "ex3m": 13.84,
+     "ex1y": -27.87,
+     "bench_name": "한국 대형주"
+    }
+   ]
+  },
+  {
+   "name": "섹터·테마",
+   "rows": [
+    {
+     "key": "s_fin_us",
+     "name": "미국 금융 (XLF)",
+     "short": "미국 금융",
+     "ticker": "XLF",
+     "item": "PV-EQ-05",
+     "group": "섹터·테마",
+     "note": null,
+     "ok": true,
+     "last": 55.72,
+     "as_of": "2026-10-20",
+     "r1d": 1.2,
+     "r1w": 1.64,
+     "r1m": 0.1,
+     "r3m": -0.22,
+     "r1y": 7.21,
+     "ytd": 2.98,
+     "dd52": -4.51,
+     "vol60": 12.7,
+     "score": 28.3,
+     "flow": "우호",
+     "tech": {
+      "score": 28.3,
+      "label": "우호",
+      "trend": 0.33,
+      "mom6": 0.61,
+      "mom1": -0.08,
+      "rsi": 56.2,
+      "ret_1m": -0.32,
+      "ret_3m": -0.24,
+      "ret_6m": 7.29,
+      "vol_ann": 14.5,
+      "dd_1y": -4.51
+     },
+     "ex1m": -0.7,
+     "ex3m": -3.7,
+     "ex1y": -6.37,
+     "bench_name": "미국"
+    },
+    {
+     "key": "s_hc_us",
+     "name": "미국 헬스케어 (XLV)",
+     "short": "미국 헬스케어",
+     "ticker": "XLV",
+     "item": "PV-EQ-05",
+     "group": "섹터·테마",
+     "note": null,
+     "ok": true,
+     "last": 179.82,
+     "as_of": "2026-10-20",
+     "r1d": 2.37,
+     "r1w": 5.99,
+     "r1m": 7.2,
+     "r3m": 13.35,
+     "r1y": 26.27,
+     "ytd": 17.6,
+     "dd52": 0.0,
+     "vol60": 17.9,
+     "score": 64.3,
+     "flow": "강세",
+     "tech": {
+      "score": 64.3,
+      "label": "강세",
+      "trend": 0.77,
+      "mom6": 0.97,
+      "mom1": 0.88,
+      "rsi": 69.4,
+      "ret_1m": 6.4,
+      "ret_3m": 13.22,
+      "ret_6m": 24.25,
+      "vol_ann": 16.2,
+      "dd_1y": 0.0
+     },
+     "ex1m": 6.33,
+     "ex3m": 9.39,
+     "ex1y": 10.27,
+     "bench_name": "미국"
+    },
+    {
+     "key": "s_tech_us",
+     "name": "미국 기술 (XLK)",
+     "short": "미국 기술",
+     "ticker": "XLK",
+     "item": "PV-EQ-05",
+     "group": "섹터·테마",
+     "note": null,
+     "ok": true,
+     "last": 185.44,
+     "as_of": "2026-10-20",
+     "r1d": -0.28,
+     "r1w": -5.52,
+     "r1m": -2.08,
+     "r3m": 5.66,
+     "r1y": 29.35,
+     "ytd": 29.27,
+     "dd52": -8.2,
+     "vol60": 25.7,
+     "score": 40.8,
+     "flow": "강세",
+     "tech": {
+      "score": 40.8,
+      "label": "강세",
+      "trend": 0.42,
+      "mom6": 0.79,
+      "mom1": -0.56,
+      "rsi": 38.2,
+      "ret_1m": -4.83,
+      "ret_3m": 2.99,
+      "ret_6m": 20.16,
+      "vol_ann": 26.4,
+      "dd_1y": -8.2
+     },
+     "ex1m": -2.87,
+     "ex3m": 1.97,
+     "ex1y": 12.96,
+     "bench_name": "미국"
+    },
+    {
+     "key": "s_semi_us",
+     "name": "미국 반도체 (SOXX)",
+     "short": "미국 반도체",
+     "ticker": "SOXX",
+     "item": "PV-EQ-05",
+     "group": "섹터·테마",
+     "note": null,
+     "ok": true,
+     "last": 500.01,
+     "as_of": "2026-10-20",
+     "r1d": -0.38,
+     "r1w": -8.07,
+     "r1m": -6.2,
+     "r3m": -4.54,
+     "r1y": 71.22,
+     "ytd": 66.32,
+     "dd52": -23.61,
+     "vol60": 43.2,
+     "score": 22.4,
+     "flow": "우호",
+     "tech": {
+      "score": 22.4,
+      "label": "우호",
+      "trend": 0.16,
+      "mom6": 0.53,
+      "mom1": -0.66,
+      "rsi": 34.3,
+      "ret_1m": -10.61,
+      "ret_3m": -9.93,
+      "ret_6m": 18.99,
+      "vol_ann": 45.9,
+      "dd_1y": -23.61
+     },
+     "ex1m": -6.96,
+     "ex3m": -7.87,
+     "ex1y": 49.52,
+     "bench_name": "미국"
+    },
+    {
+     "key": "s_energy_us",
+     "name": "미국 에너지 (XLE)",
+     "short": "미국 에너지",
+     "ticker": "XLE",
+     "item": "PV-EQ-05",
+     "group": "섹터·테마",
+     "note": null,
+     "ok": true,
+     "last": 67.97,
+     "as_of": "2026-10-20",
+     "r1d": 0.25,
+     "r1w": 1.15,
+     "r1m": 6.32,
+     "r3m": 18.01,
+     "r1y": 60.91,
+     "ytd": 55.04,
+     "dd52": -0.4,
+     "vol60": 21.5,
+     "score": 61.9,
+     "flow": "강세",
+     "tech": {
+      "score": 61.9,
+      "label": "강세",
+      "trend": 0.74,
+      "mom6": 0.9,
+      "mom1": 0.88,
+      "rsi": 67.3,
+      "ret_1m": 8.82,
+      "ret_3m": 15.5,
+      "ret_6m": 23.26,
+      "vol_ann": 22.0,
+      "dd_1y": -0.4
+     },
+     "ex1m": 5.46,
+     "ex3m": 13.89,
+     "ex1y": 40.52,
+     "bench_name": "미국"
+    },
+    {
+     "key": "t_clean",
+     "name": "클린에너지 (ICLN)",
+     "short": "클린에너지",
+     "ticker": "ICLN",
+     "item": "PV-EQ-05",
+     "group": "섹터·테마",
+     "note": "인프라·에너지 전환",
+     "ok": true,
+     "last": 16.33,
+     "as_of": "2026-10-20",
+     "r1d": 0.43,
+     "r1w": -4.95,
+     "r1m": -7.0,
+     "r3m": -9.98,
+     "r1y": -0.6,
+     "ytd": -0.34,
+     "dd52": -31.06,
+     "vol60": 25.2,
+     "score": -40.5,
+     "flow": "매우 약세",
+     "tech": {
+      "score": -40.5,
+      "label": "매우 약세",
+      "trend": -0.45,
+      "mom6": -0.62,
+      "mom1": -0.73,
+      "rsi": 35.6,
+      "ret_1m": -8.26,
+      "ret_3m": -11.92,
+      "ret_6m": -15.6,
+      "vol_ann": 30.7,
+      "dd_1y": -31.06
+     },
+     "ex1m": -7.75,
+     "ex3m": -13.12,
+     "ex1y": -13.19,
+     "bench_name": "미국"
+    },
+    {
+     "key": "t_infra",
+     "name": "미국 인프라 (PAVE)",
+     "short": "인프라",
+     "ticker": "PAVE",
+     "item": "PV-EQ-05",
+     "group": "섹터·테마",
+     "note": "인프라·에너지 전환",
+     "ok": true,
+     "last": 52.65,
+     "as_of": "2026-10-20",
+     "r1d": -0.23,
+     "r1w": -1.66,
+     "r1m": -0.59,
+     "r3m": -5.48,
+     "r1y": 10.81,
+     "ytd": 10.36,
+     "dd52": -12.08,
+     "vol60": 17.4,
+     "score": -14.0,
+     "flow": "약세",
+     "tech": {
+      "score": -14.0,
+      "label": "약세",
+      "trend": -0.19,
+      "mom6": -0.3,
+      "mom1": -0.14,
+      "rsi": 40.4,
+      "ret_1m": -0.81,
+      "ret_3m": -6.98,
+      "ret_6m": -4.52,
+      "vol_ann": 20.4,
+      "dd_1y": -12.08
+     },
+     "ex1m": -1.39,
+     "ex3m": -8.78,
+     "ex1y": -3.24,
+     "bench_name": "미국"
+    },
+    {
+     "key": "s_bank_kr",
+     "name": "국내 은행 (KODEX 은행)",
+     "short": "국내 은행",
+     "ticker": "091170.KS",
+     "item": "PV-EQ-05",
+     "group": "섹터·테마",
+     "note": null,
+     "ok": true,
+     "last": 14715.0,
+     "as_of": "2026-10-22",
+     "r1d": -0.07,
+     "r1w": -0.2,
+     "r1m": -11.62,
+     "r3m": -6.46,
+     "r1y": 27.53,
+     "ytd": 20.12,
+     "dd52": -14.08,
+     "vol60": 26.8,
+     "score": -13.3,
+     "flow": "약세",
+     "tech": {
+      "score": -13.3,
+      "label": "약세",
+      "trend": -0.07,
+      "mom6": -0.22,
+      "mom1": -0.84,
+      "rsi": 31.3,
+      "ret_1m": -12.32,
+      "ret_3m": -6.08,
+      "ret_6m": -5.58,
+      "vol_ann": 34.8,
+      "dd_1y": -14.08
+     },
+     "ex1m": 10.83,
+     "ex3m": 13.32,
+     "ex1y": -22.98,
+     "bench_name": "한국 대형주"
+    },
+    {
+     "key": "s_semi_kr",
+     "name": "국내 반도체 (KODEX 반도체)",
+     "short": "국내 반도체",
+     "ticker": "091160.KS",
+     "item": "PV-EQ-05",
+     "group": "섹터·테마",
+     "note": null,
+     "ok": true,
+     "last": 112710.0,
+     "as_of": "2026-10-22",
+     "r1d": -1.4,
+     "r1w": 0.37,
+     "r1m": -17.55,
+     "r3m": -11.2,
+     "r1y": 104.95,
+     "ytd": 84.03,
+     "dd52": -40.16,
+     "vol60": 92.5,
+     "score": -0.1,
+     "flow": "중립",
+     "tech": {
+      "score": -0.1,
+      "label": "중립",
+      "trend": -0.08,
+      "mom6": 0.07,
+      "mom1": -0.49,
+      "rsi": 36.5,
+      "ret_1m": -11.71,
+      "ret_3m": -9.47,
+      "ret_6m": 3.83,
+      "vol_ann": 75.4,
+      "dd_1y": -40.16
+     },
+     "ex1m": 3.39,
+     "ex3m": 7.58,
+     "ex1y": 23.77,
+     "bench_name": "한국 대형주"
+    },
+    {
+     "key": "s_hc_kr",
+     "name": "국내 헬스케어 (KODEX 헬스케어)",
+     "short": "국내 헬스케어",
+     "ticker": "266420.KS",
+     "item": "PV-EQ-05",
+     "group": "섹터·테마",
+     "note": null,
+     "ok": true,
+     "last": 15740.0,
+     "as_of": "2026-10-22",
+     "r1d": -1.87,
+     "r1w": 7.85,
+     "r1m": 0.58,
+     "r3m": 4.31,
+     "r1y": -18.45,
+     "ytd": -27.4,
+     "dd52": -37.91,
+     "vol60": 37.5,
+     "score": -42.8,
+     "flow": "매우 약세",
+     "tech": {
+      "score": -42.8,
+      "label": "매우 약세",
+      "trend": -0.46,
+      "mom6": -0.73,
+      "mom1": -0.17,
+      "rsi": 47.6,
+      "ret_1m": -2.18,
+      "ret_3m": 2.21,
+      "ret_6m": -29.24,
+      "vol_ann": 44.7,
+      "dd_1y": -37.91
+     },
+     "ex1m": 26.11,
+     "ex3m": 26.37,
+     "ex1y": -50.75,
+     "bench_name": "한국 대형주"
+    }
+   ]
+  },
+  {
+   "name": "우선주",
+   "rows": [
+    {
+     "key": "samsung",
+     "name": "삼성전자",
+     "short": "삼성전자",
+     "ticker": "005930.KS",
+     "item": "PV-EQ-06",
+     "group": "우선주",
+     "note": null,
+     "ok": true,
+     "last": 221500.0,
+     "as_of": "2026-10-22",
+     "r1d": -0.89,
+     "r1w": 5.48,
+     "r1m": -19.89,
+     "r3m": -14.97,
+     "r1y": 126.45,
+     "ytd": 85.32,
+     "dd52": -38.83,
+     "vol60": 89.2,
+     "score": -0.2,
+     "flow": "중립",
+     "tech": {
+      "score": -0.2,
+      "label": "중립",
+      "trend": -0.08,
+      "mom6": 0.09,
+      "mom1": -0.51,
+      "rsi": 37.8,
+      "ret_1m": -12.28,
+      "ret_3m": -9.22,
+      "ret_6m": 5.09,
+      "vol_ann": 76.3,
+      "dd_1y": -38.83
+     }
+    },
+    {
+     "key": "samsung_pref",
+     "name": "삼성전자우",
+     "short": "삼성전자우",
+     "ticker": "005935.KS",
+     "item": "PV-EQ-06",
+     "group": "우선주",
+     "note": null,
+     "ok": true,
+     "last": 172700.0,
+     "as_of": "2026-10-22",
+     "r1d": 0.29,
+     "r1w": 8.55,
+     "r1m": -18.35,
+     "r3m": -6.7,
+     "r1y": 123.02,
+     "ytd": 94.51,
+     "dd52": -26.39,
+     "vol60": 89.3,
+     "score": 13.0,
+     "flow": "우호",
+     "tech": {
+      "score": 13.0,
+      "label": "우호",
+      "trend": 0.08,
+      "mom6": 0.36,
+      "mom1": -0.46,
+      "rsi": 42.4,
+      "ret_1m": -10.66,
+      "ret_3m": 2.07,
+      "ret_6m": 19.64,
+      "vol_ann": 73.8,
+      "dd_1y": -26.39
+     },
+     "ex1m": 1.93,
+     "ex3m": 9.73,
+     "ex1y": -1.52,
+     "bench_name": "삼성전자"
+    },
+    {
+     "key": "pff",
+     "name": "미국 우선주 ETF (PFF)",
+     "short": "미국 우선주",
+     "ticker": "PFF",
+     "item": "PV-EQ-06",
+     "group": "우선주",
+     "note": null,
+     "ok": true,
+     "last": 28.87,
+     "as_of": "2026-10-20",
+     "r1d": 0.1,
+     "r1w": -1.47,
+     "r1m": -3.25,
+     "r3m": -3.35,
+     "r1y": -3.85,
+     "ytd": -2.97,
+     "dd52": -6.78,
+     "vol60": 8.4,
+     "score": -50.0,
+     "flow": "매우 약세",
+     "tech": {
+      "score": -50.0,
+      "label": "매우 약세",
+      "trend": -0.55,
+      "mom6": -0.72,
+      "mom1": -0.94,
+      "rsi": 34.0,
+      "ret_1m": -3.92,
+      "ret_3m": -3.76,
+      "ret_6m": -4.92,
+      "vol_ann": 7.7,
+      "dd_1y": -6.78
+     }
+    }
+   ]
+  },
+  {
+   "name": "변동성",
+   "rows": [
+    {
+     "key": "vix",
+     "name": "VIX (S&P500 변동성)",
+     "short": "VIX",
+     "ticker": "^VIX",
+     "item": "DV-FUT-05",
+     "group": "변동성",
+     "note": null,
+     "ok": true,
+     "last": 16.68,
+     "as_of": "2026-10-21",
+     "pct_1y": 43,
+     "median_5y": 17.6,
+     "chg_1m": 2.47
+    },
+    {
+     "key": "vxn",
+     "name": "VXN (나스닥100 변동성)",
+     "short": "VXN",
+     "ticker": "^VXN",
+     "item": "DV-FUT-05",
+     "group": "변동성",
+     "note": null,
+     "ok": true,
+     "last": 24.42,
+     "as_of": "2026-10-21",
+     "pct_1y": 62,
+     "median_5y": 22.4,
+     "chg_1m": 4.24
+    }
+   ]
+  }
+ ],
+ "pref": {
+  "ratio": 0.78,
+  "min_1y": 0.625,
+  "max_1y": 0.794,
+  "mean_1y": 0.717,
+  "pos_1y": 91,
+  "chg_1m": 1.85,
+  "as_of": "2026-10-22",
+  "say": "우선주가 보통주보다 1년 범위의 위쪽 — 상대적으로 비싼 편"
+ },
+ "pff": {
+  "key": "pff",
+  "name": "미국 우선주 ETF (PFF)",
+  "short": "미국 우선주",
+  "ticker": "PFF",
+  "item": "PV-EQ-06",
+  "group": "우선주",
+  "note": null,
+  "ok": true,
+  "last": 28.87,
+  "as_of": "2026-10-20",
+  "r1d": 0.1,
+  "r1w": -1.47,
+  "r1m": -3.25,
+  "r3m": -3.35,
+  "r1y": -3.85,
+  "ytd": -2.97,
+  "dd52": -6.78,
+  "vol60": 8.4,
+  "score": -50.0,
+  "flow": "매우 약세",
+  "tech": {
+   "score": -50.0,
+   "label": "매우 약세",
+   "trend": -0.55,
+   "mom6": -0.72,
+   "mom1": -0.94,
+   "rsi": 34.0,
+   "ret_1m": -3.92,
+   "ret_3m": -3.76,
+   "ret_6m": -4.92,
+   "vol_ann": 7.7,
+   "dd_1y": -6.78
+  }
+ },
+ "vol": {
+  "vix": {
+   "key": "vix",
+   "name": "VIX (S&P500 변동성)",
+   "short": "VIX",
+   "ticker": "^VIX",
+   "item": "DV-FUT-05",
+   "group": "변동성",
+   "note": null,
+   "ok": true,
+   "last": 16.68,
+   "as_of": "2026-10-21",
+   "pct_1y": 43,
+   "median_5y": 17.6,
+   "chg_1m": 2.47
+  },
+  "vxn": {
+   "key": "vxn",
+   "name": "VXN (나스닥100 변동성)",
+   "short": "VXN",
+   "ticker": "^VXN",
+   "item": "DV-FUT-05",
+   "group": "변동성",
+   "note": null,
+   "ok": true,
+   "last": 24.42,
+   "as_of": "2026-10-21",
+   "pct_1y": 62,
+   "median_5y": 22.4,
+   "chg_1m": 4.24
+  },
+  "kospi200_rv": {
+   "last": 75.0,
+   "pct_5y": 95
+  },
+  "sp500_rv": {
+   "last": 11.1,
+   "pct_5y": 18
+  },
+  "premium": {
+   "gap": 5.6,
+   "say": "옵션 보험료(VIX)가 실제 흔들림보다 5.6%p 높음 — 보험(풋 매수)은 비싼 편, 팔기(커버드콜)는 유리"
+  }
+ },
+ "universe": {
+  "items": [
+   {
+    "id": "PV-EQ-01",
+    "asset": "주식",
+    "item": "국내 주식",
+    "examples": "대형주(KOSPI200), 중소형주",
+    "series": [
+     {
+      "key": "kospi",
+      "name": "KOSPI",
+      "ticker": "^KS11"
+     },
+     {
+      "key": "kospi200",
+      "name": "KOSPI200 (대형주, KODEX 200)",
+      "ticker": "069500.KS"
+     },
+     {
+      "key": "kosdaq",
+      "name": "KOSDAQ (중소형주 대용)",
+      "ticker": "^KQ11"
+     }
+    ]
+   },
+   {
+    "id": "PV-EQ-02",
+    "asset": "주식",
+    "item": "선진국 주식",
+    "examples": "미국, 유럽, 일본 등",
+    "series": [
+     {
+      "key": "sp500",
+      "name": "S&P500",
+      "ticker": "^GSPC"
+     },
+     {
+      "key": "ndx",
+      "name": "나스닥100",
+      "ticker": "^NDX"
+     },
+     {
+      "key": "sx5e",
+      "name": "유로스톡스50",
+      "ticker": "^STOXX50E"
+     },
+     {
+      "key": "nikkei",
+      "name": "닛케이225",
+      "ticker": "^N225"
+     }
+    ]
+   },
+   {
+    "id": "PV-EQ-03",
+    "asset": "주식",
+    "item": "신흥국 주식",
+    "examples": "중국, 인도, 아시아 신흥국 등",
+    "series": [
+     {
+      "key": "csi300",
+      "name": "중국 CSI300 (ETF)",
+      "ticker": "510300.SS"
+     },
+     {
+      "key": "hsi",
+      "name": "홍콩 항셍",
+      "ticker": "^HSI"
+     },
+     {
+      "key": "nifty",
+      "name": "인도 Nifty50",
+      "ticker": "^NSEI"
+     },
+     {
+      "key": "taiex",
+      "name": "대만 가권",
+      "ticker": "^TWII"
+     },
+     {
+      "key": "aaxj",
+      "name": "아시아(일본 제외) ETF",
+      "ticker": "AAXJ"
+     },
+     {
+      "key": "eem",
+      "name": "신흥국 전체 ETF",
+      "ticker": "EEM"
+     }
+    ]
+   },
+   {
+    "id": "PV-EQ-04",
+    "asset": "주식",
+    "item": "스타일·팩터",
+    "examples": "배당, 저변동성, 퀄리티, 가치, 성장",
+    "series": [
+     {
+      "key": "f_div",
+      "name": "배당 (SCHD)",
+      "ticker": "SCHD"
+     },
+     {
+      "key": "f_minvol",
+      "name": "저변동성 (USMV)",
+      "ticker": "USMV"
+     },
+     {
+      "key": "f_quality",
+      "name": "퀄리티 (QUAL)",
+      "ticker": "QUAL"
+     },
+     {
+      "key": "f_value",
+      "name": "가치 (VLUE)",
+      "ticker": "VLUE"
+     },
+     {
+      "key": "f_growth",
+      "name": "성장 (IWF)",
+      "ticker": "IWF"
+     },
+     {
+      "key": "f_mom",
+      "name": "모멘텀 (MTUM)",
+      "ticker": "MTUM"
+     },
+     {
+      "key": "kr_div",
+      "name": "국내 고배당 (PLUS 고배당주)",
+      "ticker": "161510.KS"
+     }
+    ]
+   },
+   {
+    "id": "PV-EQ-05",
+    "asset": "주식",
+    "item": "섹터·테마",
+    "examples": "금융, 헬스케어, 인프라·에너지 전환 등",
+    "series": [
+     {
+      "key": "s_fin_us",
+      "name": "미국 금융 (XLF)",
+      "ticker": "XLF"
+     },
+     {
+      "key": "s_hc_us",
+      "name": "미국 헬스케어 (XLV)",
+      "ticker": "XLV"
+     },
+     {
+      "key": "s_tech_us",
+      "name": "미국 기술 (XLK)",
+      "ticker": "XLK"
+     },
+     {
+      "key": "s_semi_us",
+      "name": "미국 반도체 (SOXX)",
+      "ticker": "SOXX"
+     },
+     {
+      "key": "s_energy_us",
+      "name": "미국 에너지 (XLE)",
+      "ticker": "XLE"
+     },
+     {
+      "key": "t_clean",
+      "name": "클린에너지 (ICLN)",
+      "ticker": "ICLN"
+     },
+     {
+      "key": "t_infra",
+      "name": "미국 인프라 (PAVE)",
+      "ticker": "PAVE"
+     },
+     {
+      "key": "s_bank_kr",
+      "name": "국내 은행 (KODEX 은행)",
+      "ticker": "091170.KS"
+     },
+     {
+      "key": "s_semi_kr",
+      "name": "국내 반도체 (KODEX 반도체)",
+      "ticker": "091160.KS"
+     },
+     {
+      "key": "s_hc_kr",
+      "name": "국내 헬스케어 (KODEX 헬스케어)",
+      "ticker": "266420.KS"
+     }
+    ]
+   },
+   {
+    "id": "PV-EQ-06",
+    "asset": "주식",
+    "item": "우선주",
+    "examples": "국내외 우선주",
+    "series": [
+     {
+      "key": "samsung",
+      "name": "삼성전자",
+      "ticker": "005930.KS"
+     },
+     {
+      "key": "samsung_pref",
+      "name": "삼성전자우",
+      "ticker": "005935.KS"
+     },
+     {
+      "key": "pff",
+      "name": "미국 우선주 ETF (PFF)",
+      "ticker": "PFF"
+     }
+    ]
+   }
+  ],
+  "derivatives": [
+   {
+    "id": "DV-FUT-02",
+    "type": "Future",
+    "item": "주가지수선물",
+    "examples": "KOSPI200, S&P500(E-mini), Euro Stoxx 50, Nikkei 225",
+    "equity": true
+   },
+   {
+    "id": "DV-FUT-05",
+    "type": "Future",
+    "item": "변동성 선물",
+    "examples": "VIX, VSTOXX",
+    "equity": true
+   },
+   {
+    "id": "DV-FUT-06",
+    "type": "Future",
+    "item": "배당선물",
+    "examples": "Euro Stoxx 50 배당선물, KOSPI200 배당선물",
+    "equity": true
+   },
+   {
+    "id": "DV-TRS-02",
+    "type": "TRS",
+    "item": "주식 TRS",
+    "examples": "주가지수 TRS, 바스켓 TRS",
+    "equity": true
+   },
+   {
+    "id": "DV-TRS-06",
+    "type": "TRS",
+    "item": "전략 지수 TRS",
+    "examples": "QIS(규칙 기반 전략 지수: 추세추종, 테일 헤지 등)",
+    "equity": true
+   },
+   {
+    "id": "DV-OPT-02",
+    "type": "Option",
+    "item": "주식옵션",
+    "examples": "지수 옵션(KOSPI200, SPX, SX5E), 장기 옵션(LEAPS)",
+    "equity": true
+   },
+   {
+    "id": "DV-OPT-06",
+    "type": "Option",
+    "item": "변동성옵션",
+    "examples": "VIX 옵션",
+    "equity": true
+   },
+   {
+    "id": "DV-STR-01",
+    "type": "Structured Products",
+    "item": "원금보장형",
+    "examples": "ELB(주가연계), DLB(금리·환율·원자재 연계)",
+    "equity": true
+   },
+   {
+    "id": "DV-STR-02",
+    "type": "Structured Products",
+    "item": "원금비보장형",
+    "examples": "ELS, DLS",
+    "equity": true
+   }
+  ],
+  "strategies": [
+   {
+    "id": "EQ-FUT-01",
+    "asset": "주식",
+    "type": "Future",
+    "name": "전술적 Long or Short",
+    "structure": "주식 + 지수선물 매수·매도",
+    "scenario": "시장 방향 뷰 적중",
+    "payoff": "선형",
+    "risk": "뷰 실패, 롤 비용",
+    "ready": "ready",
+    "ready_text": "바로 가능 — 공개 데이터로 계산",
+    "data": [
+     "kospi200",
+     "sp500"
+    ],
+    "backtest": "선물 대신 지수 수익률. 흐름 점수에 따라 노출을 +/− 로 바꾸고 롤 비용은 연 0.3%p 가정",
+    "data_ok": [
+     "kospi200",
+     "sp500"
+    ]
+   },
+   {
+    "id": "EQ-FUT-02",
+    "asset": "주식",
+    "type": "Future",
+    "name": "지역 간 상대 뷰",
+    "structure": "지수선물 페어 (S&P500 vs KOSPI)",
+    "scenario": "지역 간 상대 성과 적중",
+    "payoff": "선형",
+    "risk": "환노출, 상관 변화",
+    "ready": "ready",
+    "ready_text": "바로 가능 — 공개 데이터로 계산",
+    "data": [
+     "sp500",
+     "kospi200",
+     "usdkrw"
+    ],
+    "backtest": "두 지수 수익률 차이(현지 통화). 환노출 손익은 원/달러로 따로 계산",
+    "data_ok": [
+     "sp500",
+     "kospi200",
+     "usdkrw"
+    ]
+   },
+   {
+    "id": "EQ-FUT-03",
+    "asset": "주식",
+    "type": "Future",
+    "name": "변동성 타겟팅",
+    "structure": "변동성 따라 선물로 노출 조절",
+    "scenario": "급등락기 손실 축소",
+    "payoff": "선형(동적)",
+    "risk": "급반등 기회 손실",
+    "ready": "ready",
+    "ready_text": "바로 가능 — 공개 데이터로 계산",
+    "data": [
+     "kospi200",
+     "sp500"
+    ],
+    "backtest": "노출 = 목표 변동성 ÷ 최근 60일 변동성(상한 100~150%)",
+    "data_ok": [
+     "kospi200",
+     "sp500"
+    ]
+   },
+   {
+    "id": "EQ-FUT-04",
+    "asset": "주식",
+    "type": "Future",
+    "name": "이벤트 헤지",
+    "structure": "이벤트 전 지수선물 매도",
+    "scenario": "이벤트 후 급락 방어",
+    "payoff": "선형",
+    "risk": "이벤트 우호 시 기회 손실",
+    "ready": "need",
+    "ready_text": "추가 데이터 필요",
+    "data": [
+     "kospi200",
+     "sp500"
+    ],
+    "backtest": "FOMC·CPI·실적 발표일 목록이 있어야 이벤트 전후 수익률을 계산할 수 있음",
+    "data_ok": [
+     "kospi200",
+     "sp500"
+    ]
+   },
+   {
+    "id": "EQ-TRS-01",
+    "asset": "주식",
+    "type": "TRS",
+    "name": "지수 TRS",
+    "structure": "주가지수 TRS 수취",
+    "scenario": "현물 없이 빠른 노출 확보",
+    "payoff": "선형",
+    "risk": "거래상대방, 조달 비용",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "kospi200",
+     "sp500"
+    ],
+    "backtest": "지수 수익률 − 조달 금리(CD·SOFR) − 스프레드 가정",
+    "data_ok": [
+     "kospi200",
+     "sp500"
+    ]
+   },
+   {
+    "id": "EQ-TRS-02",
+    "asset": "주식",
+    "type": "TRS",
+    "name": "팩터 바스켓 TRS",
+    "structure": "저변동·퀄리티·배당 바스켓 TRS",
+    "scenario": "방어형 팩터 상대 강세",
+    "payoff": "선형",
+    "risk": "팩터 성과 부진",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "f_minvol",
+     "f_quality",
+     "f_div",
+     "sp500"
+    ],
+    "backtest": "미국 팩터 ETF 로 대신. 국내 팩터 지수는 인포맥스 연결 후",
+    "data_ok": [
+     "f_minvol",
+     "f_quality",
+     "f_div",
+     "sp500"
+    ]
+   },
+   {
+    "id": "EQ-TRS-03",
+    "asset": "주식",
+    "type": "TRS",
+    "name": "방어형 QIS TRS",
+    "structure": "테일 헤지·추세 전략 지수 TRS",
+    "scenario": "하락장 보완 수익",
+    "payoff": "선형(전략)",
+    "risk": "불투명성, 평시 비용",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "sp500",
+     "kospi200",
+     "vix"
+    ],
+    "backtest": "거래상대방 지수 대신 추세추종·테일헤지 규칙을 직접 계산",
+    "data_ok": [
+     "sp500",
+     "kospi200",
+     "vix"
+    ]
+   },
+   {
+    "id": "EQ-OPT-01",
+    "asset": "주식",
+    "type": "Option",
+    "name": "보호적 풋",
+    "structure": "주식 + 지수 풋 매수",
+    "scenario": "상승 참여, 급락 방어",
+    "payoff": "손실 한정",
+    "risk": "프리미엄 비용",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ],
+    "backtest": "옵션 가격 이력이 없어 VIX(미국)·VKOSPI(인포맥스)를 내재변동성으로 써서 블랙숄즈로 옵션값 추정",
+    "data_ok": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ]
+   },
+   {
+    "id": "EQ-OPT-02",
+    "asset": "주식",
+    "type": "Option",
+    "name": "칼라",
+    "structure": "주식 + 풋 매수 + 콜 매도",
+    "scenario": "저비용 하방 보호",
+    "payoff": "구간 제한",
+    "risk": "상승 이익 제한",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ],
+    "backtest": "보호적 풋과 같은 방식(풋 매수 + 콜 매도 가격 추정)",
+    "data_ok": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ]
+   },
+   {
+    "id": "EQ-OPT-03",
+    "asset": "주식",
+    "type": "Option",
+    "name": "풋 스프레드 칼라",
+    "structure": "주식 + 풋 스프레드 + 콜 매도",
+    "scenario": "1차 하락 방어, 비용 거의 없음",
+    "payoff": "구간 제한",
+    "risk": "깊은 급락 보호 한계",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ],
+    "backtest": "보호적 풋과 같은 방식(풋 스프레드 + 콜 매도)",
+    "data_ok": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ]
+   },
+   {
+    "id": "EQ-OPT-04",
+    "asset": "주식",
+    "type": "Option",
+    "name": "커버드콜",
+    "structure": "주식 + OTM 콜 매도",
+    "scenario": "횡보 시 프리미엄 수익",
+    "payoff": "이익 제한",
+    "risk": "하방 보호 없음",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ],
+    "backtest": "보호적 풋과 같은 방식(OTM 콜 매도 프리미엄 추정)",
+    "data_ok": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ]
+   },
+   {
+    "id": "EQ-OPT-05",
+    "asset": "주식",
+    "type": "Option",
+    "name": "주식 대체",
+    "structure": "현금·채권 + 콜 매수",
+    "scenario": "상승 뷰, 손실은 프리미엄",
+    "payoff": "손실 한정",
+    "risk": "프리미엄 소멸",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ],
+    "backtest": "단기 금리 + 콜 매수(블랙숄즈 추정)",
+    "data_ok": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ]
+   },
+   {
+    "id": "EQ-OPT-06",
+    "asset": "주식",
+    "type": "Option",
+    "name": "콜 스프레드",
+    "structure": "콜 매수 + 상위 행사가 콜 매도",
+    "scenario": "목표 수준까지 상승",
+    "payoff": "구간 제한",
+    "risk": "목표 초과분 포기",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ],
+    "backtest": "콜 매수 + 상위 행사가 콜 매도(블랙숄즈 추정)",
+    "data_ok": [
+     "kospi200",
+     "sp500",
+     "vix"
+    ]
+   },
+   {
+    "id": "EQ-OPT-07",
+    "asset": "주식",
+    "type": "Option",
+    "name": "VIX 콜",
+    "structure": "VIX 콜 매수",
+    "scenario": "변동성 급등 테일 헤지",
+    "payoff": "손실 한정",
+    "risk": "만기 관리, 베이시스",
+    "ready": "need",
+    "ready_text": "추가 데이터 필요",
+    "data": [
+     "vix"
+    ],
+    "backtest": "VIX 선물 커브·옵션 가격이 필요(VIX 지수만으로는 베이시스를 반영할 수 없음)",
+    "data_ok": [
+     "vix"
+    ]
+   },
+   {
+    "id": "EQ-STR-01",
+    "asset": "주식",
+    "type": "Structured Products",
+    "name": "ELB (원금보장형)",
+    "structure": "채권 + 지수 콜옵션",
+    "scenario": "원금 보존 + 상승 참여",
+    "payoff": "손실 한정",
+    "risk": "발행사 신용, 참여율",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "kospi200",
+     "vix"
+    ],
+    "backtest": "국고채 + 지수 콜옵션(블랙숄즈 추정), 참여율은 가정",
+    "data_ok": [
+     "kospi200",
+     "vix"
+    ]
+   },
+   {
+    "id": "EQ-STR-02",
+    "asset": "주식",
+    "type": "Structured Products",
+    "name": "쿠폰형 ELS",
+    "structure": "조건부 쿠폰, 하락 시 원금 손실",
+    "scenario": "횡보·완만한 하락",
+    "payoff": "조건부·하방",
+    "risk": "녹인 시 큰 손실",
+    "ready": "proxy",
+    "ready_text": "대용으로 근사 — 비슷한 데이터로 대신 계산(근사 표시)",
+    "data": [
+     "kospi200",
+     "sp500",
+     "sx5e"
+    ],
+    "backtest": "표준 스텝다운 조건(녹인 50~60%) 가정으로 과거 경로 재현",
+    "data_ok": [
+     "kospi200",
+     "sp500",
+     "sx5e"
+    ]
+   },
+   {
+    "id": "EQ-STR-03",
+    "asset": "주식",
+    "type": "Structured Products",
+    "name": "CPPI 노트",
+    "structure": "위험·안전자산 동적 배분",
+    "scenario": "손실 하한 유지, 상승 참여",
+    "payoff": "손실 한정",
+    "risk": "갭 리스크, 현금 고착",
+    "ready": "ready",
+    "ready_text": "바로 가능 — 공개 데이터로 계산",
+    "data": [
+     "kospi200"
+    ],
+    "backtest": "CPPI 규칙(승수·하한)을 그대로 계산, 안전자산은 국고채 금리",
+    "data_ok": [
+     "kospi200"
+    ]
+   }
+  ],
+  "missing": [
+   {
+    "name": "VKOSPI (KOSPI200 변동성)",
+    "need": "지수 옵션 전략·변동성 판단",
+    "source": "인포맥스(지수 코드 VKOSPI) — 연결 예정"
+   },
+   {
+    "name": "VSTOXX",
+    "need": "유럽 변동성",
+    "source": "공개 데이터 없음 — 인포맥스·블룸버그"
+   },
+   {
+    "name": "KOSPI200·유로스톡스50 배당선물",
+    "need": "배당 관련 전략",
+    "source": "인포맥스·KRX"
+   },
+   {
+    "name": "국내 스타일·팩터 지수 (저변동성·퀄리티·가치·성장)",
+    "need": "국내 팩터 비교",
+    "source": "인포맥스(KRX 팩터 지수)"
+   },
+   {
+    "name": "지수 옵션 가격·내재변동성 이력",
+    "need": "옵션 전략 백테스트",
+    "source": "인포맥스·거래소 — 없으면 VIX·VKOSPI 로 근사"
+   },
+   {
+    "name": "주요 이벤트 일정 (FOMC·CPI·실적)",
+    "need": "이벤트 헤지",
+    "source": "인포맥스 캘린더(조회 방식) 또는 수작업 목록"
+   }
+  ],
+  "notes": [
+   {
+    "where": "개요",
+    "text": "각 전략별 기대수익과 리스크 (Backtest 진행 필요)",
+    "kind": "손글씨 메모"
+   },
+   {
+    "where": "기초자산 · 주식",
+    "text": "Dash Board 우선 만들기 / Building 계속 고려하기",
+    "kind": "손글씨 메모"
+   },
+   {
+    "where": "결합 전략 · 주식",
+    "text": "Build",
+    "kind": "손글씨 메모"
+   }
+  ],
+  "meta": {
+   "title": "멀티에셋 투자 유니버스 — 자산·파생상품·결합 전략",
+   "concept": "Plain Vanilla 상품(기초자산) + 파생상품(결합 수단) = 결합 전략",
+   "goal": "Low Vol, Stable Profit (낮은 변동성·안정적 수익)",
+   "horizon": "3~6개월 (결합 전략, 멀티에셋 운용팀)"
+  }
+ },
+ "readiness_count": {
+  "ready": 4,
+  "proxy": 11,
+  "need": 2
+ },
+ "missing": [
+  {
+   "name": "VKOSPI (KOSPI200 변동성)",
+   "need": "지수 옵션 전략·변동성 판단",
+   "source": "인포맥스(지수 코드 VKOSPI) — 연결 예정"
+  },
+  {
+   "name": "VSTOXX",
+   "need": "유럽 변동성",
+   "source": "공개 데이터 없음 — 인포맥스·블룸버그"
+  },
+  {
+   "name": "KOSPI200·유로스톡스50 배당선물",
+   "need": "배당 관련 전략",
+   "source": "인포맥스·KRX"
+  },
+  {
+   "name": "국내 스타일·팩터 지수 (저변동성·퀄리티·가치·성장)",
+   "need": "국내 팩터 비교",
+   "source": "인포맥스(KRX 팩터 지수)"
+  },
+  {
+   "name": "지수 옵션 가격·내재변동성 이력",
+   "need": "옵션 전략 백테스트",
+   "source": "인포맥스·거래소 — 없으면 VIX·VKOSPI 로 근사"
+  },
+  {
+   "name": "주요 이벤트 일정 (FOMC·CPI·실적)",
+   "need": "이벤트 헤지",
+   "source": "인포맥스 캘린더(조회 방식) 또는 수작업 목록"
+  }
+ ]
+}

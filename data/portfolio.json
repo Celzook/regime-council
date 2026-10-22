@@ -1,0 +1,38 @@
+{
+ "meta": {
+  "as_of": "2026-10-22",
+  "source": "가상 설정(예시) — 실제 조직·계획·보유와 무관",
+  "note": "집계 수준. 포지션별 수치는 positions.json(시험 포트 시가 평가)을 본다. 시험 포트는 가상이며 실제 보유가 아니다. 수익 목표는 두지 않는다."
+ },
+ "book": {
+  "name": "Active 운용 (가상)",
+  "size_bn": 5000,
+  "allocation": {
+   "equity_bn": 2000,
+   "bond_bn": 3000,
+   "fx_overlay_limit_bn": 1000
+  },
+  "strategy_mix_pct": {
+   "market_timing": 30,
+   "relative_value": 45,
+   "event_driven": 25,
+   "funding_arbitrage": "목표 외(소규모)"
+  },
+  "horizon": "6개월",
+  "principles": "Buy & Hold 지양, 페어는 베타·듀레이션 중립, 해외 자산은 환헤지가 원칙(환 위험은 오버레이로만), 목표·손절은 포지션 수익률 기준"
+ },
+ "trial_book": {
+  "file": "data/시험포트.xlsx",
+  "entry_date": "2026-10-20",
+  "positions": 16,
+  "equity_long_bn": 2000,
+  "bond_long_bn": 3000,
+  "fx_overlay_notional_bn": 900,
+  "trial_limits_bn": {
+   "total": 300,
+   "equity": 160,
+   "bond": 80,
+   "fx": 40
+  }
+ }
+}

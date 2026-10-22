@@ -1,0 +1,21 @@
+{
+ "meta": {
+  "generated_at": "SAMPLE",
+  "note": "예시 파일. 실제 사용 전 'python main.py fetch' 로 market.json 을 생성하거나 이 파일을 복사해 수정하세요. 수치는 투자전략 문서(2026-10-06 기준)에서 가져온 참고값입니다.",
+  "stale_fields": []
+ },
+ "rates_kr": {
+  "ktb_3y": {"value": 3.93, "unit": "%", "as_of": "2026-10-06", "source": "투자전략 문서 (국고채 3년)"},
+  "ktb_10y": {"value": 4.4, "unit": "%", "as_of": "2026-10-06", "source": "투자전략 문서 (국고채 10년)"},
+  "corp_aa_minus_3y": {"value": 4.6, "unit": "%", "as_of": "2026-10-06", "source": "투자전략 문서 (AA- 수익률)"},
+  "corp_a_grade": {"value": 5.5, "unit": "%", "as_of": "2026-10-06", "source": "투자전략 문서 (A+~A0 5.5%)"},
+  "capital_securities": {"value": 5.6, "unit": "%", "as_of": "2026-10-06", "source": "투자전략 문서 (신종자본·후순위, 콜 3~5년)"},
+  "global_hy": {"value": 8.1, "unit": "%", "as_of": "2026-10-06", "source": "투자전략 문서 (해외 HY)"}
+ },
+ "fx": {
+  "usdkrw": {"value": 1381.0, "unit": "KRW", "as_of": "2026-10-06", "source": "투자전략 문서 (USD 자산 환산 기준)"},
+  "hedge_cost_assumption": {"value": 1.5, "unit": "%p", "as_of": "2026-10-06", "source": "투자전략 문서 (환헤지 비용 연간 가정)"}
+ },
+ "equity": {},
+ "manual": {}
+}

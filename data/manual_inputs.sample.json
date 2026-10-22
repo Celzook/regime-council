@@ -1,0 +1,7 @@
+{
+ "swap_point_3m": {"value": -4.2, "unit": "KRW", "as_of": "2026-10-07", "source": "수동입력(사내 단말)"},
+ "hedge_cost_3m_annualized": {"value": 1.22, "unit": "%p", "as_of": "2026-10-07", "source": "계산(-스왑포인트/현물*4*100)"},
+ "kospi_per_fwd": {"value": 10.5, "unit": "배", "as_of": "2026-10-07", "source": "예시값 — 실제 출처(사내 단말 등)로 교체"},
+ "sp500_per_fwd": {"value": 21.0, "unit": "배", "as_of": "2026-10-07", "source": "예시값 — 실제 출처로 교체"},
+ "kospi_div_yield": {"value": 2.0, "unit": "%", "as_of": "2026-10-07", "source": "예시값 — 실제 출처로 교체"}
+}

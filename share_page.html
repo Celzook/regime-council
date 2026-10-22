@@ -1,0 +1,299 @@
+<style>
+  .eqs { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+  .eqs h1 { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); text-wrap: balance; }
+  .eqs-take { margin: var(--cds-gap-xs) 0 0; font-size: var(--cds-font-size-body); line-height: 1.6; max-width: 70rem; }
+  .eqs-meta { margin: var(--cds-gap-xs) 0 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .eqs-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--cds-gap-md); }
+  .eqs-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .eqs-card h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+  .eqs-note { margin: var(--cds-gap-xs) 0 var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.5; }
+  .eqs-tile .l, .eqs-stat .l { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .eqs-tile .v, .eqs-stat .v { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: var(--cds-gap-xs) 0; font-variant-numeric: tabular-nums; }
+  .eqs-tile .v.txt { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-heading); line-height: 1.4; }
+  .eqs-tile .s, .eqs-stat .s { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+  .eqs .good { color: var(--color-ok); } .eqs .bad { color: var(--color-bad); } .eqs .warn { color: var(--color-warn); }
+  .eqs-scroll { overflow-x: auto; }
+  .eqs-t { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-body); font-variant-numeric: tabular-nums; }
+  .eqs-t th { text-align: left; font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted);
+              padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .eqs-t td { padding: var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .eqs-t tbody tr:last-child td { border-bottom: none; }
+  .eqs-t .n { text-align: right; }
+  .eqs-t td.nm { white-space: normal; min-width: 11rem; }
+  .eqs-t td.bs, .eqs-t th.bs { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .eqs-pick tbody tr { cursor: pointer; }
+  .eqs-pick tbody tr:hover td { background: color-mix(in srgb, var(--color-fg) 4%, transparent); }
+  .eqs-pick tbody tr[aria-selected="true"] td { background: color-mix(in srgb, var(--color-fg) 8%, transparent); }
+  .eqs-pick tbody tr:focus-visible { outline: 2px solid var(--color-fg); outline-offset: -2px; }
+  .eqs-grp { margin: var(--cds-gap-lg) 0 var(--cds-gap-xs); font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+  .eqs-grp:first-child { margin-top: 0; }
+  .eqs-tag { font-size: var(--cds-font-size-caption); padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--color-fg) 7%, transparent); }
+  .eqs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: var(--cds-gap-md); margin: var(--cds-gap-md) 0 var(--cds-gap-lg); }
+  .eqs-sub { margin: var(--cds-gap-lg) 0 var(--cds-gap-xs); font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+  .eqs-bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--cds-gap-xs) var(--cds-gap-lg); min-height: 1.5rem; }
+  .eqs-bar { display: grid; grid-template-columns: 6rem 1fr 3.5rem; gap: var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); }
+  .eqs-bar .tr { position: relative; height: 6px; border-radius: 3px; background: var(--cds-chart-grid); }
+  .eqs-bar .tr i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+  .eqs-bar .pv { text-align: right; font-variant-numeric: tabular-nums; }
+  .eqs-fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); min-height: 4rem; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .eqs-fail::before { content: ''; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+  .eqs [data-dash-source-state=empty] { color: transparent; }
+  .eqs [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  .eqs-tablebox { min-height: 6rem; }
+</style>
+
+<div class="eqs">
+  <header id="top">
+    <h1>주식 유니버스 대시보드</h1>
+    <p class="eqs-take dash-skeleton" id="take" data-source="market_summary" data-field="verdict" data-row="0">—</p>
+    <p class="eqs-meta">가격 <span data-source="market_summary" data-field="price_to" data-row="0">—</span> 종가 · 밸류에이션 <span data-source="market_summary" data-field="valuation_at" data-row="0">—</span> 기준 · 공개 데이터(yfinance · 네이버 증권) · 매매 지시 아님</p>
+  </header>
+
+  <section class="eqs-tiles" id="tiles" aria-label="시장 핵심 숫자">
+    <div class="eqs-card eqs-tile"><div class="l" data-source="market_tiles" data-field="label" data-row="0">—</div><div class="v dash-skeleton" data-source="market_tiles" data-field="value" data-row="0">—</div><div class="s" data-source="market_tiles" data-field="note" data-row="0">—</div></div>
+    <div class="eqs-card eqs-tile"><div class="l" data-source="market_tiles" data-field="label" data-row="1">—</div><div class="v dash-skeleton" data-source="market_tiles" data-field="value" data-row="1">—</div><div class="s" data-source="market_tiles" data-field="note" data-row="1">—</div></div>
+    <div class="eqs-card eqs-tile"><div class="l" data-source="market_tiles" data-field="label" data-row="2">—</div><div class="v dash-skeleton" data-source="market_tiles" data-field="value" data-row="2">—</div><div class="s" data-source="market_tiles" data-field="note" data-row="2">—</div></div>
+    <div class="eqs-card eqs-tile"><div class="l" data-source="market_tiles" data-field="label" data-row="3">—</div><div class="v dash-skeleton" data-source="market_tiles" data-field="value" data-row="3">—</div><div class="s" data-source="market_tiles" data-field="note" data-row="3">—</div></div>
+  </section>
+
+  <section class="eqs-card" id="valuation">
+    <h2>유니버스 밸류에이션</h2>
+    <p class="eqs-note">PER = 가격 ÷ 최근 1년 이익. 선행 PER·이익 증가 예상은 애널리스트의 앞으로 1년 예상이고, 지수·ETF 는 상위 10종목 묶음 기준입니다.
+      시장 대비는 국내 항목은 KOSPI200, 그 밖은 S&amp;P500 의 PER 과 비교합니다(±15% 안은 비슷). 행을 누르면 아래에 상위 10종목이 나옵니다.</p>
+    <div id="val-tables" class="eqs-tablebox dash-skeleton"></div>
+  </section>
+
+  <section class="eqs-card" id="detail">
+    <h2 id="d-name" class="dash-skeleton" data-source="valuation" data-field="name">—</h2>
+    <p class="eqs-note" id="d-basis" data-source="valuation" data-field="basis">—</p>
+    <p class="eqs-take" id="d-sum" data-source="valuation" data-field="summary">—</p>
+    <div class="eqs-stats" id="d-stats"></div>
+    <div id="d-hold"></div>
+    <div id="d-sec"></div>
+  </section>
+
+  <section class="eqs-card" id="regions">
+    <h2>지역별 수익률</h2>
+    <p class="eqs-note">현지 통화 기준 · ETF 는 배당 재투자 반영 가격 · 흐름 = 추세·최근 수익률·과열 정도를 합친 점수를 말로 바꾼 것</p>
+    <div id="reg-table" class="eqs-tablebox dash-skeleton"></div>
+  </section>
+</div>
+
+<script>
+  // 숫자 모양 — 한국어 표기, 빈 값은 '—'
+  const NF = (d) => new Intl.NumberFormat('ko-KR', {minimumFractionDigits: d, maximumFractionDigits: d});
+  const fx = (v, d, unit) => (v === null || v === undefined) ? '—' : NF(d).format(v) + (unit || '');
+  const sgn = (v, d) => (v === null || v === undefined) ? '—' : (v > 0 ? '+' : '') + NF(d).format(v) + '%';
+  const toneOf = (v) => (v === null || v === undefined) ? '' : v > 0 ? 'good' : v < 0 ? 'bad' : '';
+  const CCY = {KRW: ['', '원', 0], USD: ['$', '', 2], JPY: ['¥', '', 0], EUR: ['€', '', 2], GBP: ['£', '', 2]};
+  const money = (v, c) => {
+    if (v === null || v === undefined) return '—';
+    const [a, b, d] = CCY[c] || ['', ' ' + (c || ''), 2];
+    return a + NF(d).format(v) + b;
+  };
+  const enc = (s) => encodeURIComponent(String(s));
+  const el = (tag, attrs, text) => {
+    const e = document.createElement(tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => { if (v !== null && v !== undefined) e.setAttribute(k, v); });
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+  const fail = (box) => { box.classList.remove('dash-skeleton'); box.replaceChildren(el('div', {class: 'eqs-fail'}, 'Failed to load')); };
+  window.eqsUtil = {NF, fx, sgn, toneOf, money, enc, el, fail};
+</script>
+
+<script>
+  // 머리말·시장 숫자 4개
+  dash.onData(() => {
+    const S = dash.data('market_summary'), T = dash.data('market_tiles');
+    const take = document.getElementById('take');
+    if (S.status === 'ok' && S.data.length) {
+      const s = S.data[0];
+      take.classList.remove('dash-skeleton');
+      take.textContent = s.verdict;
+      document.querySelectorAll('[data-source="market_summary"][data-field="price_to"]').forEach((e) => { e.textContent = s.price_to; });
+      document.querySelectorAll('[data-source="market_summary"][data-field="valuation_at"]').forEach((e) => { e.textContent = s.valuation_at; });
+    } else if (S.status === 'error') { take.classList.remove('dash-skeleton'); take.textContent = '—'; }
+    const rows = T.status === 'ok' ? T.data : [];
+    document.querySelectorAll('#tiles .eqs-tile').forEach((tile, i) => {
+      const r = rows[i], v = tile.querySelector('.v');
+      if (!r) { if (T.status === 'error') v.classList.remove('dash-skeleton'); return; }
+      v.classList.remove('dash-skeleton');
+      tile.querySelector('.l').textContent = r.label;
+      tile.querySelector('.s').textContent = r.note;
+      v.textContent = r.value;
+      v.className = 'v' + (String(r.value).length > 10 ? ' txt' : '') + (r.tone ? ' ' + r.tone : '');
+    });
+  });
+</script>
+
+<script>
+  // 유니버스 밸류에이션 표 — 항목 묶음마다 표 하나, 행을 누르면 아래 상세가 그 항목으로
+  const {fx, sgn, toneOf, el, fail} = window.eqsUtil;
+  const box = document.getElementById('val-tables');
+  const COLS = [
+    ['name', '항목', ''], ['per', 'PER', 'n'], ['fper', '선행 PER', 'n'], ['growth', '이익 증가 예상', 'n'],
+    ['pbr', 'PBR', 'n'], ['div', '배당', 'n'], ['vs_market', '시장 대비', ''], ['basis', '기준', 'bs'],
+  ];
+  const pick = (key) => { if (key) { dash.setParams({item: key}); dash.setLink('detail'); document.getElementById('detail').scrollIntoView({behavior: 'smooth', block: 'start'}); } };
+  box.addEventListener('click', (e) => { const tr = e.target.closest('tr[data-key]'); if (tr) pick(tr.dataset.key); });
+  box.addEventListener('keydown', (e) => {
+    const tr = e.target.closest('tr[data-key]');
+    if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pick(tr.dataset.key); }
+  });
+  dash.onData(() => {
+    const V = dash.data('valuation');
+    if (V.status === 'error') return fail(box);
+    if (V.status !== 'ok') return;
+    box.classList.remove('dash-skeleton');
+    const sel = dash.params().item;
+    const groups = [...new Set(V.data.map((r) => r.group))];
+    const parts = [];
+    groups.forEach((g) => {
+      parts.push(el('div', {class: 'eqs-grp'}, g));
+      const table = el('table', {class: 'eqs-t eqs-pick', 'data-source': 'valuation', 'data-row-key': 'key'});
+      const hr = el('tr');
+      COLS.forEach(([f, label, cls]) => hr.append(el('th', {'data-field': f, class: cls || null}, label)));
+      const thead = el('thead'); thead.append(hr);
+      const tbody = el('tbody');
+      V.data.filter((r) => r.group === g).forEach((r) => {
+        const tr = el('tr', {'data-key': r.key, tabindex: '0', 'aria-selected': String(r.key === sel)});
+        tr.append(el('td', {class: 'nm'}, r.name),
+          el('td', {class: 'n'}, fx(r.per, 1, '배')),
+          el('td', {class: 'n'}, fx(r.fper, 1, '배')),
+          el('td', {class: 'n ' + toneOf(r.growth)}, sgn(r.growth, 0)),
+          el('td', {class: 'n'}, fx(r.pbr, 2, '배')),
+          el('td', {class: 'n'}, fx(r.div, 2, '%')));
+        const vs = el('td');
+        if (r.vs_market) vs.append(el('span', {class: 'eqs-tag ' + (r.vs_tone === '쌈' ? 'good' : r.vs_tone === '비쌈' ? 'warn' : '')}, r.vs_market));
+        tr.append(vs, el('td', {class: 'bs'}, r.basis));
+        tbody.append(tr);
+      });
+      table.append(thead, tbody);
+      const sc = el('div', {class: 'eqs-scroll'}); sc.append(table);
+      parts.push(sc);
+    });
+    box.replaceChildren(...parts);
+  });
+</script>
+
+<script>
+  // 고른 항목의 상세 — 결론 한 줄, 큰 숫자, 상위 10종목, 업종 비중
+  const {fx, sgn, toneOf, money, enc, el, fail} = window.eqsUtil;
+  const stat = (field, label, value, note, tone, key) => {
+    const d = el('div', {class: 'eqs-stat'});
+    d.append(el('div', {class: 'l'}, label),
+      el('div', {class: 'v ' + (tone || ''), 'data-source': 'valuation', 'data-field': field, 'data-where': 'key=' + enc(key)}, value),
+      el('div', {class: 's'}, note || ''));
+    return d;
+  };
+  dash.onData(() => {
+    const V = dash.data('valuation'), H = dash.data('holdings'), C = dash.data('sectors');
+    const nameEl = document.getElementById('d-name');
+    if (V.status === 'error') { nameEl.classList.remove('dash-skeleton'); return fail(document.getElementById('d-stats')); }
+    if (V.status !== 'ok') return;
+    const key = dash.params().item;
+    const x = V.data.find((r) => r.key === key) || V.data[0];
+    const where = 'key=' + enc(x.key);
+    nameEl.classList.remove('dash-skeleton');
+    ['d-name', 'd-basis', 'd-sum'].forEach((id) => document.getElementById(id).setAttribute('data-where', where));
+    nameEl.textContent = x.name;
+    document.getElementById('d-basis').textContent = x.basis || x.source;
+    document.getElementById('d-sum').textContent = x.summary;
+    const stock = x.kind === '종목';
+    const s = [
+      stat('per', 'PER', fx(x.per, 1, '배'), stock ? '최근 실적 기준' : '전체 보유 기준', '', x.key),
+      stat('fper', stock ? '추정 PER' : '선행 PER', fx(x.fper, 1, '배'), stock ? '1년 예상 이익 기준' : '상위 10종목 묶음', '', x.key),
+      stat('growth', '이익 증가 예상', sgn(x.growth, 0), stock ? '추정 EPS ÷ EPS − 1' : '상위 10종목 묶음', toneOf(x.growth), x.key),
+    ];
+    if (stock) {
+      s.push(stat('eps', 'EPS', money(x.eps, x.ccy), '최근 실적', '', x.key));
+      s.push(stat('feps', '추정 EPS', money(x.feps, x.ccy), '1년 예상', '', x.key));
+    } else if (x.index_eps !== null && x.index_eps !== undefined) {
+      s.push(stat('index_eps', '지수 EPS (환산)', fx(x.index_eps, 0), '지수 ÷ PER', '', x.key));
+    }
+    s.push(stat('pbr', 'PBR', fx(x.pbr, 2, '배'), '', '', x.key));
+    s.push(stat('div', '배당', fx(x.div, 2, '%'), stock ? '최근 배당 기준' : '최근 1년 분배금 기준', '', x.key));
+    document.getElementById('d-stats').replaceChildren(...s);
+
+    // 상위 10종목
+    const hold = document.getElementById('d-hold');
+    if (H.status === 'error') fail(hold);
+    else if (H.status === 'ok') {
+      const hs = H.data.filter((r) => r.item === x.key).sort((a, b) => a.rank - b.rank);
+      if (!hs.length) hold.replaceChildren();
+      else {
+        const byM = hs.every((r) => r.weight === null || r.weight === undefined);
+        const cols = [['name', '종목', ''], ['code', '코드', 'bs'], byM ? ['mcap_trn', '시가총액(조)', 'n'] : ['weight', '비중', 'n'], ['per', 'PER', 'n'], ['fper', '선행 PER', 'n'],
+          ['eps', 'EPS', 'n'], ['feps', '선행 EPS', 'n'], ['growth', '이익 증가', 'n'], ['pbr', 'PBR', 'n'], ['div', '배당', 'n']];
+        const table = el('table', {class: 'eqs-t', 'data-source': 'holdings', 'data-row-key': 'item,rank'});
+        const hr = el('tr'); cols.forEach(([f, l, c]) => hr.append(el('th', {'data-field': f, class: c || null}, l)));
+        const thead = el('thead'); thead.append(hr);
+        const tbody = el('tbody');
+        hs.forEach((r) => {
+          const tr = el('tr', {'data-key': enc(r.item) + ',' + enc(r.rank)});
+          tr.append(el('td', {class: 'nm'}, r.name), el('td', {class: 'bs'}, r.code),
+            el('td', {class: 'n'}, byM ? fx(r.mcap_trn, 1) : fx(r.weight, 1, '%')),
+            el('td', {class: 'n'}, fx(r.per, 1, '배')), el('td', {class: 'n'}, fx(r.fper, 1, '배')),
+            el('td', {class: 'n'}, money(r.eps, r.ccy)), el('td', {class: 'n'}, money(r.feps, r.ccy)),
+            el('td', {class: 'n ' + toneOf(r.growth)}, sgn(r.growth, 0)),
+            el('td', {class: 'n'}, fx(r.pbr, 2, '배')), el('td', {class: 'n'}, fx(r.div, 2, '%')));
+          tbody.append(tr);
+        });
+        table.append(thead, tbody);
+        const sc = el('div', {class: 'eqs-scroll'}); sc.append(table);
+        hold.replaceChildren(el('div', {class: 'eqs-sub'}, byM ? '시가총액 상위 10종목' : '상위 10종목'), sc,
+          el('p', {class: 'eqs-note'}, 'EPS 는 각 종목의 통화 · 선행 EPS 는 애널리스트 1년 예상 · 국내 종목은 네이버 증권, 해외 종목은 yfinance'));
+      }
+    }
+
+    // 업종 비중
+    const sec = document.getElementById('d-sec');
+    if (C.status === 'error') fail(sec);
+    else if (C.status === 'ok') {
+      const cs = C.data.filter((r) => r.item === x.key).sort((a, b) => b.weight - a.weight);
+      if (!cs.length) sec.replaceChildren();
+      else {
+        const bars = el('div', {class: 'eqs-bars', 'data-source': 'sectors'});
+        cs.forEach((r) => {
+          const b = el('div', {class: 'eqs-bar'});
+          const tr = el('div', {class: 'tr'}); const i = el('i');
+          i.style.width = Math.min(100, Math.max(0, r.weight)) + '%'; i.style.background = dash.colors[0];
+          tr.append(i);
+          b.append(el('span', {}, r.sector), tr, el('span', {class: 'pv'}, fx(r.weight, 1, '%')));
+          bars.append(b);
+        });
+        sec.replaceChildren(el('div', {class: 'eqs-sub'}, '업종 비중'), bars);
+      }
+    }
+  });
+</script>
+
+<script>
+  // 지역별 수익률 표
+  const {fx, sgn, toneOf, el, fail} = window.eqsUtil;
+  const box = document.getElementById('reg-table');
+  const COLS = [['name', '지수', ''], ['region', '지역', ''], ['last', '현재', 'n'], ['r1w', '1주', 'n'], ['r1m', '1개월', 'n'], ['r3m', '3개월', 'n'],
+    ['ytd', '올해', 'n'], ['from_high', '1년 고점 대비', 'n'], ['trend', '흐름', '']];
+  dash.onData(() => {
+    const R = dash.data('regions');
+    if (R.status === 'error') return fail(box);
+    if (R.status !== 'ok') return;
+    box.classList.remove('dash-skeleton');
+    const table = el('table', {class: 'eqs-t', 'data-source': 'regions', 'data-row-key': 'key'});
+    const hr = el('tr'); COLS.forEach(([f, l, c]) => hr.append(el('th', {'data-field': f, class: c || null}, l)));
+    const thead = el('thead'); thead.append(hr);
+    const tbody = el('tbody');
+    R.data.forEach((r) => {
+      const tr = el('tr', {'data-key': r.key});
+      tr.append(el('td', {class: 'nm'}, r.name), el('td', {}, r.region),
+        el('td', {class: 'n'}, fx(r.last, Math.abs(r.last) >= 1000 ? 0 : 2)),
+        ...['r1w', 'r1m', 'r3m', 'ytd', 'from_high'].map((k) => el('td', {class: 'n ' + toneOf(r[k])}, sgn(r[k], 1))),
+        el('td', {class: r.trend === '강세' || r.trend === '우호' ? 'good' : (r.trend === '약세' || r.trend === '매우 약세') ? 'bad' : ''}, r.trend));
+      tbody.append(tr);
+    });
+    table.append(thead, tbody);
+    const sc = el('div', {class: 'eqs-scroll'}); sc.append(table);
+    box.replaceChildren(sc);
+  });
+</script>

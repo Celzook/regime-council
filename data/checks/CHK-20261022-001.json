@@ -1,0 +1,2089 @@
+{
+ "report_id": "CHK-20261022-001",
+ "trigger": "NEW",
+ "trigger_name": "신규 투자",
+ "asset": "equity",
+ "asset_name": "주식",
+ "inputs": {
+  "asset": "equity",
+  "mv_bn": "300",
+  "currency": "KRW",
+  "rate_pnl_in_scope": true
+ },
+ "operator_note": "",
+ "created_at": "2026-10-22T12:11:00+09:00",
+ "data_as_of": "2026-10-22",
+ "market_as_of": null,
+ "headline": "(에이전트 미실행 — CODE 계산 결과만)",
+ "code": {
+  "limits": {
+   "as_of": "2026-10-22",
+   "pnl_as_of_min": "2026-10-20",
+   "limits_version": "trial-2026-10-22",
+   "limits_status": "체험용 가안 — 시험 포트(Active 5,000억, 가상) 기준. 투자위 확정 전",
+   "is_sample": {
+    "positions": false,
+    "limits": false
+   },
+   "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [
+     "주식 손절금액 합계 165억 > 주식 한도 160억 (위탁 손절은 양쪽 자산에 전액 계상) — 손절선 또는 한도 재설정 필요"
+    ]
+   },
+   "total_mv_bn": 5348.0,
+   "total": {
+    "limit_bn": 300.0,
+    "pnl_bn": 35.4,
+    "used_bn": 0.0,
+    "headroom_bn": 300.0,
+    "util_pct": 0.0,
+    "stage": "NORMAL",
+    "position_stage_max": "NORMAL"
+   },
+   "by_asset": {
+    "bond": {
+     "limit_bn": 80.0,
+     "pnl_bn": 3.9,
+     "used_bn": 0.0,
+     "headroom_bn": 80.0,
+     "util_pct": 0.0,
+     "stage": "NORMAL",
+     "position_stage_max": "NORMAL",
+     "mv_bn": 2906.8,
+     "stop_budget_used_bn": 56.0,
+     "stop_budget_free_bn": 24.0
+    },
+    "equity": {
+     "limit_bn": 160.0,
+     "pnl_bn": 31.9,
+     "used_bn": 0.0,
+     "headroom_bn": 160.0,
+     "util_pct": 0.0,
+     "stage": "NORMAL",
+     "position_stage_max": "NORMAL",
+     "mv_bn": 2441.2,
+     "stop_budget_used_bn": 165.0,
+     "stop_budget_free_bn": -5.0
+    },
+    "fx": {
+     "limit_bn": 40.0,
+     "pnl_bn": -0.4,
+     "used_bn": 0.4,
+     "headroom_bn": 39.6,
+     "util_pct": 1.0,
+     "stage": "NORMAL",
+     "position_stage_max": "NORMAL",
+     "mv_bn": 899.6,
+     "stop_budget_used_bn": 29.8,
+     "stop_budget_free_bn": 10.2
+    }
+   },
+   "positions": [
+    {
+     "id": "E1",
+     "name": "삼성전자 롱",
+     "full_name": "삼성전자 롱",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 266.2,
+     "weight_pct": 4.98,
+     "pnl_ytd_bn": 16.2,
+     "pnl_pct": 6.5,
+     "stop_loss_pct": -10.0,
+     "stop_amount_bn": 25.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 1.19,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "E2",
+     "name": "SK하이닉스 롱",
+     "full_name": "SK하이닉스 롱",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 158.3,
+     "weight_pct": 2.96,
+     "pnl_ytd_bn": 8.3,
+     "pnl_pct": 5.56,
+     "stop_loss_pct": -10.0,
+     "stop_amount_bn": 15.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 1.39,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "E3",
+     "name": "KOSPI200 롱",
+     "full_name": "KOSPI200 롱 (KODEX 200)",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 310.4,
+     "weight_pct": 5.8,
+     "pnl_ytd_bn": 10.4,
+     "pnl_pct": 3.45,
+     "stop_loss_pct": -8.0,
+     "stop_amount_bn": 24.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 1.0,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "P1",
+     "name": "은행 밸류업 페어",
+     "full_name": "은행 밸류업 페어 (KB·신한 롱 / KOSPI200 선물 숏)",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 495.5,
+     "weight_pct": 9.27,
+     "pnl_ytd_bn": -8.4,
+     "pnl_pct": -1.69,
+     "stop_loss_pct": -5.0,
+     "stop_amount_bn": 25.0,
+     "stop_ratio_pct": 33.8,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": -0.008,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "P2",
+     "name": "삼성전자 보통/우선 페어",
+     "full_name": "삼성전자 보통/우선 페어 (보통 롱 / 우선 숏)",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 266.2,
+     "weight_pct": 4.98,
+     "pnl_ytd_bn": 4.2,
+     "pnl_pct": 1.68,
+     "stop_loss_pct": -5.0,
+     "stop_amount_bn": 12.5,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 0.097,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "P3",
+     "name": "현대차/기아 페어",
+     "full_name": "현대차/기아 페어 (현대차 롱 / 기아 숏)",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 196.1,
+     "weight_pct": 3.67,
+     "pnl_ytd_bn": 2.7,
+     "pnl_pct": 1.35,
+     "stop_loss_pct": -5.0,
+     "stop_amount_bn": 10.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 0.148,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "E8",
+     "name": "미국 중간선거 후 S&P500 롱",
+     "full_name": "미국 중간선거 후 S&P500 롱 (SPY, 환헤지)",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 200.7,
+     "weight_pct": 3.75,
+     "pnl_ytd_bn": 0.7,
+     "pnl_pct": 0.34,
+     "stop_loss_pct": -5.0,
+     "stop_amount_bn": 10.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": null,
+     "beta": 1.0,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "E9",
+     "name": "연말 배당 시즌 고배당 ETF",
+     "full_name": "연말 배당 시즌 고배당 ETF",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 147.4,
+     "weight_pct": 2.76,
+     "pnl_ytd_bn": -2.6,
+     "pnl_pct": -1.76,
+     "stop_loss_pct": -5.0,
+     "stop_amount_bn": 7.5,
+     "stop_ratio_pct": 35.2,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 0.31,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B1",
+     "name": "미국채 7-10년 롱",
+     "full_name": "미국채 7-10년 롱 (IEF, 환헤지)",
+     "asset": "bond",
+     "type": "bucket",
+     "mv_bn": 501.0,
+     "weight_pct": 9.37,
+     "pnl_ytd_bn": 0.9,
+     "pnl_pct": 0.19,
+     "stop_loss_pct": -2.0,
+     "stop_amount_bn": 10.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": 7.1,
+     "beta": null,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B2",
+     "name": "한미 10년 금리차 축소",
+     "full_name": "한미 10년 금리차 축소 (IEF 롱 / 10년 국채선물 숏)",
+     "asset": "bond",
+     "type": "bucket",
+     "mv_bn": 1202.4,
+     "weight_pct": 22.48,
+     "pnl_ytd_bn": -0.2,
+     "pnl_pct": -0.01,
+     "stop_loss_pct": -1.5,
+     "stop_amount_bn": 18.0,
+     "stop_ratio_pct": 0.9,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": 0.0,
+     "beta": null,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B3",
+     "name": "연초 효과 국내 크레딧",
+     "full_name": "연초 효과 국내 크레딧 (AA- 이상 액티브 ETF)",
+     "asset": "bond",
+     "type": "bucket",
+     "mv_bn": 400.7,
+     "weight_pct": 7.49,
+     "pnl_ytd_bn": 0.7,
+     "pnl_pct": 0.17,
+     "stop_loss_pct": -1.0,
+     "stop_amount_bn": 4.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": 4.5,
+     "beta": null,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B4",
+     "name": "연초 효과 미국 IG 회사채",
+     "full_name": "연초 효과 미국 IG 회사채 (LQD, 환헤지)",
+     "asset": "bond",
+     "type": "bucket",
+     "mv_bn": 401.4,
+     "weight_pct": 7.51,
+     "pnl_ytd_bn": 1.3,
+     "pnl_pct": 0.33,
+     "stop_loss_pct": -1.5,
+     "stop_amount_bn": 6.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": 8.3,
+     "beta": null,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B5",
+     "name": "전환사채 롱",
+     "full_name": "전환사채 롱 (CWB, 환헤지) — CB·BW 대용",
+     "asset": "mixed",
+     "type": "bucket",
+     "mv_bn": 200.9,
+     "weight_pct": 3.76,
+     "pnl_ytd_bn": 0.9,
+     "pnl_pct": 0.44,
+     "stop_loss_pct": -3.0,
+     "stop_amount_bn": 6.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": null,
+     "beta": null,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B6",
+     "name": "EM 로컬통화 국채",
+     "full_name": "EM 로컬통화 국채 (EMLC) — EM 로컬채권 위탁 대용",
+     "asset": "bond",
+     "type": "bucket",
+     "mv_bn": 300.8,
+     "weight_pct": 5.62,
+     "pnl_ytd_bn": 0.7,
+     "pnl_pct": 0.24,
+     "stop_loss_pct": -4.0,
+     "stop_amount_bn": 12.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": 5.0,
+     "beta": null,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "F1",
+     "name": "달러 롱 / 원화 숏",
+     "full_name": "달러 롱 / 원화 숏 (미국달러선물)",
+     "asset": "fx",
+     "type": "bucket",
+     "mv_bn": 0.0,
+     "weight_pct": 0.0,
+     "pnl_ytd_bn": 0.0,
+     "pnl_pct": 0,
+     "stop_loss_pct": -2.76,
+     "stop_amount_bn": 0.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 500.1,
+      "pnl_fx_bn": 0.07,
+      "stop_pct": -2.76,
+      "stop_amount_bn": 13.8,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": null,
+     "hedge_pct": 0,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "F2",
+     "name": "엔 롱 / 원 숏",
+     "full_name": "엔 롱 / 원 숏 (엔선물)",
+     "asset": "fx",
+     "type": "bucket",
+     "mv_bn": 0.0,
+     "weight_pct": 0.0,
+     "pnl_ytd_bn": 0.0,
+     "pnl_pct": 0,
+     "stop_loss_pct": -4.0,
+     "stop_amount_bn": 0.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 399.5,
+      "pnl_fx_bn": -0.48,
+      "stop_pct": -4.0,
+      "stop_amount_bn": 16.0,
+      "stop_ratio_pct": 3.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": null,
+     "hedge_pct": 0,
+     "currency": "JPY",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "NEW",
+     "name": "[신규] 신규 포지션",
+     "full_name": "[신규] 신규 포지션",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 300.0,
+     "weight_pct": 5.61,
+     "pnl_ytd_bn": 0.0,
+     "pnl_pct": 0.0,
+     "stop_loss_pct": -10.0,
+     "stop_amount_bn": 30.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": null,
+     "stale": false,
+     "duration": null,
+     "beta": null,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": true,
+     "pnl_split_estimated": false
+    }
+   ],
+   "stress": [
+    {
+     "id": "S0",
+     "name": "사이징 기준 (월 1σ, 역방향)",
+     "desc": "국고 +30bp, 스프레드 +20bp, 주식 -7%, 원화 강세 4% — 축소·추가 가능 규모 산정용",
+     "sizing": true,
+     "reference": false,
+     "loss_bn": {
+      "bond": 46.2,
+      "equity": 108.1,
+      "fx": 36.0
+     },
+     "loss_total_bn": 190.4,
+     "post_util_pct": {
+      "bond": 52.9,
+      "equity": 47.7,
+      "fx": 91.0
+     },
+     "post_util_total_pct": 51.7,
+     "post_stage_total": "WARN",
+     "post_stage_by_asset": {
+      "bond": "WARN",
+      "equity": "NORMAL",
+      "fx": "REDUCE"
+     }
+    },
+    {
+     "id": "S1",
+     "name": "금리 급등 (인플레 재점화)",
+     "desc": "국고 +60bp, 스프레드 +20bp, 주식 -8%, 원화 약세 3%",
+     "sizing": false,
+     "reference": false,
+     "loss_bn": {
+      "bond": 77.6,
+      "equity": 123.6,
+      "fx": -27.0
+     },
+     "loss_total_bn": 174.2,
+     "post_util_pct": {
+      "bond": 92.1,
+      "equity": 57.3,
+      "fx": 0.0
+     },
+     "post_util_total_pct": 46.3,
+     "post_stage_total": "NORMAL",
+     "post_stage_by_asset": {
+      "bond": "REDUCE",
+      "equity": "WARN",
+      "fx": "NORMAL"
+     }
+    },
+    {
+     "id": "S2",
+     "name": "신용 경색",
+     "desc": "국고 -20bp, 스프레드 +60bp, 주식 -15%, 원화 약세 6%",
+     "sizing": false,
+     "reference": false,
+     "loss_bn": {
+      "bond": 23.8,
+      "equity": 231.7,
+      "fx": -54.0
+     },
+     "loss_total_bn": 201.5,
+     "post_util_pct": {
+      "bond": 24.8,
+      "equity": 124.9,
+      "fx": 0.0
+     },
+     "post_util_total_pct": 55.4,
+     "post_stage_total": "WARN",
+     "post_stage_by_asset": {
+      "bond": "NORMAL",
+      "equity": "HALT",
+      "fx": "NORMAL"
+     }
+    },
+    {
+     "id": "S3",
+     "name": "리스크오프 급락 (2020.3형)",
+     "desc": "국고 -40bp, 스프레드 +40bp, 주식 -25%, 원화 약세 8%",
+     "sizing": false,
+     "reference": false,
+     "loss_bn": {
+      "bond": -12.0,
+      "equity": 386.2,
+      "fx": -72.0
+     },
+     "loss_total_bn": 302.3,
+     "post_util_pct": {
+      "bond": 0.0,
+      "equity": 221.5,
+      "fx": 0.0
+     },
+     "post_util_total_pct": 89.0,
+     "post_stage_total": "REDUCE",
+     "post_stage_by_asset": {
+      "bond": "NORMAL",
+      "equity": "HALT",
+      "fx": "NORMAL"
+     }
+    },
+    {
+     "id": "S4",
+     "name": "원화 급강세",
+     "desc": "국고 +10bp, 스프레드 -5bp, 주식 +3%, 원화 강세 8% (환오픈분 손실)",
+     "sizing": false,
+     "reference": false,
+     "loss_bn": {
+      "bond": 6.7,
+      "equity": -46.3,
+      "fx": 72.0
+     },
+     "loss_total_bn": 32.3,
+     "post_util_pct": {
+      "bond": 3.5,
+      "equity": 0.0,
+      "fx": 180.9
+     },
+     "post_util_total_pct": 0.0,
+     "post_stage_total": "NORMAL",
+     "post_stage_by_asset": {
+      "bond": "NORMAL",
+      "equity": "NORMAL",
+      "fx": "HALT"
+     }
+    },
+    {
+     "id": "S5",
+     "name": "스태그플레이션 (severe, 참고)",
+     "desc": "국고 +150bp, 스프레드 +80bp, 주식 -20%, 원화 약세 8%",
+     "sizing": false,
+     "reference": true,
+     "loss_bn": {
+      "bond": 216.2,
+      "equity": 309.0,
+      "fx": -72.0
+     },
+     "loss_total_bn": 453.3,
+     "post_util_pct": {
+      "bond": 265.4,
+      "equity": 173.2,
+      "fx": 0.0
+     },
+     "post_util_total_pct": 139.3,
+     "post_stage_total": "HALT",
+     "post_stage_by_asset": {
+      "bond": "HALT",
+      "equity": "HALT",
+      "fx": "NORMAL"
+     }
+    }
+   ],
+   "worst_stress": "리스크오프 급락 (2020.3형)",
+   "stress_refs": [
+    "[참고] 리스크오프 급락 (2020.3형) 적용 시 전체 소진율 89.0% (축소)"
+   ],
+   "suggested_cut_bn": {},
+   "max_addable": {
+    "bn": 0,
+    "binding_asset": null,
+    "blocked": true,
+    "rule": "추가 불가 — 환 S0 사후 소진율 91.0% (이미 축소 임계 이상)"
+   },
+   "alerts": [],
+   "messages": [
+    "[데이터] 주식 손절금액 합계 165억 > 주식 한도 160억 (위탁 손절은 양쪽 자산에 전액 계상) — 손절선 또는 한도 재설정 필요",
+    "[참고] 리스크오프 급락 (2020.3형) 적용 시 전체 소진율 89.0% (축소)"
+   ],
+   "risk_floor": "WATCH",
+   "floor_by_asset": {
+    "bond": "WATCH",
+    "equity": "WATCH",
+    "fx": "WATCH"
+   },
+   "limit_breach": false,
+   "breach_by_asset": {
+    "bond": false,
+    "equity": false,
+    "fx": false
+   },
+   "stages": {
+    "warn_pct": 50,
+    "reduce_pct": 75,
+    "halt_pct": 100
+   },
+   "new_position": {
+    "asset": "equity",
+    "mv_bn": 300.0,
+    "currency": "KRW",
+    "rate_pnl_in_scope": true,
+    "fx_exposure_bn": 300.0
+   },
+   "source": "CODE"
+  },
+  "limits_before": {
+   "as_of": "2026-10-22",
+   "pnl_as_of_min": "2026-10-20",
+   "limits_version": "trial-2026-10-22",
+   "limits_status": "체험용 가안 — 시험 포트(Active 5,000억, 가상) 기준. 투자위 확정 전",
+   "is_sample": {
+    "positions": false,
+    "limits": false
+   },
+   "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": []
+   },
+   "total_mv_bn": 5048.0,
+   "total": {
+    "limit_bn": 300.0,
+    "pnl_bn": 35.4,
+    "used_bn": 0.0,
+    "headroom_bn": 300.0,
+    "util_pct": 0.0,
+    "stage": "NORMAL",
+    "position_stage_max": "NORMAL"
+   },
+   "by_asset": {
+    "bond": {
+     "limit_bn": 80.0,
+     "pnl_bn": 3.9,
+     "used_bn": 0.0,
+     "headroom_bn": 80.0,
+     "util_pct": 0.0,
+     "stage": "NORMAL",
+     "position_stage_max": "NORMAL",
+     "mv_bn": 2906.8,
+     "stop_budget_used_bn": 56.0,
+     "stop_budget_free_bn": 24.0
+    },
+    "equity": {
+     "limit_bn": 160.0,
+     "pnl_bn": 31.9,
+     "used_bn": 0.0,
+     "headroom_bn": 160.0,
+     "util_pct": 0.0,
+     "stage": "NORMAL",
+     "position_stage_max": "NORMAL",
+     "mv_bn": 2141.2,
+     "stop_budget_used_bn": 135.0,
+     "stop_budget_free_bn": 25.0
+    },
+    "fx": {
+     "limit_bn": 40.0,
+     "pnl_bn": -0.4,
+     "used_bn": 0.4,
+     "headroom_bn": 39.6,
+     "util_pct": 1.0,
+     "stage": "NORMAL",
+     "position_stage_max": "NORMAL",
+     "mv_bn": 899.6,
+     "stop_budget_used_bn": 29.8,
+     "stop_budget_free_bn": 10.2
+    }
+   },
+   "positions": [
+    {
+     "id": "E1",
+     "name": "삼성전자 롱",
+     "full_name": "삼성전자 롱",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 266.2,
+     "weight_pct": 5.27,
+     "pnl_ytd_bn": 16.2,
+     "pnl_pct": 6.5,
+     "stop_loss_pct": -10.0,
+     "stop_amount_bn": 25.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 1.19,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "E2",
+     "name": "SK하이닉스 롱",
+     "full_name": "SK하이닉스 롱",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 158.3,
+     "weight_pct": 3.14,
+     "pnl_ytd_bn": 8.3,
+     "pnl_pct": 5.56,
+     "stop_loss_pct": -10.0,
+     "stop_amount_bn": 15.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 1.39,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "E3",
+     "name": "KOSPI200 롱",
+     "full_name": "KOSPI200 롱 (KODEX 200)",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 310.4,
+     "weight_pct": 6.15,
+     "pnl_ytd_bn": 10.4,
+     "pnl_pct": 3.45,
+     "stop_loss_pct": -8.0,
+     "stop_amount_bn": 24.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 1.0,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "P1",
+     "name": "은행 밸류업 페어",
+     "full_name": "은행 밸류업 페어 (KB·신한 롱 / KOSPI200 선물 숏)",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 495.5,
+     "weight_pct": 9.82,
+     "pnl_ytd_bn": -8.4,
+     "pnl_pct": -1.69,
+     "stop_loss_pct": -5.0,
+     "stop_amount_bn": 25.0,
+     "stop_ratio_pct": 33.8,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": -0.008,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "P2",
+     "name": "삼성전자 보통/우선 페어",
+     "full_name": "삼성전자 보통/우선 페어 (보통 롱 / 우선 숏)",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 266.2,
+     "weight_pct": 5.27,
+     "pnl_ytd_bn": 4.2,
+     "pnl_pct": 1.68,
+     "stop_loss_pct": -5.0,
+     "stop_amount_bn": 12.5,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 0.097,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "P3",
+     "name": "현대차/기아 페어",
+     "full_name": "현대차/기아 페어 (현대차 롱 / 기아 숏)",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 196.1,
+     "weight_pct": 3.88,
+     "pnl_ytd_bn": 2.7,
+     "pnl_pct": 1.35,
+     "stop_loss_pct": -5.0,
+     "stop_amount_bn": 10.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 0.148,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "E8",
+     "name": "미국 중간선거 후 S&P500 롱",
+     "full_name": "미국 중간선거 후 S&P500 롱 (SPY, 환헤지)",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 200.7,
+     "weight_pct": 3.98,
+     "pnl_ytd_bn": 0.7,
+     "pnl_pct": 0.34,
+     "stop_loss_pct": -5.0,
+     "stop_amount_bn": 10.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": null,
+     "beta": 1.0,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "E9",
+     "name": "연말 배당 시즌 고배당 ETF",
+     "full_name": "연말 배당 시즌 고배당 ETF",
+     "asset": "equity",
+     "type": "bucket",
+     "mv_bn": 147.4,
+     "weight_pct": 2.92,
+     "pnl_ytd_bn": -2.6,
+     "pnl_pct": -1.76,
+     "stop_loss_pct": -5.0,
+     "stop_amount_bn": 7.5,
+     "stop_ratio_pct": 35.2,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": 0.31,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B1",
+     "name": "미국채 7-10년 롱",
+     "full_name": "미국채 7-10년 롱 (IEF, 환헤지)",
+     "asset": "bond",
+     "type": "bucket",
+     "mv_bn": 501.0,
+     "weight_pct": 9.92,
+     "pnl_ytd_bn": 0.9,
+     "pnl_pct": 0.19,
+     "stop_loss_pct": -2.0,
+     "stop_amount_bn": 10.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": 7.1,
+     "beta": null,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B2",
+     "name": "한미 10년 금리차 축소",
+     "full_name": "한미 10년 금리차 축소 (IEF 롱 / 10년 국채선물 숏)",
+     "asset": "bond",
+     "type": "bucket",
+     "mv_bn": 1202.4,
+     "weight_pct": 23.82,
+     "pnl_ytd_bn": -0.2,
+     "pnl_pct": -0.01,
+     "stop_loss_pct": -1.5,
+     "stop_amount_bn": 18.0,
+     "stop_ratio_pct": 0.9,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": 0.0,
+     "beta": null,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B3",
+     "name": "연초 효과 국내 크레딧",
+     "full_name": "연초 효과 국내 크레딧 (AA- 이상 액티브 ETF)",
+     "asset": "bond",
+     "type": "bucket",
+     "mv_bn": 400.7,
+     "weight_pct": 7.94,
+     "pnl_ytd_bn": 0.7,
+     "pnl_pct": 0.17,
+     "stop_loss_pct": -1.0,
+     "stop_amount_bn": 4.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": null,
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": 4.5,
+     "beta": null,
+     "hedge_pct": null,
+     "currency": "KRW",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B4",
+     "name": "연초 효과 미국 IG 회사채",
+     "full_name": "연초 효과 미국 IG 회사채 (LQD, 환헤지)",
+     "asset": "bond",
+     "type": "bucket",
+     "mv_bn": 401.4,
+     "weight_pct": 7.95,
+     "pnl_ytd_bn": 1.3,
+     "pnl_pct": 0.33,
+     "stop_loss_pct": -1.5,
+     "stop_amount_bn": 6.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": 8.3,
+     "beta": null,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B5",
+     "name": "전환사채 롱",
+     "full_name": "전환사채 롱 (CWB, 환헤지) — CB·BW 대용",
+     "asset": "mixed",
+     "type": "bucket",
+     "mv_bn": 200.9,
+     "weight_pct": 3.98,
+     "pnl_ytd_bn": 0.9,
+     "pnl_pct": 0.44,
+     "stop_loss_pct": -3.0,
+     "stop_amount_bn": 6.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": null,
+     "beta": null,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "B6",
+     "name": "EM 로컬통화 국채",
+     "full_name": "EM 로컬통화 국채 (EMLC) — EM 로컬채권 위탁 대용",
+     "asset": "bond",
+     "type": "bucket",
+     "mv_bn": 300.8,
+     "weight_pct": 5.96,
+     "pnl_ytd_bn": 0.7,
+     "pnl_pct": 0.24,
+     "stop_loss_pct": -4.0,
+     "stop_amount_bn": 12.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 0.0,
+      "pnl_fx_bn": 0.0,
+      "stop_pct": -6.0,
+      "stop_amount_bn": 0.0,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-20",
+     "stale": false,
+     "duration": 5.0,
+     "beta": null,
+     "hedge_pct": 100,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "F1",
+     "name": "달러 롱 / 원화 숏",
+     "full_name": "달러 롱 / 원화 숏 (미국달러선물)",
+     "asset": "fx",
+     "type": "bucket",
+     "mv_bn": 0.0,
+     "weight_pct": 0.0,
+     "pnl_ytd_bn": 0.0,
+     "pnl_pct": 0,
+     "stop_loss_pct": -2.76,
+     "stop_amount_bn": 0.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 500.1,
+      "pnl_fx_bn": 0.07,
+      "stop_pct": -2.76,
+      "stop_amount_bn": 13.8,
+      "stop_ratio_pct": 0.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": null,
+     "hedge_pct": 0,
+     "currency": "USD",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    },
+    {
+     "id": "F2",
+     "name": "엔 롱 / 원 숏",
+     "full_name": "엔 롱 / 원 숏 (엔선물)",
+     "asset": "fx",
+     "type": "bucket",
+     "mv_bn": 0.0,
+     "weight_pct": 0.0,
+     "pnl_ytd_bn": 0.0,
+     "pnl_pct": 0,
+     "stop_loss_pct": -4.0,
+     "stop_amount_bn": 0.0,
+     "stop_ratio_pct": 0.0,
+     "approach_ratio_pct": 70,
+     "stage_asset": "NORMAL",
+     "stage": "NORMAL",
+     "reason": "",
+     "fx": {
+      "open_bn": 399.5,
+      "pnl_fx_bn": -0.48,
+      "stop_pct": -4.0,
+      "stop_amount_bn": 16.0,
+      "stop_ratio_pct": 3.0,
+      "stage": "NORMAL"
+     },
+     "pnl_as_of": "2026-10-22",
+     "stale": false,
+     "duration": null,
+     "beta": null,
+     "hedge_pct": 0,
+     "currency": "JPY",
+     "rate_pnl_in_scope": true,
+     "is_new": false,
+     "pnl_split_estimated": false
+    }
+   ],
+   "stress": [
+    {
+     "id": "S0",
+     "name": "사이징 기준 (월 1σ, 역방향)",
+     "desc": "국고 +30bp, 스프레드 +20bp, 주식 -7%, 원화 강세 4% — 축소·추가 가능 규모 산정용",
+     "sizing": true,
+     "reference": false,
+     "loss_bn": {
+      "bond": 46.2,
+      "equity": 87.1,
+      "fx": 36.0
+     },
+     "loss_total_bn": 169.4,
+     "post_util_pct": {
+      "bond": 52.9,
+      "equity": 34.5,
+      "fx": 91.0
+     },
+     "post_util_total_pct": 44.7,
+     "post_stage_total": "NORMAL",
+     "post_stage_by_asset": {
+      "bond": "WARN",
+      "equity": "NORMAL",
+      "fx": "REDUCE"
+     }
+    },
+    {
+     "id": "S1",
+     "name": "금리 급등 (인플레 재점화)",
+     "desc": "국고 +60bp, 스프레드 +20bp, 주식 -8%, 원화 약세 3%",
+     "sizing": false,
+     "reference": false,
+     "loss_bn": {
+      "bond": 77.6,
+      "equity": 99.6,
+      "fx": -27.0
+     },
+     "loss_total_bn": 150.2,
+     "post_util_pct": {
+      "bond": 92.1,
+      "equity": 42.3,
+      "fx": 0.0
+     },
+     "post_util_total_pct": 38.3,
+     "post_stage_total": "NORMAL",
+     "post_stage_by_asset": {
+      "bond": "REDUCE",
+      "equity": "NORMAL",
+      "fx": "NORMAL"
+     }
+    },
+    {
+     "id": "S2",
+     "name": "신용 경색",
+     "desc": "국고 -20bp, 스프레드 +60bp, 주식 -15%, 원화 약세 6%",
+     "sizing": false,
+     "reference": false,
+     "loss_bn": {
+      "bond": 23.8,
+      "equity": 186.7,
+      "fx": -54.0
+     },
+     "loss_total_bn": 156.5,
+     "post_util_pct": {
+      "bond": 24.8,
+      "equity": 96.8,
+      "fx": 0.0
+     },
+     "post_util_total_pct": 40.4,
+     "post_stage_total": "NORMAL",
+     "post_stage_by_asset": {
+      "bond": "NORMAL",
+      "equity": "REDUCE",
+      "fx": "NORMAL"
+     }
+    },
+    {
+     "id": "S3",
+     "name": "리스크오프 급락 (2020.3형)",
+     "desc": "국고 -40bp, 스프레드 +40bp, 주식 -25%, 원화 약세 8%",
+     "sizing": false,
+     "reference": false,
+     "loss_bn": {
+      "bond": -12.0,
+      "equity": 311.2,
+      "fx": -72.0
+     },
+     "loss_total_bn": 227.3,
+     "post_util_pct": {
+      "bond": 0.0,
+      "equity": 174.6,
+      "fx": 0.0
+     },
+     "post_util_total_pct": 64.0,
+     "post_stage_total": "WARN",
+     "post_stage_by_asset": {
+      "bond": "NORMAL",
+      "equity": "HALT",
+      "fx": "NORMAL"
+     }
+    },
+    {
+     "id": "S4",
+     "name": "원화 급강세",
+     "desc": "국고 +10bp, 스프레드 -5bp, 주식 +3%, 원화 강세 8% (환오픈분 손실)",
+     "sizing": false,
+     "reference": false,
+     "loss_bn": {
+      "bond": 6.7,
+      "equity": -37.3,
+      "fx": 72.0
+     },
+     "loss_total_bn": 41.3,
+     "post_util_pct": {
+      "bond": 3.5,
+      "equity": 0.0,
+      "fx": 180.9
+     },
+     "post_util_total_pct": 2.0,
+     "post_stage_total": "NORMAL",
+     "post_stage_by_asset": {
+      "bond": "NORMAL",
+      "equity": "NORMAL",
+      "fx": "HALT"
+     }
+    },
+    {
+     "id": "S5",
+     "name": "스태그플레이션 (severe, 참고)",
+     "desc": "국고 +150bp, 스프레드 +80bp, 주식 -20%, 원화 약세 8%",
+     "sizing": false,
+     "reference": true,
+     "loss_bn": {
+      "bond": 216.2,
+      "equity": 249.0,
+      "fx": -72.0
+     },
+     "loss_total_bn": 393.3,
+     "post_util_pct": {
+      "bond": 265.4,
+      "equity": 135.7,
+      "fx": 0.0
+     },
+     "post_util_total_pct": 119.3,
+     "post_stage_total": "HALT",
+     "post_stage_by_asset": {
+      "bond": "HALT",
+      "equity": "HALT",
+      "fx": "NORMAL"
+     }
+    }
+   ],
+   "worst_stress": "리스크오프 급락 (2020.3형)",
+   "stress_refs": [],
+   "suggested_cut_bn": {},
+   "max_addable": null,
+   "alerts": [],
+   "messages": [],
+   "risk_floor": "NORMAL",
+   "floor_by_asset": {
+    "bond": "WATCH",
+    "equity": "WATCH",
+    "fx": "WATCH"
+   },
+   "limit_breach": false,
+   "breach_by_asset": {
+    "bond": false,
+    "equity": false,
+    "fx": false
+   },
+   "stages": {
+    "warn_pct": 50,
+    "reduce_pct": 75,
+    "halt_pct": 100
+   },
+   "new_position": null,
+   "source": "CODE"
+  },
+  "analog": {
+   "asset": "equity",
+   "asset_name": "주식",
+   "as_of": "2026-10-20",
+   "current_features": {
+    "KOSPI 3개월 수익률(%)": -21.94,
+    "KOSPI 6개월 수익률(%)": -16.25,
+    "VIX 레벨": 18.44,
+    "KOSPI-S&P 3개월 상대(%p)": -25.75,
+    "국고3y 3개월 변화(bp)": -4.0
+   },
+   "search": {
+    "universe_start": "2012-06-26",
+    "universe_end": "2025-10-20",
+    "n_candidates": 3470,
+    "k": 10,
+    "exclude_months": 12,
+    "dedup_days": 126,
+    "metric": "robust-z euclid"
+   },
+   "flags": [],
+   "n_independent": 7,
+   "years": [
+    2012,
+    2013,
+    2014,
+    2015,
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024
+   ],
+   "analogs": [
+    {
+     "date": "2024-11-15",
+     "distance": 1.79,
+     "distance_pctile": 0.0,
+     "features": {
+      "KOSPI 3개월 수익률(%)": -10.37,
+      "KOSPI 6개월 수익률(%)": -11.2,
+      "VIX 레벨": 16.14,
+      "KOSPI-S&P 3개월 상대(%p)": -15.26,
+      "국고3y 3개월 변화(bp)": -0.3
+     },
+     "outcomes": {
+      "3m": {
+       "KOSPI 수익률(%)": 6.9,
+       "S&P500 수익률(%)": 4.2
+      },
+      "6m": {
+       "KOSPI 수익률(%)": 7.9,
+       "S&P500 수익률(%)": 0.3
+      },
+      "12m": {
+       "KOSPI 수익률(%)": 65.7,
+       "S&P500 수익률(%)": 15.8
+      }
+     },
+     "max_adverse": {
+      "KOSPI 수익률(%)": -5.1,
+      "S&P500 수익률(%)": -15.1
+     },
+     "path": {
+      "KOSPI MDD(%)": -14.1,
+      "VIX 최고": 52.3,
+      "국고3y 최대 상승(bp)": 0.0,
+      "원화 약세 최대(%)": 6.1,
+      "원화 강세 최대(%)": -1.9,
+      "리스크오프 동시성(시장: 금리↑50bp·주가↓10%·원화약세5%)": 2,
+      "동시 역행 수(포트: 금리↑50bp·주가↓10%·원화강세5%)": 1
+     }
+    },
+    {
+     "date": "2018-07-30",
+     "distance": 2.26,
+     "distance_pctile": 0.3,
+     "features": {
+      "KOSPI 3개월 수익률(%)": -8.47,
+      "KOSPI 6개월 수익률(%)": -9.18,
+      "VIX 레벨": 14.26,
+      "KOSPI-S&P 3개월 상대(%p)": -14.8,
+      "국고3y 3개월 변화(bp)": -10.9
+     },
+     "outcomes": {
+      "3m": {
+       "KOSPI 수익률(%)": -10.0,
+       "S&P500 수익률(%)": -3.5
+      },
+      "6m": {
+       "KOSPI 수익률(%)": -7.7,
+       "S&P500 수익률(%)": -6.1
+      },
+      "12m": {
+       "KOSPI 수익률(%)": -9.6,
+       "S&P500 수익률(%)": 6.5
+      }
+     },
+     "max_adverse": {
+      "KOSPI 수익률(%)": -13.1,
+      "S&P500 수익률(%)": -16.1
+     },
+     "path": {
+      "KOSPI MDD(%)": -15.4,
+      "VIX 최고": 36.1,
+      "국고3y 최대 상승(bp)": 0.0,
+      "원화 약세 최대(%)": 2.5,
+      "원화 강세 최대(%)": -0.7,
+      "리스크오프 동시성(시장: 금리↑50bp·주가↓10%·원화약세5%)": 1,
+      "동시 역행 수(포트: 금리↑50bp·주가↓10%·원화강세5%)": 1
+     }
+    },
+    {
+     "date": "2021-10-12",
+     "distance": 2.51,
+     "distance_pctile": 0.6,
+     "features": {
+      "KOSPI 3개월 수익률(%)": -11.25,
+      "KOSPI 6개월 수익률(%)": -8.83,
+      "VIX 레벨": 19.85,
+      "KOSPI-S&P 3개월 상대(%p)": -11.04,
+      "국고3y 3개월 변화(bp)": 31.8
+     },
+     "outcomes": {
+      "3m": {
+       "KOSPI 수익률(%)": 1.3,
+       "S&P500 수익률(%)": 7.5
+      },
+      "6m": {
+       "KOSPI 수익률(%)": -6.2,
+       "S&P500 수익률(%)": 3.0
+      },
+      "12m": {
+       "KOSPI 수익률(%)": -25.6,
+       "S&P500 수익률(%)": -16.3
+      }
+     },
+     "max_adverse": {
+      "KOSPI 수익률(%)": -10.4,
+      "S&P500 수익률(%)": -4.1
+     },
+     "path": {
+      "KOSPI MDD(%)": -14.3,
+      "VIX 최고": 36.5,
+      "국고3y 최대 상승(bp)": 112.6,
+      "원화 약세 최대(%)": 3.9,
+      "원화 강세 최대(%)": -2.4,
+      "리스크오프 동시성(시장: 금리↑50bp·주가↓10%·원화약세5%)": 2,
+      "동시 역행 수(포트: 금리↑50bp·주가↓10%·원화강세5%)": 2
+     }
+    },
+    {
+     "date": "2013-06-26",
+     "distance": 2.58,
+     "distance_pctile": 0.8,
+     "features": {
+      "KOSPI 3개월 수익률(%)": -11.04,
+      "KOSPI 6개월 수익률(%)": -10.7,
+      "VIX 레벨": 17.21,
+      "KOSPI-S&P 3개월 상대(%p)": -13.22,
+      "국고3y 3개월 변화(bp)": 45.0
+     },
+     "outcomes": {
+      "3m": {
+       "KOSPI 수익률(%)": 12.7,
+       "S&P500 수익률(%)": 6.1
+      },
+      "6m": {
+       "KOSPI 수익률(%)": 10.8,
+       "S&P500 수익률(%)": 12.9
+      },
+      "12m": {
+       "KOSPI 수익률(%)": 11.6,
+       "S&P500 수익률(%)": 20.8
+      }
+     },
+     "max_adverse": {
+      "KOSPI 수익률(%)": 0.0,
+      "S&P500 수익률(%)": 0.0
+     },
+     "path": {
+      "KOSPI MDD(%)": -4.8,
+      "VIX 최고": 20.3,
+      "국고3y 최대 상승(bp)": 7.0,
+      "원화 약세 최대(%)": 0.2,
+      "원화 강세 최대(%)": -10.2,
+      "리스크오프 동시성(시장: 금리↑50bp·주가↓10%·원화약세5%)": 0,
+      "동시 역행 수(포트: 금리↑50bp·주가↓10%·원화강세5%)": 1
+     }
+    },
+    {
+     "date": "2022-08-18",
+     "distance": 2.64,
+     "distance_pctile": 1.2,
+     "features": {
+      "KOSPI 3개월 수익률(%)": -5.26,
+      "KOSPI 6개월 수익률(%)": -7.78,
+      "VIX 레벨": 19.56,
+      "KOSPI-S&P 3개월 상대(%p)": -13.06,
+      "국고3y 3개월 변화(bp)": 10.7
+     },
+     "outcomes": {
+      "3m": {
+       "KOSPI 수익률(%)": -1.1,
+       "S&P500 수익률(%)": -6.8
+      },
+      "6m": {
+       "KOSPI 수익률(%)": -1.5,
+       "S&P500 수익률(%)": -4.5
+      },
+      "12m": {
+       "KOSPI 수익률(%)": 2.9,
+       "S&P500 수익률(%)": 5.5
+      }
+     },
+     "max_adverse": {
+      "KOSPI 수익률(%)": -14.1,
+      "S&P500 수익률(%)": -16.5
+     },
+     "path": {
+      "KOSPI MDD(%)": -14.1,
+      "VIX 최고": 33.6,
+      "국고3y 최대 상승(bp)": 142.3,
+      "원화 약세 최대(%)": 9.8,
+      "원화 강세 최대(%)": -7.1,
+      "리스크오프 동시성(시장: 금리↑50bp·주가↓10%·원화약세5%)": 3,
+      "동시 역행 수(포트: 금리↑50bp·주가↓10%·원화강세5%)": 3
+     }
+    },
+    {
+     "date": "2019-08-29",
+     "distance": 2.69,
+     "distance_pctile": 1.5,
+     "features": {
+      "KOSPI 3개월 수익률(%)": -6.5,
+      "KOSPI 6개월 수익률(%)": -11.13,
+      "VIX 레벨": 17.88,
+      "KOSPI-S&P 3개월 상대(%p)": -13.06,
+      "국고3y 3개월 변화(bp)": -40.8
+     },
+     "outcomes": {
+      "3m": {
+       "KOSPI 수익률(%)": 9.7,
+       "S&P500 수익률(%)": 7.4
+      },
+      "6m": {
+       "KOSPI 수익률(%)": 11.9,
+       "S&P500 수익률(%)": 14.1
+      },
+      "12m": {
+       "KOSPI 수익률(%)": 24.5,
+       "S&P500 수익률(%)": 15.6
+      }
+     },
+     "max_adverse": {
+      "KOSPI 수익률(%)": 0.0,
+      "S&P500 수익률(%)": -1.3
+     },
+     "path": {
+      "KOSPI MDD(%)": -6.5,
+      "VIX 최고": 20.6,
+      "국고3y 최대 상승(bp)": 39.7,
+      "원화 약세 최대(%)": 0.1,
+      "원화 강세 최대(%)": -4.8,
+      "리스크오프 동시성(시장: 금리↑50bp·주가↓10%·원화약세5%)": 0,
+      "동시 역행 수(포트: 금리↑50bp·주가↓10%·원화강세5%)": 0
+     }
+    },
+    {
+     "date": "2014-12-18",
+     "distance": 2.86,
+     "distance_pctile": 2.5,
+     "features": {
+      "KOSPI 3개월 수익률(%)": -6.95,
+      "KOSPI 6개월 수익률(%)": -4.25,
+      "VIX 레벨": 16.81,
+      "KOSPI-S&P 3개월 상대(%p)": -10.31,
+      "국고3y 3개월 변화(bp)": -17.1
+     },
+     "outcomes": {
+      "3m": {
+       "KOSPI 수익률(%)": 7.0,
+       "S&P500 수익률(%)": 0.6
+      },
+      "6m": {
+       "KOSPI 수익률(%)": 8.2,
+       "S&P500 수익률(%)": 1.6
+      },
+      "12m": {
+       "KOSPI 수익률(%)": 3.5,
+       "S&P500 수익률(%)": 0.8
+      }
+     },
+     "max_adverse": {
+      "KOSPI 수익률(%)": -0.8,
+      "S&P500 수익률(%)": -3.3
+     },
+     "path": {
+      "KOSPI MDD(%)": -5.6,
+      "VIX 최고": 22.4,
+      "국고3y 최대 상승(bp)": 0.0,
+      "원화 약세 최대(%)": 3.4,
+      "원화 강세 최대(%)": -3.3,
+      "리스크오프 동시성(시장: 금리↑50bp·주가↓10%·원화약세5%)": 0,
+      "동시 역행 수(포트: 금리↑50bp·주가↓10%·원화강세5%)": 0
+     }
+    },
+    {
+     "date": "2015-08-20",
+     "distance": 2.96,
+     "distance_pctile": 3.7,
+     "features": {
+      "KOSPI 3개월 수익률(%)": -10.79,
+      "KOSPI 6개월 수익률(%)": -3.81,
+      "VIX 레벨": 19.14,
+      "KOSPI-S&P 3개월 상대(%p)": -6.54,
+      "국고3y 3개월 변화(bp)": -15.7
+     },
+     "outcomes": {
+      "3m": {
+       "KOSPI 수익률(%)": 2.6,
+       "S&P500 수익률(%)": 0.7
+      },
+      "6m": {
+       "KOSPI 수익률(%)": -4.1,
+       "S&P500 수익률(%)": -8.4
+      },
+      "12m": {
+       "KOSPI 수익률(%)": 6.1,
+       "S&P500 수익률(%)": 7.1
+      }
+     },
+     "max_adverse": {
+      "KOSPI 수익률(%)": -4.4,
+      "S&P500 수익률(%)": -10.2
+     },
+     "path": {
+      "KOSPI MDD(%)": -10.6,
+      "VIX 최고": 40.7,
+      "국고3y 최대 상승(bp)": 8.9,
+      "원화 약세 최대(%)": 2.7,
+      "원화 강세 최대(%)": -5.1,
+      "리스크오프 동시성(시장: 금리↑50bp·주가↓10%·원화약세5%)": 1,
+      "동시 역행 수(포트: 금리↑50bp·주가↓10%·원화강세5%)": 2
+     }
+    },
+    {
+     "date": "2023-11-01",
+     "distance": 3.08,
+     "distance_pctile": 5.0,
+     "features": {
+      "KOSPI 3개월 수익률(%)": -11.57,
+      "KOSPI 6개월 수익률(%)": -8.31,
+      "VIX 레벨": 16.87,
+      "KOSPI-S&P 3개월 상대(%p)": -6.21,
+      "국고3y 3개월 변화(bp)": 33.3
+     },
+     "outcomes": {
+      "3m": {
+       "KOSPI 수익률(%)": 8.7,
+       "S&P500 수익률(%)": 16.3
+      },
+      "6m": {
+       "KOSPI 수익률(%)": 14.2,
+       "S&P500 수익률(%)": 19.1
+      },
+      "12m": {
+       "KOSPI 수익률(%)": 12.7,
+       "S&P500 수익률(%)": 38.4
+      }
+     },
+     "max_adverse": {
+      "KOSPI 수익률(%)": 0.0,
+      "S&P500 수익률(%)": 0.0
+     },
+     "path": {
+      "KOSPI MDD(%)": -8.8,
+      "VIX 최고": 19.2,
+      "국고3y 최대 상승(bp)": 0.0,
+      "원화 약세 최대(%)": 2.8,
+      "원화 강세 최대(%)": -5.5,
+      "리스크오프 동시성(시장: 금리↑50bp·주가↓10%·원화약세5%)": 0,
+      "동시 역행 수(포트: 금리↑50bp·주가↓10%·원화강세5%)": 1
+     }
+    },
+    {
+     "date": "2012-07-11",
+     "distance": 3.16,
+     "distance_pctile": 6.0,
+     "features": {
+      "KOSPI 3개월 수익률(%)": -9.09,
+      "KOSPI 6개월 수익률(%)": -3.51,
+      "VIX 레벨": 17.95,
+      "KOSPI-S&P 3개월 상대(%p)": -6.98,
+      "국고3y 3개월 변화(bp)": -30.0
+     },
+     "outcomes": {
+      "3m": {
+       "KOSPI 수익률(%)": 8.5,
+       "S&P500 수익률(%)": 8.5
+      },
+      "6m": {
+       "KOSPI 수익률(%)": 10.6,
+       "S&P500 수익률(%)": 8.8
+      },
+      "12m": {
+       "KOSPI 수익률(%)": 2.0,
+       "S&P500 수익률(%)": 19.7
+      }
+     },
+     "max_adverse": {
+      "KOSPI 수익률(%)": -3.1,
+      "S&P500 수익률(%)": -0.5
+     },
+     "path": {
+      "KOSPI MDD(%)": -7.3,
+      "VIX 최고": 22.7,
+      "국고3y 최대 상승(bp)": 0.0,
+      "원화 약세 최대(%)": 1.3,
+      "원화 강세 최대(%)": -8.9,
+      "리스크오프 동시성(시장: 금리↑50bp·주가↓10%·원화약세5%)": 0,
+      "동시 역행 수(포트: 금리↑50bp·주가↓10%·원화강세5%)": 1
+     }
+    }
+   ],
+   "summary": {
+    "3m": {
+     "KOSPI 수익률(%)": {
+      "n": 10,
+      "n_independent": 7,
+      "median": 7.0,
+      "p25": 1.6,
+      "p75": 8.6,
+      "worst": -10.0,
+      "adverse_direction": "하락"
+     },
+     "S&P500 수익률(%)": {
+      "n": 10,
+      "n_independent": 7,
+      "median": 5.2,
+      "p25": 0.6,
+      "p75": 7.5,
+      "worst": -6.8,
+      "adverse_direction": "하락"
+     }
+    },
+    "6m": {
+     "KOSPI 수익률(%)": {
+      "n": 10,
+      "n_independent": 7,
+      "median": 8.1,
+      "p25": -3.4,
+      "p75": 10.8,
+      "worst": -7.7,
+      "adverse_direction": "하락"
+     },
+     "S&P500 수익률(%)": {
+      "n": 10,
+      "n_independent": 7,
+      "median": 2.3,
+      "p25": -3.3,
+      "p75": 11.9,
+      "worst": -8.4,
+      "adverse_direction": "하락"
+     }
+    },
+    "12m": {
+     "KOSPI 수익률(%)": {
+      "n": 10,
+      "n_independent": 7,
+      "median": 4.8,
+      "p25": 2.2,
+      "p75": 12.4,
+      "worst": -25.6,
+      "adverse_direction": "하락"
+     },
+     "S&P500 수익률(%)": {
+      "n": 10,
+      "n_independent": 7,
+      "median": 11.3,
+      "p25": 5.8,
+      "p75": 18.7,
+      "worst": -16.3,
+      "adverse_direction": "하락"
+     }
+    }
+   },
+   "caveats": [
+    "표본 10개(12개월 창이 겹치지 않는 독립 사례 7개, 연도 2012, 2013, 2014, 2015, 2018, 2019, 2021, 2022, 2023, 2024) — 통계적 분포가 아니라 참고 사례다. '과거가 반복된다'고 해석하지 말 것.",
+    "탐색 기간 2012-06-26 ~ 2025-10-20 (최근 12개월 제외), 후보 3470일, 유사일 간 최소 간격 126영업일.",
+    "거리 = robust z(중앙값·MAD) 공간의 유클리드 거리, 백분위 = 전체 후보 중 가까운 순위(%). 백분위 중앙값이 5% 를 넘으면 WEAK_SIMILARITY.",
+    "주식·환 결과는 단순 수익률(%), 금리·스프레드는 bp 차이 — 스트레스 시나리오(주식 −25%, 원화 ±8%)와 같은 단위.",
+    "구조 변화(통화정책 체계·시장 규모·규제)로 과거 반응이 재현되지 않을 수 있음."
+   ],
+   "generated_at": "2026-10-22T12:11:00"
+  },
+  "gaps": [],
+  "mp_id": null,
+  "code_floor": "WATCH"
+ },
+ "producer": null,
+ "verifier": null,
+ "comparison": {
+  "verdict": "NOT_RUN",
+  "rule": "자체검증 미실행 — 운용역 검토",
+  "details": {}
+ },
+ "final_grade": "WATCH",
+ "final_grade_ko": "관찰",
+ "limit_breach": false,
+ "verdict": "NOT_RUN",
+ "rule": "자체검증 미실행 — 운용역 검토",
+ "slots": {
+  "claude_producer": "NOT_RUN",
+  "claude_verifier": "NOT_RUN",
+  "chatgpt": "NOT_CONNECTED"
+ },
+ "decision": {
+  "status": "PENDING",
+  "by": null,
+  "at": null,
+  "reason": null
+ },
+ "error": "ANTHROPIC_API_KEY 미설정 — CODE 계산 부분만 생성",
+ "meta": {
+  "model_id": "claude-opus-5-5",
+  "prompt_version": "345fbe4c",
+  "inputs_hash": "sha256:1dbd227d2fb404c5",
+  "generated_at": "2026-10-22T12:11:00+09:00",
+  "pass": "code-only"
+ }
+}
