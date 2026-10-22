@@ -1,10 +1,10 @@
 {
- "generated_at": "2026-10-22T12:16:35",
- "period": "1y",
- "period_label": "최근 1년",
- "start": "2025-10-22",
+ "generated_at": "2026-10-22T15:29:46",
+ "period": "10y",
+ "period_label": "최근 10년",
+ "start": "2016-10-22",
  "end": "2026-10-22",
- "short_period": true,
+ "short_period": false,
  "rows": [
   {
    "id": "EQ-FUT-01",
@@ -25,35 +25,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-22",
-    "years": 1.0,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 81.6,
-   "bench_total": 65.6,
-   "cagr": 81.94,
-   "vol": 61.11,
-   "mdd": -40.83,
-   "sharpe": 1.31,
-   "win_m": 62,
+   "total": 179.2,
+   "bench_total": 324.1,
+   "cagr": 10.82,
+   "vol": 23.87,
+   "mdd": -46.29,
+   "sharpe": 0.57,
+   "win_m": 51,
    "bench_name": "KOSPI200",
-   "bench_cagr": 65.87,
+   "bench_cagr": 15.56,
    "bench_mdd": -41.4,
    "down": {
-    "n": 4,
-    "strategy": -14.0,
-    "bench": -16.0
+    "n": 25,
+    "strategy": -3.8,
+    "bench": -8.0
    },
-   "verdict": "12개월 동안 +81.6% — KOSPI200 그냥 보유는 +65.6%. 최대 낙폭은 -40.8% (그냥 보유 -41.4%). 수익도 더 높고 덜 빠졌습니다."
+   "verdict": "10년 동안 연 +10.8% — KOSPI200 그냥 보유는 연 +15.6%. 최대 낙폭은 -46.3% (그냥 보유 -41.4%). 수익도 낮고 덜 빠지지도 않았습니다 — 이 설정은 불리했습니다."
   },
   {
    "id": "EQ-FUT-02",
@@ -74,31 +74,31 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-22",
-    "years": 1.0,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 72.7,
+   "total": 65.9,
    "bench_total": null,
-   "cagr": 72.99,
-   "vol": 59.78,
-   "mdd": -43.06,
-   "sharpe": 1.19,
-   "win_m": 62,
+   "cagr": 5.2,
+   "vol": 28.85,
+   "mdd": -45.5,
+   "sharpe": 0.31,
+   "win_m": 45,
    "bench_name": null,
    "bench_cagr": null,
    "bench_mdd": null,
    "down": null,
-   "verdict": "12개월 동안 +72.7% (현금 위에 얹는 초과수익) · 최대 낙폭 -43.1%. 꾸준히 더해 준 편입니다."
+   "verdict": "10년 동안 연 +5.2% (현금 위에 얹는 초과수익) · 최대 낙폭 -45.5%. 벌긴 했지만 들쭉날쭉합니다."
   },
   {
    "id": "EQ-FUT-03",
@@ -119,35 +119,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-22",
-    "years": 1.0,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 33.2,
-   "bench_total": 65.6,
-   "cagr": 33.34,
-   "vol": 18.36,
-   "mdd": -10.35,
-   "sharpe": 1.71,
-   "win_m": 69,
+   "total": 136.4,
+   "bench_total": 324.1,
+   "cagr": 8.99,
+   "vol": 15.18,
+   "mdd": -32.4,
+   "sharpe": 0.67,
+   "win_m": 57,
    "bench_name": "KOSPI200",
-   "bench_cagr": 65.87,
+   "bench_cagr": 15.56,
    "bench_mdd": -41.4,
    "down": {
-    "n": 4,
-    "strategy": -4.7,
-    "bench": -16.0
+    "n": 25,
+    "strategy": -5.7,
+    "bench": -8.0
    },
-   "verdict": "12개월 동안 +33.2% — KOSPI200 그냥 보유는 +65.6%. 최대 낙폭은 -10.3% (그냥 보유 -41.4%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
+   "verdict": "10년 동안 연 +9.0% — KOSPI200 그냥 보유는 연 +15.6%. 최대 낙폭은 -32.4% (그냥 보유 -41.4%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
   },
   {
    "id": "EQ-TRS-01",
@@ -164,35 +164,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-22",
-    "years": 1.0,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 64.8,
-   "bench_total": 65.6,
-   "cagr": 65.07,
-   "vol": 61.77,
+   "total": 304.2,
+   "bench_total": 324.1,
+   "cagr": 15.0,
+   "vol": 26.38,
    "mdd": -41.5,
-   "sharpe": 1.14,
-   "win_m": 62,
+   "sharpe": 0.68,
+   "win_m": 58,
    "bench_name": "KOSPI200",
-   "bench_cagr": 65.87,
+   "bench_cagr": 15.56,
    "bench_mdd": -41.4,
    "down": {
-    "n": 4,
-    "strategy": -16.0,
-    "bench": -16.0
+    "n": 25,
+    "strategy": -8.0,
+    "bench": -8.0
    },
-   "verdict": "12개월 동안 +64.8% — KOSPI200 그냥 보유는 +65.6%. 최대 낙폭은 -41.5% (그냥 보유 -41.4%). 수익도 낮고 덜 빠지지도 않았습니다 — 이 설정은 불리했습니다."
+   "verdict": "10년 동안 연 +15.0% — KOSPI200 그냥 보유는 연 +15.6%. 최대 낙폭은 -41.5% (그냥 보유 -41.4%). 수익도 낮고 덜 빠지지도 않았습니다 — 이 설정은 불리했습니다."
   },
   {
    "id": "EQ-TRS-02",
@@ -209,35 +209,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-20",
-    "years": 0.99,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 19.1,
-   "bench_total": 16.4,
-   "cagr": 19.29,
-   "vol": 8.78,
-   "mdd": -6.12,
-   "sharpe": 2.06,
-   "win_m": 77,
+   "total": 224.6,
+   "bench_total": 320.8,
+   "cagr": 12.51,
+   "vol": 15.75,
+   "mdd": -33.34,
+   "sharpe": 0.83,
+   "win_m": 69,
    "bench_name": "S&P500",
-   "bench_cagr": 16.56,
-   "bench_mdd": -8.88,
+   "bench_cagr": 15.48,
+   "bench_mdd": -33.72,
    "down": {
-    "n": 1,
-    "strategy": -4.6,
-    "bench": -4.9
+    "n": 18,
+    "strategy": -5.6,
+    "bench": -6.4
    },
-   "verdict": "12개월 동안 +19.1% — S&P500 그냥 보유는 +16.4%. 최대 낙폭은 -6.1% (그냥 보유 -8.9%). 수익도 더 높고 덜 빠졌습니다."
+   "verdict": "10년 동안 연 +12.5% — S&P500 그냥 보유는 연 +15.5%. 최대 낙폭은 -33.3% (그냥 보유 -33.7%). 수익도 낮고 덜 빠지지도 않았습니다 — 이 설정은 불리했습니다."
   },
   {
    "id": "EQ-TRS-03",
@@ -254,35 +254,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-22",
-    "years": 1.0,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 33.9,
-   "bench_total": 16.4,
-   "cagr": 34.06,
-   "vol": 22.68,
-   "mdd": -15.35,
-   "sharpe": 1.36,
-   "win_m": 69,
+   "total": 53.0,
+   "bench_total": 320.8,
+   "cagr": 4.35,
+   "vol": 13.24,
+   "mdd": -43.51,
+   "sharpe": 0.38,
+   "win_m": 56,
    "bench_name": "S&P500",
-   "bench_cagr": 16.46,
-   "bench_mdd": -8.88,
+   "bench_cagr": 15.47,
+   "bench_mdd": -33.72,
    "down": {
-    "n": 1,
-    "strategy": -11.4,
-    "bench": -4.9
+    "n": 18,
+    "strategy": -1.4,
+    "bench": -6.4
    },
-   "verdict": "12개월 동안 +33.9% — S&P500 그냥 보유는 +16.4%. 최대 낙폭은 -15.3% (그냥 보유 -8.9%). 수익은 높지만 더 크게 빠졌습니다."
+   "verdict": "10년 동안 연 +4.3% — S&P500 그냥 보유는 연 +15.5%. 최대 낙폭은 -43.5% (그냥 보유 -33.7%). 수익도 낮고 덜 빠지지도 않았습니다 — 이 설정은 불리했습니다."
   },
   {
    "id": "EQ-OPT-01",
@@ -299,35 +299,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-20",
-    "years": 0.99,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 9.9,
-   "bench_total": 16.4,
-   "cagr": 9.95,
-   "vol": 9.94,
-   "mdd": -7.19,
-   "sharpe": 1.01,
-   "win_m": 46,
+   "total": 171.0,
+   "bench_total": 320.8,
+   "cagr": 10.5,
+   "vol": 11.98,
+   "mdd": -26.14,
+   "sharpe": 0.9,
+   "win_m": 65,
    "bench_name": "S&P500",
-   "bench_cagr": 16.56,
-   "bench_mdd": -8.88,
+   "bench_cagr": 15.48,
+   "bench_mdd": -33.72,
    "down": {
-    "n": 1,
-    "strategy": -5.2,
-    "bench": -4.9
+    "n": 18,
+    "strategy": -5.1,
+    "bench": -6.4
    },
-   "verdict": "12개월 동안 +9.9% — S&P500 그냥 보유는 +16.4%. 최대 낙폭은 -7.2% (그냥 보유 -8.9%). 수익도 낮고 덜 빠지지도 않았습니다 — 이 설정은 불리했습니다."
+   "verdict": "10년 동안 연 +10.5% — S&P500 그냥 보유는 연 +15.5%. 최대 낙폭은 -26.1% (그냥 보유 -33.7%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
   },
   {
    "id": "EQ-OPT-02",
@@ -348,35 +348,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-20",
-    "years": 0.99,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 9.9,
-   "bench_total": 16.4,
-   "cagr": 9.99,
-   "vol": 8.96,
-   "mdd": -6.21,
-   "sharpe": 1.11,
-   "win_m": 54,
+   "total": 228.8,
+   "bench_total": 320.8,
+   "cagr": 12.66,
+   "vol": 9.81,
+   "mdd": -21.01,
+   "sharpe": 1.27,
+   "win_m": 67,
    "bench_name": "S&P500",
-   "bench_cagr": 16.56,
-   "bench_mdd": -8.88,
+   "bench_cagr": 15.48,
+   "bench_mdd": -33.72,
    "down": {
-    "n": 1,
+    "n": 18,
     "strategy": -4.5,
-    "bench": -4.9
+    "bench": -6.4
    },
-   "verdict": "12개월 동안 +9.9% — S&P500 그냥 보유는 +16.4%. 최대 낙폭은 -6.2% (그냥 보유 -8.9%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
+   "verdict": "10년 동안 연 +12.7% — S&P500 그냥 보유는 연 +15.5%. 최대 낙폭은 -21.0% (그냥 보유 -33.7%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
   },
   {
    "id": "EQ-OPT-03",
@@ -401,35 +401,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-20",
-    "years": 0.99,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 9.8,
-   "bench_total": 16.4,
-   "cagr": 9.89,
-   "vol": 9.05,
-   "mdd": -6.22,
+   "total": 228.8,
+   "bench_total": 320.8,
+   "cagr": 12.66,
+   "vol": 11.61,
+   "mdd": -24.11,
    "sharpe": 1.09,
-   "win_m": 54,
+   "win_m": 67,
    "bench_name": "S&P500",
-   "bench_cagr": 16.56,
-   "bench_mdd": -8.88,
+   "bench_cagr": 15.48,
+   "bench_mdd": -33.72,
    "down": {
-    "n": 1,
-    "strategy": -4.5,
-    "bench": -4.9
+    "n": 18,
+    "strategy": -4.6,
+    "bench": -6.4
    },
-   "verdict": "12개월 동안 +9.8% — S&P500 그냥 보유는 +16.4%. 최대 낙폭은 -6.2% (그냥 보유 -8.9%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
+   "verdict": "10년 동안 연 +12.7% — S&P500 그냥 보유는 연 +15.5%. 최대 낙폭은 -24.1% (그냥 보유 -33.7%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
   },
   {
    "id": "EQ-OPT-04",
@@ -446,35 +446,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-20",
-    "years": 0.99,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 20.4,
-   "bench_total": 16.4,
-   "cagr": 20.63,
-   "vol": 10.56,
-   "mdd": -6.9,
-   "sharpe": 1.84,
-   "win_m": 85,
+   "total": 343.6,
+   "bench_total": 320.8,
+   "cagr": 16.09,
+   "vol": 14.49,
+   "mdd": -29.41,
+   "sharpe": 1.11,
+   "win_m": 74,
    "bench_name": "S&P500",
-   "bench_cagr": 16.56,
-   "bench_mdd": -8.88,
+   "bench_cagr": 15.48,
+   "bench_mdd": -33.72,
    "down": {
-    "n": 1,
-    "strategy": -3.3,
-    "bench": -4.9
+    "n": 18,
+    "strategy": -5.0,
+    "bench": -6.4
    },
-   "verdict": "12개월 동안 +20.4% — S&P500 그냥 보유는 +16.4%. 최대 낙폭은 -6.9% (그냥 보유 -8.9%). 수익도 더 높고 덜 빠졌습니다."
+   "verdict": "10년 동안 연 +16.1% — S&P500 그냥 보유는 연 +15.5%. 최대 낙폭은 -29.4% (그냥 보유 -33.7%). 수익도 더 높고 덜 빠졌습니다."
   },
   {
    "id": "EQ-OPT-05",
@@ -491,35 +491,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-20",
-    "years": 0.99,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": -1.2,
-   "bench_total": 16.4,
-   "cagr": -1.22,
-   "vol": 5.88,
-   "mdd": -7.51,
-   "sharpe": -0.18,
-   "win_m": 31,
+   "total": 48.8,
+   "bench_total": 320.8,
+   "cagr": 4.06,
+   "vol": 8.1,
+   "mdd": -13.96,
+   "sharpe": 0.53,
+   "win_m": 47,
    "bench_name": "S&P500",
-   "bench_cagr": 16.56,
-   "bench_mdd": -8.88,
+   "bench_cagr": 15.48,
+   "bench_mdd": -33.72,
    "down": {
-    "n": 1,
-    "strategy": -2.5,
-    "bench": -4.9
+    "n": 18,
+    "strategy": -2.2,
+    "bench": -6.4
    },
-   "verdict": "12개월 동안 -1.2% — S&P500 그냥 보유는 +16.4%. 최대 낙폭은 -7.5% (그냥 보유 -8.9%). 수익도 낮고 덜 빠지지도 않았습니다 — 이 설정은 불리했습니다."
+   "verdict": "10년 동안 연 +4.1% — S&P500 그냥 보유는 연 +15.5%. 최대 낙폭은 -14.0% (그냥 보유 -33.7%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
   },
   {
    "id": "EQ-OPT-06",
@@ -540,35 +540,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-20",
-    "years": 0.99,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": -0.9,
-   "bench_total": 16.4,
-   "cagr": -0.9,
-   "vol": 5.63,
-   "mdd": -7.4,
-   "sharpe": -0.13,
-   "win_m": 31,
+   "total": 60.1,
+   "bench_total": 320.8,
+   "cagr": 4.82,
+   "vol": 7.22,
+   "mdd": -11.31,
+   "sharpe": 0.69,
+   "win_m": 47,
    "bench_name": "S&P500",
-   "bench_cagr": 16.56,
-   "bench_mdd": -8.88,
+   "bench_cagr": 15.48,
+   "bench_mdd": -33.72,
    "down": {
-    "n": 1,
-    "strategy": -2.4,
-    "bench": -4.9
+    "n": 18,
+    "strategy": -2.1,
+    "bench": -6.4
    },
-   "verdict": "12개월 동안 -0.9% — S&P500 그냥 보유는 +16.4%. 최대 낙폭은 -7.4% (그냥 보유 -8.9%). 수익도 낮고 덜 빠지지도 않았습니다 — 이 설정은 불리했습니다."
+   "verdict": "10년 동안 연 +4.8% — S&P500 그냥 보유는 연 +15.5%. 최대 낙폭은 -11.3% (그냥 보유 -33.7%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
   },
   {
    "id": "EQ-STR-01",
@@ -585,35 +585,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-22",
-    "years": 1.0,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 11.2,
-   "bench_total": 65.6,
-   "cagr": 11.24,
-   "vol": 12.37,
+   "total": 56.5,
+   "bench_total": 324.1,
+   "cagr": 4.59,
+   "vol": 4.72,
    "mdd": -10.87,
-   "sharpe": 0.95,
-   "win_m": 62,
+   "sharpe": 1.01,
+   "win_m": 67,
    "bench_name": "KOSPI200",
-   "bench_cagr": 65.87,
+   "bench_cagr": 15.56,
    "bench_mdd": -41.4,
    "down": {
-    "n": 4,
-    "strategy": -3.0,
-    "bench": -16.0
+    "n": 25,
+    "strategy": -0.7,
+    "bench": -8.0
    },
-   "verdict": "12개월 동안 +11.2% — KOSPI200 그냥 보유는 +65.6%. 최대 낙폭은 -10.9% (그냥 보유 -41.4%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
+   "verdict": "10년 동안 연 +4.6% — KOSPI200 그냥 보유는 연 +15.6%. 최대 낙폭은 -10.9% (그냥 보유 -41.4%). 수익은 낮은 대신 덜 빠졌습니다 — 방어용으로 의미가 있습니다."
   },
   {
    "id": "EQ-STR-03",
@@ -638,35 +638,35 @@
     }
    ],
    "period": {
-    "key": "1y",
-    "label": "최근 1년",
-    "start": "2025-10-23",
+    "key": "10y",
+    "label": "최근 10년",
+    "start": "2016-10-24",
     "end": "2026-10-22",
-    "years": 1.0,
-    "per_period": true,
+    "years": 9.99,
+    "per_period": false,
     "requested": [
-     "2025-10-22",
+     "2016-10-22",
      "2026-10-22"
     ],
     "short": false,
     "event": null
    },
-   "total": 30.9,
-   "bench_total": 65.6,
-   "cagr": 31.06,
-   "vol": 59.1,
+   "total": 203.0,
+   "bench_total": 324.1,
+   "cagr": 11.73,
+   "vol": 20.87,
    "mdd": -41.4,
-   "sharpe": 0.76,
-   "win_m": 62,
+   "sharpe": 0.66,
+   "win_m": 58,
    "bench_name": "KOSPI200",
-   "bench_cagr": 65.87,
+   "bench_cagr": 15.56,
    "bench_mdd": -41.4,
    "down": {
-    "n": 4,
-    "strategy": -16.1,
-    "bench": -16.0
+    "n": 25,
+    "strategy": -4.5,
+    "bench": -8.0
    },
-   "verdict": "12개월 동안 +30.9% — KOSPI200 그냥 보유는 +65.6%. 최대 낙폭은 -41.4% (그냥 보유 -41.4%). 수익도 낮고 덜 빠지지도 않았습니다 — 이 설정은 불리했습니다."
+   "verdict": "10년 동안 연 +11.7% — KOSPI200 그냥 보유는 연 +15.6%. 최대 낙폭은 -41.4% (그냥 보유 -41.4%). 수익도 낮고 덜 빠지지도 않았습니다 — 이 설정은 불리했습니다."
   }
  ],
  "note": "각 전략 기본값(화면의 첫 설정)으로 돌린 결과. 같은 기간이라도 데이터 시작이 늦은 전략은 짧을 수 있다."
