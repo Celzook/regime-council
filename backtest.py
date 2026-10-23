@@ -5,7 +5,8 @@
 - 지수 총수익: S&P500 = SPY, KOSPI200 = KODEX 200(배당 재투자 반영), 나스닥100·닛케이·유로스톡스 = 지수 + 배당수익률 가정
 - 현금(단기금리): 미국 = 3개월 국채 수익률(열 이름 ^IRX, Refinitiv US3MT=RR), 한국 = 국고 3년 − 0.3%p(KOFIA 최종호가, 2012년~ — CD 금리 이력이 없어 대용)
 - 선물 = 지수 총수익 − 현금(완전 담보 가정) · 롤 비용 연 0.3%p(노출 비례) · 노출이 바뀔 때 거래비용 0.05%
-- 옵션 = 블랙숄즈 추정 + 거래비용(건당 명목 0.02% + 프리미엄 3%). 내재변동성: S&P500 = VIX, 나스닥100 = VXN, KOSPI200 = 60일 실제 변동성 × (VIX ÷ S&P 60일 실제 변동성).
+- 옵션 = 블랙숄즈 추정 + 거래비용(건당 명목 0.02% + 프리미엄 3%). 내재변동성: S&P500 = VIX, 나스닥100 = VXN, KOSPI200 = VKOSPI(2009-04~).
+  KOSPI200 옵션·ELB 의 행사가·정산은 가격지수 .KS200(배당 미포함), 보유분 수익은 KODEX 200 총수익.
   행사가가 멀수록 변동성을 가산(지수 옵션 스큐 근사). 매월 첫 거래일에 1개월 옵션을 새로 잡는다.
 결과: 연 수익률·변동성·최대 낙폭·수익/위험(샤프)·월 승률·연도별 수익·누적 곡선과 '그냥 보유' 대비 쉬운 말 결론.
 매매 지시가 아니라 과거 데이터로 본 점검 자료다. 비용·스큐·대용 지표 때문에 실제와 다를 수 있다.
@@ -35,7 +36,8 @@ OPT_COST = (0.0002, 0.03)   # 옵션 1건 거래비용: 명목의 0.02% + 프리
 
 # key: 이름, 총수익 티커, 옵션 정산 가격 티커, 가격지수일 때 더할 배당수익률, 통화, 변동성 지수, 옵션 계산용 배당수익률
 UNDER = {
-    "kospi200": ("KOSPI200", "069500.KS", "069500.KS", 0.0, "KRW", None, 0.018),
+    # 옵션·ELB 의 행사가·정산은 배당 미포함 가격지수(.KS200) — 배당 재투자 가격(KODEX)에 배당 1.8% 를 또 빼면 이중 계산
+    "kospi200": ("KOSPI200", "069500.KS", "^KS200", 0.0, "KRW", ".KSVKOSPI", 0.018),
     "sp500": ("S&P500", "SPY", "^GSPC", 0.0, "USD", "^VIX", 0.013),
     "ndx": ("나스닥100", "^NDX", "^NDX", 0.008, "USD", "^VXN", 0.008),
     "nikkei": ("닛케이225", "^N225", "^N225", 0.018, "JPY", None, 0.018),
@@ -58,7 +60,7 @@ def _opt(*pairs):
 
 U_MAIN = _opt(("kospi200", "KOSPI200"), ("sp500", "S&P500"), ("ndx", "나스닥100"))
 U_PAIR = _opt(("sp500", "S&P500"), ("kospi200", "KOSPI200"), ("ndx", "나스닥100"), ("nikkei", "닛케이225"), ("sx5e", "유로스톡스50"))
-U_OPT = _opt(("sp500", "S&P500 (VIX 사용)"), ("ndx", "나스닥100 (VXN 사용)"), ("kospi200", "KOSPI200 (변동성 근사)"))
+U_OPT = _opt(("sp500", "S&P500 (VIX 사용)"), ("ndx", "나스닥100 (VXN 사용)"), ("kospi200", "KOSPI200 (VKOSPI 사용)"))
 PCT = lambda *xs: _opt(*[(x, f"지금 가격의 {x}%") for x in xs])  # noqa: E731
 
 # 화면이 그대로 쓰는 전략 목록 — 손잡이는 1~3개, 기본값으로 바로 실행되게
@@ -323,7 +325,7 @@ def _option_run(key, legs, stock: bool, start):
     ret = pd.Series(out).sort_index()
     bench = _align(tr_ret(key), ret.index)
     avg = np.mean(prem_paid) * 100 if prem_paid else 0
-    return ret, bench, {"월평균 옵션 순비용": f"{avg:+.2f}% (+ 는 지불, − 는 수취)", "변동성": "VIX" if key == "sp500" else "VXN" if key == "ndx" else "실제 변동성 × (VIX÷S&P 실제 변동성) 근사"}
+    return ret, bench, {"월평균 옵션 순비용": f"{avg:+.2f}% (+ 는 지불, − 는 수취)", "변동성": {"sp500": "VIX", "ndx": "VXN", "kospi200": "VKOSPI"}.get(key, "실제 변동성 × (VIX÷S&P 실제 변동성) 근사")}
 
 
 def s_opt(legs_fn, stock):
@@ -558,11 +560,13 @@ def run(sid: str, params: dict | None = None, period: str = "10y", start: str | 
     want, e, pkey, plabel = resolve_period(period, start, end)
     ret, bench, extra = RUNNERS[sid](p, want)
     ret = ret.dropna()
-    first = ret.index[0].date() if len(ret) else None
+    if ret.empty:   # 기초 데이터(가격·변동성·현금)가 없으면 빈 결과 — 비교 연산 전에 알기 쉬운 말로 멈춘다
+        raise ValueError("이 전략을 계산할 데이터가 없습니다 — 주식 탭에서 '다시 받기'로 가격·변동성을 먼저 받아 주세요.")
+    first = ret.index[0].date()
     ret = ret[(ret.index > want) & (ret.index <= e)]
     if len(ret) < MIN_DAYS:
         raise ValueError(f"이 기간에는 계산할 수 있는 날이 {len(ret)}일뿐입니다(최소 {MIN_DAYS}일). "
-                         + (f"이 전략은 {first}부터 계산할 수 있습니다" if first else "데이터가 없습니다")
+                         + f"이 전략은 {first}부터 계산할 수 있습니다"
                          + " — 한국 지수 전략은 현금 금리 데이터가 2012년부터라 그 전은 안 됩니다.")
     bench = _align(bench, ret.index) if bench is not None else None
     # 샤프는 현금 초과수익 기준 — 지역 상대 뷰(EQ-FUT-02)는 이미 초과수익(롱−숏)이라 현금을 빼지 않는다
