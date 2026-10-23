@@ -46,6 +46,8 @@
     --ok-bg:color-mix(in srgb, var(--good) 14%, transparent);   --watch-bg:color-mix(in srgb, var(--risk-watch) 22%, transparent);
     --warn-bg:color-mix(in srgb, var(--risk-warn) 15%, transparent); --reduce-bg:color-mix(in srgb, var(--risk-reduce) 14%, transparent);
     --halt-bg:color-mix(in srgb, var(--risk-halt) 14%, transparent);
+    /* 중간 단계 글자(KPI 의 '보통'·'적음') — 로즈 램프 warn 은 '나쁨' 빨강과 구분이 약해 앰버 계열을 쓴다 */
+    --caution:var(--rich); --caution-ink:var(--rich-ink);
     /* 담당(식별) 색 — 아바타 그림과 같은 계열. 데이터 의미 아님 */
     --id-bond:var(--cheap); --id-equity:var(--up); --id-fx:#6a4fd8;
     --bond:var(--id-bond); --equity:var(--id-equity); --fx:var(--id-fx);
@@ -235,7 +237,7 @@
   .chat { display:flex; flex-direction:column; }
   /* ── 대화 풍선(오른쪽 아래) + 챗봇 창 ── */
   .chat-fab { position:fixed; right:24px; bottom:24px; z-index:45; width:60px; height:60px; border-radius:50%; border:none; cursor:pointer; background:var(--surface); isolation:isolate;
-              display:flex; align-items:center; justify-content:center; box-shadow:0 10px 30px color-mix(in srgb, var(--shade) 16%, transparent), 0 0 0 1px color-mix(in srgb, var(--shade) 4%, transparent); transition:transform .2s cubic-bezier(.2,.8,.2,1); }
+              display:flex; align-items:center; justify-content:center; box-shadow:0 10px 30px color-mix(in srgb, var(--shade) 16%, transparent), 0 0 0 1px color-mix(in srgb, var(--shade) 4%, transparent); transition:transform .25s cubic-bezier(.2,.8,.2,1), opacity .25s; }
   .chat-fab::before, .chat-fab::after { content:''; position:absolute; inset:-3px; border-radius:50%; padding:3px; pointer-events:none;
     background:conic-gradient(from var(--ai-angle), var(--ai-stops)); animation:aiSpin 6s linear infinite;
     -webkit-mask:linear-gradient(var(--shade) 0 0) content-box, linear-gradient(var(--shade) 0 0); -webkit-mask-composite:xor; mask:linear-gradient(var(--shade) 0 0) content-box exclude, linear-gradient(var(--shade) 0 0); }
@@ -246,6 +248,9 @@
                display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 2px var(--surface); }
   .fab-badge[hidden] { display:none; }
   body.chat-open .chat-fab { display:none; }
+  /* 본문 글자와 겹치면 오른쪽 가장자리로 비켜서 살짝만 보인다(마우스·포커스를 대면 돌아옴) */
+  .chat-fab.peek { transform:translateX(calc(100% - 4px)) scale(.86); opacity:.55; }
+  .chat-fab.peek:focus-visible { transform:none; opacity:1; }
   .chat-panel { position:fixed; right:12px; top:12px; bottom:12px; z-index:46; width:var(--chat-w); max-width:calc(100vw - 24px); display:flex; flex-direction:column;
                 background:color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter:var(--glass); backdrop-filter:var(--glass); border:1px solid color-mix(in srgb, var(--surface) 85%, transparent); border-radius:22px;
                 box-shadow:var(--shadow-lg); overflow:hidden; transform-origin:right center; animation:chatIn .28s cubic-bezier(.2,.8,.2,1) both; }
@@ -255,6 +260,12 @@
   body.resizing { cursor:ew-resize; user-select:none; } body.resizing, body.resizing .chat-panel { transition:none; }
   .chat-panel[hidden] { display:none; }
   @keyframes chatIn { from { opacity:0; transform:translateX(18px) scale(.98); } to { opacity:1; transform:none; } }
+  @media (max-width:560px){
+    .hbar { padding:6px 12px; } .hright { flex-wrap:wrap; justify-content:flex-end; row-gap:4px; min-width:0; }
+    .hright .pill { max-width:100%; overflow:hidden; text-overflow:ellipsis; } #feedPill { order:5; flex-basis:100%; text-align:right; }
+    #stressHome td:first-child, #ckList td { white-space:nowrap; }   /* 폰: 줄바꿈 대신 표 안에서 옆으로 스크롤 */
+    main { padding:12px 12px 84px; } #warnBar { margin:10px 12px 0; } .ptitle { font-size:20px; }
+  }
   @media (max-width:560px){ .chat-panel { inset:0; width:auto; max-width:none; border-radius:0; } .cp-resize { display:none; } .chat-fab { right:16px; bottom:16px; } }
   .cp-head { display:flex; align-items:center; gap:8px; padding:14px 14px 8px 18px; }
   .cp-title { font-size:16px; font-weight:700; letter-spacing:-.02em; } .cp-sub { font-size:11px; color:var(--muted); }
@@ -407,6 +418,7 @@
   /* ── 내 포트 ── */
   .bhead { display:flex; align-items:flex-end; flex-wrap:wrap; gap:8px 12px; margin:2px 0 12px; } .bhead .kv { margin-top:2px; } .bhead .seg { flex:none; }
   .bhead > div:first-child { min-width:0; flex:1 1 320px; }
+  .bhead > div:first-child > .kv { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }   /* 부제는 한 줄 — 전체는 title */
   /* ── 전략 — 결론 → 해야 할 일(묶음) → 기회·전략 요약. 쉬운 말 우선, 숫자는 펼쳐서 ── */
   .act { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:2px 10px; border-radius:99px; white-space:nowrap; letter-spacing:0; }
   .act b { font-weight:800; }
@@ -415,7 +427,7 @@
   .sverdict { padding:14px 16px 14px; }
   .vd-head { display:flex; gap:12px; align-items:flex-start; font-size:20px; font-weight:700; letter-spacing:-.025em; line-height:1.4; }
   .vd-dot { width:10px; height:10px; border-radius:50%; flex:none; margin-top:10px; background:var(--flat); box-shadow:0 0 0 4px var(--fill-3); }
-  .vd-dot.bad { background:var(--bad); box-shadow:0 0 0 4px color-mix(in srgb, var(--bad) 16%, transparent); } .vd-dot.warn { background:var(--risk-warn); box-shadow:0 0 0 4px var(--warn-bg); }
+  .vd-dot.bad { background:var(--bad); box-shadow:0 0 0 4px color-mix(in srgb, var(--bad) 16%, transparent); } .vd-dot.warn { background:var(--caution); box-shadow:0 0 0 4px color-mix(in srgb, var(--caution) 18%, transparent); }
   .vd-dot.good { background:var(--good); box-shadow:0 0 0 4px var(--ok-bg); }
   .vd-sub { font-size:14px; color:var(--ink2); margin:4px 0 0 22px; line-height:1.6; max-width:1080px; }
   .vtiles { display:grid; grid-template-columns:repeat(var(--n,4),minmax(0,1fr)); gap:0; margin-top:12px; padding-top:12px; border-top:1px solid var(--hair); }
@@ -424,7 +436,7 @@
   .vtile .l { font-size:12px; color:var(--muted); font-weight:500; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .vtile .v { font-size:28px; font-weight:700; letter-spacing:-.03em; margin:2px 0 2px; font-variant-numeric:tabular-nums; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .vtile .v.txt { font-size:16px; letter-spacing:-.015em; line-height:1.5; white-space:normal; }
-  .vtile .v.bad { color:var(--bad-ink); } .vtile .v.warn { color:color-mix(in oklab, var(--risk-warn) 62%, var(--ink)); } .vtile .v.good { color:var(--good-ink); }
+  .vtile .v.bad { color:var(--bad-ink); } .vtile .v.warn { color:var(--caution-ink); } .vtile .v.good { color:var(--good-ink); }
   .vtile .s { font-size:12px; color:var(--muted); line-height:1.45; }
   .vd-note { font-size:12px; color:var(--muted); margin-top:10px; }
   /* 비교 기준(BM) 대비 칩 — 중립 테두리, 글자색만 차이의 부호(+ 초록 · − 빨강) */
@@ -652,7 +664,7 @@
   .sbar .goal { position:absolute; top:-4px; width:2px; height:18px; border-radius:1px; background:var(--ink); }
   .sbar .val { text-align:right; font-variant-numeric:tabular-nums; color:var(--ink2); white-space:nowrap; }
   .srow { display:grid; grid-template-columns:minmax(120px,max-content) minmax(80px,1fr) minmax(110px,max-content); gap:12px; align-items:center; font-size:13px; margin:7px 0; }
-  .srow > span:first-child { white-space:nowrap; }
+  .srow > span:first-child { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .srow .track { position:relative; height:8px; border-radius:4px; background:var(--fill-2); }
   .srow .fill { position:absolute; left:0; top:0; bottom:0; border-radius:4px; background:var(--bar); max-width:100%; }
   .srow .limit { position:absolute; top:-5px; width:2px; height:18px; background:var(--ink); border-radius:1px; }
@@ -665,6 +677,25 @@
   table.btable tr.prow td:first-child { font-weight:600; }
   table.btable .strat { display:block; font-size:11px; color:var(--muted); font-weight:500; margin-top:1px; }
   table.btable td:first-child, table.btable .strat, table.btable td > b { white-space:nowrap; }
+  /* 결합 전략 표 — 백테스트 칸은 숫자 두 줄 + 버튼 한 줄. 좁으면 구조·리스크 열은 전략 이름의 툴팁으로 */
+  .btcell { display:flex; align-items:center; justify-content:space-between; gap:8px; white-space:nowrap; }
+  .btnums { display:grid; font-size:12px; line-height:1.35; font-variant-numeric:tabular-nums; } .btnums span { color:var(--muted); }
+  @container main (max-width:1000px){ #eqStrats .c-opt { display:none; } }
+  #bookAgents .atile .m { display:flex; flex-wrap:wrap; column-gap:8px; }   /* 손익 · 한도 — 좁으면 덩어리째 줄바꿈 */
+  #limitTree td { white-space:nowrap; }
+  /* 대시보드 — 비어 있는 카드는 한 줄 띠로 모으고, 내용 있는 카드가 위로 */
+  .quiet { display:flex; flex-wrap:wrap; align-items:center; row-gap:4px; padding:9px 16px; }
+  .quiet .qi { display:inline-flex; align-items:center; gap:8px; font-size:13px; padding:1px 14px 1px 0; margin-right:14px; border-right:1px solid var(--line); white-space:nowrap; }
+  .quiet .qi:last-child { border-right:none; margin-right:0; }
+  .quiet .qi b { font-weight:600; color:var(--ink); flex:none; } .quiet .qi > span { color:var(--muted); white-space:normal; }
+  @container main (max-width:700px){ .quiet .qi { flex-basis:100%; align-items:baseline; border-right:none; margin-right:0; padding:3px 0; } .quiet .qi + .qi { border-top:1px solid var(--hair); } }
+  #homeGrid > .card[hidden] { display:none; }
+  /* 변동성 — 지표 다섯 개를 한 줄 격자로 */
+  .volgrid { display:grid; grid-template-columns:repeat(auto-fit, minmax(104px, 1fr)); gap:10px 14px; }
+  .volgrid > div { min-width:0; }
+  .volgrid .l { font-size:12px; color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .volgrid .v { font-size:20px; font-weight:700; letter-spacing:-.03em; line-height:1.3; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .volgrid .s { font-size:11px; color:var(--muted); line-height:1.45; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-variant-numeric:tabular-nums; }
   table.btable tr.legs td { background:var(--fill-1); padding:4px 10px 10px 34px; }
   table.btable tr.legs table { font-size:12px; } table.btable tr.legs th { font-size:11px; }
   /* 손절 ↔ 목표 범위(내 포트 표) — rangeSvg 가 그린다 */
@@ -672,7 +703,11 @@
   .rng svg .trk { fill:var(--fill-4); } .rng svg .zero { stroke:var(--axis); } .rng svg .seg-u { fill:var(--up); } .rng svg .seg-d { fill:var(--down); }
   .rng svg .dot-u { fill:var(--up-ink); stroke:var(--surface); } .rng svg .dot-d { fill:var(--down-ink); stroke:var(--surface); }
   /* 분포 막대(정량) — distBar 가 그린다 */
-  svg .db-zero { stroke:var(--axis); } svg .db-wh { stroke:var(--flat); } svg .db-box { fill:var(--ink2); } svg .db-med { stroke:var(--surface); }
+  svg .db-zero { stroke:var(--axis); }
+  /* 0 왼쪽(손실) = 빨강 · 오른쪽(이익) = 초록. 꼬리는 옅게, 상자(25~75%)는 진하게, 중앙은 글자색 눈금 */
+  svg .db-wh.d { fill:color-mix(in srgb, var(--down) 36%, var(--surface)); } svg .db-wh.u { fill:color-mix(in srgb, var(--up) 36%, var(--surface)); }
+  svg .db-box.d { fill:color-mix(in srgb, var(--down) 52%, var(--surface)); } svg .db-box.u { fill:color-mix(in srgb, var(--up) 52%, var(--surface)); }
+  svg .db-med { stroke:var(--ink); }
   svg .db-stop { stroke:var(--down); } svg .db-tgt { stroke:var(--up); } svg .db-lim { stroke:var(--ink); }
   /* 같은 목록의 행끼리 열 너비를 맞춘다 — 부모가 열을 정하고 행은 subgrid(이름 길이가 달라도 막대 시작점이 같다) */
   #eqStyle, #eqSector { display:grid; grid-template-columns:minmax(110px,max-content) minmax(80px,1fr) max-content max-content; column-gap:10px; }
@@ -827,7 +862,7 @@
       <div class="card"><h2>스타일·팩터 <span class="sub">시장보다 얼마나 앞섰나 · 3개월</span></h2><div id="eqStyle"></div></div>
       <div class="card"><h2>섹터·테마 <span class="sub">시장보다 얼마나 앞섰나 · 3개월</span></h2><div id="eqSector"></div></div>
     </div>
-    <div class="grid g2">
+    <div class="grid g21">
       <div class="card"><h2>변동성 <span class="sub">옵션 보험료(VIX)와 실제 흔들림</span></h2><div id="eqVol"></div></div>
       <div class="card"><h2>우선주</h2><div id="eqPref"></div></div>
     </div>
@@ -883,17 +918,15 @@
 <section class="page" id="page-home">
   <div id="sampleNotice" class="notice" style="display:none"></div>
   <div class="kpis" id="gauges"></div>
-  <div class="grid g2">
-    <div class="card"><h2>발동 신호 <span class="src code">CODE</span><span class="sub" id="lastRun"></span></h2><div id="alertStrip"></div></div>
+  <!-- 비어 있는 카드(발동 신호·괴리·브리프·검증)는 이 띠에 한 줄씩 모이고, 아래 격자에서는 빠진다 -->
+  <div class="card quiet" id="homeQuiet" hidden></div>
+  <div class="grid g2" id="homeGrid">
+    <div class="card" id="hcAlerts"><h2>발동 신호 <span class="src code">CODE</span><span class="sub" id="lastRun"></span></h2><div id="alertStrip"></div></div>
     <div class="card"><h2>오늘 할 일</h2><ul class="todo" id="todo"></ul></div>
-  </div>
-  <div class="grid g2">
-    <div class="card"><h2>MP 대비 괴리 <span class="src code">CODE</span></h2><div id="gapHome"></div></div>
+    <div class="card" id="hcGap"><h2>MP 대비 괴리 <span class="src code">CODE</span></h2><div id="gapHome"></div></div>
     <div class="card"><h2>스트레스 — 전체 소진율 <span class="src code">CODE</span></h2><div id="stressHome"></div></div>
-  </div>
-  <div class="grid g2">
-    <div class="card"><h2>일일 브리프 <span class="src" id="briefSrc">—</span></h2><div id="brief"></div></div>
-    <div class="card"><h2>데이터·한도 검증</h2><div id="validation"></div></div>
+    <div class="card" id="hcBrief"><h2>일일 브리프 <span class="src" id="briefSrc">—</span></h2><div id="brief"></div></div>
+    <div class="card" id="hcValid"><h2>데이터·한도 검증</h2><div id="validation"></div></div>
   </div>
 </section>
 
@@ -1106,6 +1139,7 @@ function renderHome(ov){
   $('lastRun').textContent = ld ? `마지막 점검 ${(ld.ran_at||'').slice(5,16)}` : '일일 점검 미실행';
   $('alertStrip').innerHTML = al.length ? al.map(alertCard).join('') : `<div class="empty">발동 신호 없음 · 등급 하한 ${chip(L.risk_floor)}</div>`;
   $('gapHome').innerHTML = ov.gaps.length ? ov.gaps.slice(0,5).map(gapBar).join('') : '<div class="empty">채택된 MP가 없습니다 — MP·괴리 탭에서 산출·채택하면 표시됩니다.</div>';
+  const quiet = [];   // [카드, 이름, 한 줄 설명(HTML)] — 비어 있으면 띠로 옮긴다
   const b = ld && ld.brief;
   $('briefSrc').textContent = b ? (b.source === 'AGENT' ? 'AGENT' : 'CODE') : '—'; $('briefSrc').className = 'src ' + (b && b.source === 'AGENT' ? 'agent' : 'code');
   $('brief').innerHTML = b ? `<p class="lead" style="font-size:16px">${esc(clean(b.headline))}</p><ul class="obs">${b.interpretation.map(x=>'<li>'+esc(clean(x))+'</li>').join('')}</ul>` : '<div class="empty">일일 점검을 실행하면 브리프가 생성됩니다.</div>';
@@ -1119,6 +1153,13 @@ function renderHome(ov){
     L.stress.map(s => `<tr><td>${esc(s.name)}${s.reference?' <span class="kv">참고</span>':''}${s.sizing?' <span class="kv">사이징</span>':''}</td><td class="num">${num(s.loss_total_bn,0)}</td><td class="num">${num(s.post_util_total_pct)}%</td><td>${chip(s.post_stage_total)}</td></tr>`).join('') + '</table>';
   const v = L.validation; const items = [...v.errors.map(e=>'⛔ '+e), ...v.warnings.map(w=>'⚠ '+w)];
   $('validation').innerHTML = items.length ? items.map(i=>'<div class="small muted" style="margin:4px 0">'+esc(i)+'</div>').join('') : '<div class="empty">문제 없음</div>';
+  if(!al.length) quiet.push(['hcAlerts', '발동 신호', `없음 · 등급 하한 ${chip(L.risk_floor)} · ${esc($('lastRun').textContent)}`]);
+  if(!ov.gaps.length) quiet.push(['hcGap', 'MP 대비 괴리', '채택된 MP 없음 — <a href="#" onclick="showTab(\'mp\');return false">MP 탭</a>에서 산출·채택']);
+  if(!b) quiet.push(['hcBrief', '일일 브리프', '일일 점검을 실행하면 생성됩니다']);
+  if(!items.length) quiet.push(['hcValid', '데이터·한도 검증', '문제 없음']);
+  ['hcAlerts', 'hcGap', 'hcBrief', 'hcValid'].forEach(id => $(id).hidden = quiet.some(q => q[0] === id));
+  $('homeQuiet').hidden = !quiet.length;
+  $('homeQuiet').innerHTML = quiet.map(([, n, t]) => `<span class="qi"><b>${n}</b><span>${t}</span></span>`).join('');
 }
 function alertCard(a){
   const btn = a.status === 'OPEN' ? `<button class="btn sm" onclick="actAlert('${a.alert_id}','ACTIONED')">조치 입력</button>`
@@ -1294,7 +1335,7 @@ function renderBook(){
   const b = BOOK, t = b.totals, tg = b.target || {}, w = b.worst_stress, by = b.by_asset;
   $('bookBadge').textContent = b.is_trial ? '가상 시험 포트' : b.is_sample ? '샘플 · 계획치' : '보유';
   const src = (b.meta.source || '').match(/\(([^)]+)\)$/);
-  $('bookMeta').textContent = `평가 ${src ? src[1].replace('T', ' ').slice(0, 16) : (b.meta.as_of || '-')} · 가격 기준 ${(b.meta.price_dates || []).join(', ') || '-'} · ${t.n}개 포지션`;
+  $('bookMeta').textContent = `평가 ${src ? src[1].replace('T', ' ').slice(0, 16) : (b.meta.as_of || '-')} · 가격 기준 ${(b.meta.price_dates || []).join(', ') || '-'} · ${t.n}개 포지션`; $('bookMeta').title = $('bookMeta').textContent;
   $('bookKpis').innerHTML =
     kpiTile('운용 시가', `${num(t.mv_bn, 0)}<span>억</span>`, `환 오버레이 명목 ${num(t.fx_notional_bn, 0)}억 별도`) +
     kpiTile('누적 손익', `${sg(t.pnl_bn, 1)}<span>억</span>`, `운용 시가 대비 ${pct(t.mv_bn ? t.pnl_bn / t.mv_bn * 100 : 0, 2)}`) +
@@ -1307,7 +1348,7 @@ function renderBook(){
     return `<div class="atile ${a}${BOOK_FILTER === a ? ' on' : ''}" onclick="filterBook('${a}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')filterBook('${a}')">${avatar(a, 'md')}<div style="min-width:0;flex:1">
       <div class="n">${NAME[a]} <span class="desk">${({bond:'채권', equity:'주식', fx:'환'})[a]}</span> ${chip(u.stage)}</div>
       <div class="big">${num(mv, 0)}억 <span class="kv">${a === 'fx' ? '명목' : '시가'} · ${ps.length}개</span></div>
-      <div class="m">손익 ${sg(pnl, 1)}억 · 한도 ${num(u.limit_bn, 0)}억 중 ${pct(u.util_pct, 1)} 사용</div>
+      <div class="m"><span>손익 ${sg(pnl, 1)}억</span><span>한도 ${num(u.limit_bn, 0)}억 중 ${pct(u.util_pct, 1)} 사용</span></div>
       <div class="meter"><div class="fill" style="width:${util}%;background:${stageColor(u.stage)}"></div></div></div></div>`;
   }).join('');
   const tot = b.strategies.reduce((s, x) => s + x.long_bn, 0) || 1;
@@ -1319,7 +1360,7 @@ function renderBook(){
   }).join('');
   const maxU = Math.max(100, ...b.stress.map(s => s.post_util_total_pct || 0));
   $('bookStress').innerHTML = b.stress.map(s => `<div class="srow" data-tip="${esc(`${s.name}\n손실 ${num(s.loss_total_bn, 0)}억 → 전체 한도 ${pct(s.post_util_total_pct, 1)}`)}">
-      <span>${esc(s.name)}</span><div class="track"><div class="fill" style="width:${(s.post_util_total_pct || 0) / maxU * 100}%"></div><div class="limit" style="left:calc(${100 / maxU * 100}% - 1px)"></div></div>
+      <span title="${esc(s.name)}">${esc(s.name)}</span><div class="track"><div class="fill" style="width:${(s.post_util_total_pct || 0) / maxU * 100}%"></div><div class="limit" style="left:calc(${100 / maxU * 100}% - 1px)"></div></div>
       <span class="val">${pct(s.post_util_total_pct, 0)} ${chip(s.post_stage_total)}</span></div>`).join('') +
     `<div class="kv" style="margin-top:6px">검은 세로선 = 전체 손실한도 ${num(b.total.limit_bn, 0)}억(100%)</div>`;
   renderBookTable();
@@ -1372,7 +1413,7 @@ function togglePos(id){
 function renderStrategy(){
   const d = STRAT, pf = d.portfolio;
   $('stratBadge').textContent = d.is_trial ? '시험 포트' : ''; $('stratBadge').style.display = d.is_trial ? '' : 'none';
-  $('stratMeta').textContent = `${d.generated_at.replace('T', ' ').slice(5, 16)} 기준 · 포지션 ${d.positions_as_of || '-'}`;
+  $('stratMeta').textContent = `${d.generated_at.replace('T', ' ').slice(5, 16)} 기준 · 포지션 ${d.positions_as_of || '-'}`; $('stratMeta').title = $('stratMeta').textContent;
   // 1) 결론
   $('stratVerdict').innerHTML = `<div class="vd-head"><span class="vd-dot ${pf.tone}"></span><div>${esc(d.verdict)}</div></div>
     ${pf.sub ? `<div class="vd-sub">${esc(pf.sub)}</div>` : ''}
@@ -1471,7 +1512,7 @@ function xrows(rows){
 function renderEquity(){
   const d = EQ;
   if(!d.groups){ $('eqVerdict').innerHTML = `<div class="empty">${d.refreshing ? '처음이라 가격 이력을 받는 중입니다(약 30초)…' : '데이터가 없습니다 — 다시 받기를 눌러주세요.'}</div>`; return; }
-  $('eqMeta').textContent = `${d.generated_at.replace('T', ' ').slice(5, 16)} 계산 · 가격 ${(d.price_dates || []).map(x => x.slice(5)).join(' ~ ')} · ${d.basis}${d.refreshing ? ' · 받는 중…' : ''}`;
+  $('eqMeta').textContent = `${d.generated_at.replace('T', ' ').slice(5, 16)} 계산 · 가격 ${(d.price_dates || []).map(x => x.slice(5)).join(' ~ ')} · ${d.basis}${d.refreshing ? ' · 받는 중…' : ''}`; $('eqMeta').title = $('eqMeta').textContent;
   const tone = (d.tiles || []).some(t => t.tone === 'bad') ? 'warn' : 'good';
   $('eqVerdict').innerHTML = `<div class="vd-head"><span class="vd-dot ${tone}"></span><div>${esc(d.verdict)}</div></div>
     ${d.sub ? `<div class="vd-sub">${esc(d.sub)}</div>` : ''}
@@ -1488,18 +1529,20 @@ function renderEquity(){
   $('eqStyle').innerHTML = xrows(G('스타일·팩터'));
   $('eqSector').innerHTML = xrows(G('섹터·테마'));
   const v = d.vol || {}, vx = v.vix;
-  $('eqVol').innerHTML = vx ? `<div style="display:flex;gap:24px;flex-wrap:wrap">
-      <div><div class="kv">VIX (S&P500 옵션 보험료)</div><div class="bigv">${(+vx.last).toFixed(1)}</div><div class="kv">5년 중앙값 ${vx.median_5y} · 1개월 ${sg(vx.chg_1m, 1)}</div></div>
-      ${[['vxn', 'VXN (나스닥100)'], ['vkospi', 'VKOSPI (KOSPI200)'], ['vstoxx', 'VSTOXX (유로스톡스50)']].filter(([k]) => v[k]).map(([k, l]) =>
-        `<div><div class="kv">${l}</div><div class="bigv">${(+v[k].last).toFixed(1)}</div><div class="kv">${[v[k].pct_1y !== undefined && v[k].pct_1y !== null && `1년 중 ${v[k].pct_1y}% 위치`,
-          v[k].median_5y !== undefined && v[k].median_5y !== null && `5년 중앙값 ${v[k].median_5y}`].filter(Boolean).join(' · ') || esc(v[k].as_of || '')}</div></div>`).join('')}
-      ${v.kospi200_rv ? `<div><div class="kv">KOSPI200 실제 흔들림 (60일)</div><div class="bigv">${v.kospi200_rv.last}%</div><div class="kv">5년 중 ${v.kospi200_rv.pct_5y}% 위치</div></div>` : ''}</div>
+  // 지표 하나 = 짧은 이름 · 값 · 설명 두 줄(긴 이름은 title)
+  const vm = (name, full, val, subs) => `<div title="${esc(full)}"><div class="l">${name}</div><div class="v">${val}</div>${subs.filter(Boolean).map(x => `<div class="s">${x}</div>`).join('')}</div>`;
+  const has = x => x !== undefined && x !== null;
+  $('eqVol').innerHTML = vx ? `<div class="volgrid">
+      ${vm('VIX', 'VIX (S&P500 옵션 보험료)', (+vx.last).toFixed(1), [`5년 중앙값 ${vx.median_5y}`, `1개월 ${sg(vx.chg_1m, 1)}`])}
+      ${[['vxn', 'VXN', 'VXN (나스닥100)'], ['vkospi', 'VKOSPI', 'VKOSPI (KOSPI200)'], ['vstoxx', 'VSTOXX', 'VSTOXX (유로스톡스50)']].filter(([k]) => v[k]).map(([k, n, l]) =>
+        vm(n, l, (+v[k].last).toFixed(1), [has(v[k].pct_1y) && `1년 중 ${v[k].pct_1y}% 위치`, has(v[k].median_5y) && `5년 중앙값 ${v[k].median_5y}`, !has(v[k].pct_1y) && !has(v[k].median_5y) && esc(v[k].as_of || '')])).join('')}
+      ${v.kospi200_rv ? vm('K200 실제 60일', 'KOSPI200 실제 흔들림 (60일 실현 변동성)', `${v.kospi200_rv.last}%`, [`5년 중 ${v.kospi200_rv.pct_5y}% 위치`]) : ''}</div>
     <div class="pctl" title="VIX 지난 1년 중 위치"><i style="left:${vx.pct_1y}%"></i></div><div class="rng-l"><span>1년 중 낮음</span><span>VIX ${vx.pct_1y}% 위치</span><span>높음</span></div>
     ${v.premium ? `<div class="callout info" style="margin-top:12px">${esc(v.premium.say)}</div>` : ''}` : '<div class="empty">데이터 없음</div>';
   const p = d.pref, f = d.pff;
   $('eqPref').innerHTML = (p ? `<div class="kv">삼성전자우 ÷ 삼성전자 가격비</div><div class="bigv">${p.ratio}</div>
       <div class="pctl" title="1년 범위 안 위치 ${p.pos_1y}%"><i style="left:${p.pos_1y}%"></i></div><div class="rng-l"><span>1년 최저 ${p.min_1y}</span><span>평균 ${p.mean_1y}</span><span>최고 ${p.max_1y}</span></div>
-      <div style="margin-top:8px;font-size:13px">${esc(p.say)} <span class="kv">· 1개월 ${sg(p.chg_1m, 1)}%</span></div>` : '')
+      <div style="margin-top:8px;font-size:13px">${esc(p.say)} <span class="kv" style="white-space:nowrap">· 1개월 ${sg(p.chg_1m, 1)}%</span></div>` : '')
     + (f && f.ok ? `<div class="section-label">해외 우선주</div><div style="font-size:13px" data-tip="${esc(eqTip(f))}">${esc(f.name)} — 1개월 ${pc(f.r1m)} · 3개월 ${pc(f.r3m)} · ${flowChip(f.flow)}</div>` : '');
   $('eqMissing').textContent = '아직 연결 안 된 데이터: ' + (d.missing || []).map(m => m.name).join(' · ') + ' — 인포맥스 연결 후 채웁니다.';
   // 유니버스·전략
@@ -1509,12 +1552,13 @@ function renderEquity(){
   const types = [...new Set((U.strategies || []).map(s => s.type))];
   const SD = BT.summary || EQ.bt_summary || {}, SUM = {}; (SD.rows || []).forEach(x => { if(!x.error) SUM[x.id] = x; });
   const sumTxt = x => SD.short_period ? `기간 ${sg(x.total, 1)}%` : `연 ${sg(x.cagr, 1)}%`;
-  $('eqStrats').innerHTML = `<div class="tscroll"><table class="btable"><tr><th>전략</th><th>구조</th><th>돈 버는 상황</th><th>손익 형태</th><th>주요 리스크</th><th>백테스트${SD.period_label ? ` <span class="kv">(${esc(SD.period_label)})</span>` : ''}</th></tr>${
+  $('eqStrats').innerHTML = `<div class="tscroll"><table class="btable"><tr><th>전략</th><th class="c-opt">구조</th><th>돈 버는 상황</th><th>손익 형태</th><th class="c-opt">주요 리스크</th><th>백테스트${SD.period_label ? ` <span class="kv">(${esc(SD.period_label)})</span>` : ''}</th></tr>${
     types.map(t => `<tr class="grp"><td colspan="6"><b>${esc(t)}</b></td></tr>` + U.strategies.filter(s => s.type === t).map(s => {
       const r = RD[s.ready] || ['OFF', '-'];
-      return `<tr><td><b>${esc(s.name)}</b><span class="strat">${esc(s.id)}</span></td><td class="small">${esc(s.structure)}</td><td class="small">${esc(s.scenario)}</td>
-        <td><span class="flow">${esc(s.payoff)}</span></td><td class="small">${esc(s.risk)}</td>
-        <td data-tip="${esc(`${s.ready_text}\n계산 방법: ${s.backtest}\n쓰는 데이터: ${(s.data || []).join(', ')}`)}">${SUM[s.id] ? `<span class="small">${sumTxt(SUM[s.id])} · 낙폭 ${num(SUM[s.id].mdd, 1)}%</span><br>` : `<span class="chip ${r[0]}">${r[1]}</span> `}${s.ready !== 'need' ? `<button class="btn sm" onclick="openBt('${s.id}')">돌려보기</button>` : ''}</td></tr>`; }).join('')).join('')}</table></div>
+      const m = SUM[s.id], bv = m ? (SD.short_period ? m.total : m.cagr) : null;
+      return `<tr><td data-tip="${esc(`구조: ${s.structure}\n주요 리스크: ${s.risk}`)}"><b>${esc(s.name)}</b><span class="strat">${esc(s.id)}</span></td><td class="small c-opt">${esc(s.structure)}</td><td class="small">${esc(s.scenario)}</td>
+        <td><span class="flow">${esc(s.payoff)}</span></td><td class="small c-opt">${esc(s.risk)}</td>
+        <td data-tip="${esc(`${s.ready_text}\n계산 방법: ${s.backtest}\n쓰는 데이터: ${(s.data || []).join(', ')}`)}"><div class="btcell">${m ? `<span class="btnums"><b class="${bv > 0 ? 'pos' : bv < 0 ? 'neg' : ''}">${sumTxt(m)}</b><span>낙폭 ${num(m.mdd, 1)}%</span></span>` : `<span class="chip ${r[0]}">${r[1]}</span>`}${s.ready !== 'need' ? `<button class="btn sm" onclick="openBt('${s.id}')">돌려보기</button>` : ''}</div></td></tr>`; }).join('')).join('')}</table></div>
     ${(U.notes || []).length ? `<div class="kv" style="margin-top:8px">메모: ${U.notes.map(n => esc(n.text)).join(' / ')}</div>` : ''}`;
   $('eqDerivs').innerHTML = (U.derivatives || []).map(x => `<div class="eqitem"><div><b>${esc(x.item)}</b> <span class="kv">${esc(x.type)}</span></div><div>${esc(x.examples)}</div></div>`).join('');
   $('eqMiss2').innerHTML = (d.missing || []).map(m => `<div class="eqitem"><div><b>${esc(m.name)}</b></div><div>${esc(m.need)} <span class="kv">· ${esc(m.source)}</span></div></div>`).join('');
@@ -1638,6 +1682,7 @@ function btView(v){
   document.querySelectorAll('#btView .s').forEach(x => { x.classList.toggle('on', x.dataset.v === v); x.setAttribute('aria-selected', x.dataset.v === v); });
   $('btRunView').hidden = v !== 'run'; $('btAllView').hidden = v !== 'all';
   if(v === 'all' && BT.cat) renderBtAll();
+  if(v === 'run' && BT.cat) btAutoRun();
 }
 document.querySelectorAll('#btView .s').forEach(b => b.onclick = () => btView(b.dataset.v));
 const TYPE_KO = {'Future': '선물', 'TRS': 'TRS', 'Option': '옵션', 'Structured Products': '구조화', 'Swap': '스왑', 'Credit Derivatives': '크레딧'};
@@ -1669,7 +1714,10 @@ function renderBtForm(){
     <div class="btrun"><span class="kv" id="btPerNote">${esc(btPerNote())}</span><button class="btn primary" id="btnBtRun">실행</button></div>`;
   $('btSel').onchange = e => pickBt(e.target.value);
   bindBtPeriod();
-  $('btnBtRun').onclick = runBt;
+  $('btnBtRun').onclick = () => runBt();
+  if(BT.running){ $('btnBtRun').disabled = true; $('btnBtRun').textContent = '계산 중…'; }
+  if(BT.lastId && BT.lastId !== BT.sel && !BT.running) $('btResCard').hidden = true;   // 다른 전략의 결과는 감춘다
+  setTimeout(btAutoRun, 0);
 }
 // 기간 — 최근(세그먼트) · 과거 국면(팝업 목록) · 날짜. 어느 쪽으로 골라도 날짜 칸이 채워지고, 날짜를 직접 바꾸면 '직접 지정'
 function btPreset(key){ return [...BT.cat.presets, ...BT.cat.scenarios].find(p => p.value === key); }
@@ -1740,13 +1788,23 @@ function bindBtPeriod(){
   });
 }
 const btPeriodBody = () => ({period: BT.period, start: BT.from, end: BT.to});
-async function runBt(){
+// 처음 고른 전략은 기본 설정으로 한 번 자동 실행 — 전략마다 한 번만, 이미 계산 중이면 끝난 뒤에
+function btAutoRun(){
+  if(!BT.sel || BT.running || BT.autoFor === BT.sel || BT.view !== 'run' || !$('page-bt').classList.contains('on')) return;
+  BT.autoFor = BT.sel; runBt('auto');
+}
+async function runBt(mode){
+  const auto = mode === 'auto', id = BT.sel;
   if(BT.from >= BT.to){ $('btResCard').hidden = false; $('btRes').innerHTML = '<div class="callout warn">시작일이 종료일보다 앞이어야 합니다.</div>'; return; }
   const params = {}; document.querySelectorAll('#btForm select[data-k]').forEach(x => params[x.dataset.k] = x.value);
-  const b = $('btnBtRun'); b.disabled = true; b.textContent = '계산 중…'; think(true);
-  try { BT.last = await api('/api/backtest/run', {method: 'POST', body: JSON.stringify({id: BT.sel, params, ...btPeriodBody()})}); renderBtRes(BT.last); $('btResCard').scrollIntoView({behavior: 'smooth', block: 'start'}); }
-  catch(e){ $('btResCard').hidden = false; $('btRes').innerHTML = `<div class="callout warn">${esc(e.message)}</div>`; }
-  think(false); b.disabled = false; b.textContent = '실행';
+  const b = $('btnBtRun'); b.disabled = true; b.textContent = '계산 중…'; think(true); BT.running = true; BT.autoFor = id;
+  if(auto){ $('btResCard').hidden = false; $('btResSub').textContent = ''; $('btRes').innerHTML = '<div class="empty">기본 설정으로 계산 중…</div>'; }
+  try { const r = await api('/api/backtest/run', {method: 'POST', body: JSON.stringify({id, params, ...btPeriodBody()})});
+        if(BT.sel === id){ BT.last = r; BT.lastId = id; renderBtRes(r); if(!auto) $('btResCard').scrollIntoView({behavior: 'smooth', block: 'start'}); } }
+  catch(e){ if(BT.sel === id){ $('btResCard').hidden = false; $('btResSub').textContent = ''; $('btRes').innerHTML = `<div class="callout warn">${esc(e.message)}</div>`; } }
+  BT.running = false; think(false);
+  const b2 = $('btnBtRun'); if(b2){ b2.disabled = false; b2.textContent = '실행'; }   // 계산 중 다른 전략을 고르면 버튼이 새로 그려진다
+  btAutoRun();   // 계산 중에 다른 전략을 골랐으면 이어서
 }
 // 선 그래프(누적 100 기준) — 축은 최소·중간·최대·연도만, 선 끝에 마지막 값, (선택) 최대 낙폭 구간 옅은 빨강
 // lines: [{vals, color(CSS 값), w, area, end:false, ink}] · opt: {h, base, label, mark:{date,label}, shade:{from,to,label}, fmt}
@@ -1862,13 +1920,15 @@ function distBar(q, lo, hi, opt = {}){
   if(!q || q.some(v => v === null || v === undefined)) return '<span class="kv">-</span>';
   const W = opt.w || 220, H = opt.h || 18, pad = 6, x = v => pad + (Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo) * (W - 2 * pad);
   const y = H / 2, mk = [];
+  // lo~hi 구간을 0 기준으로 나눠 손실 쪽(d)·이익 쪽(u) 조각으로 그린다
+  const seg = (cls, a, b, top, h) => [[a, Math.min(b, 0), 'd'], [Math.max(a, 0), b, 'u']].filter(([p, q2]) => q2 > p)
+    .map(([p, q2, k]) => `<rect class="${cls} ${k}" x="${x(p)}" y="${top}" width="${Math.max(1.5, x(q2) - x(p))}" height="${h}"${cls === 'db-box' ? ' rx="2"' : ''}/>`).join('');
   if(opt.stop !== undefined && opt.stop !== null) mk.push(`<line class="db-stop" x1="${x(opt.stop)}" x2="${x(opt.stop)}" y1="2" y2="${H - 2}" stroke-width="2"/>`);
   if(opt.target !== undefined && opt.target !== null) mk.push(`<line class="db-tgt" x1="${x(opt.target)}" x2="${x(opt.target)}" y1="2" y2="${H - 2}" stroke-width="2"/>`);
   if(opt.limit !== undefined) mk.push(`<line class="db-lim" x1="${x(opt.limit)}" x2="${x(opt.limit)}" y1="0" y2="${H}" stroke-width="2" stroke-dasharray="3 2"/>`);
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true" style="display:block;max-width:100%">
     <line class="db-zero" x1="${x(0)}" x2="${x(0)}" y1="1" y2="${H - 1}"/>
-    <line class="db-wh" x1="${x(q[0])}" x2="${x(q[4])}" y1="${y}" y2="${y}" stroke-width="2" stroke-linecap="round"/>
-    <rect class="db-box" x="${x(q[1])}" y="${y - 4}" width="${Math.max(2, x(q[3]) - x(q[1]))}" height="8" rx="3"/>
+    ${seg('db-wh', q[0], q[4], y - 1, 2)}${seg('db-box', q[1], q[3], y - 4, 8)}
     <line class="db-med" x1="${x(q[2])}" x2="${x(q[2])}" y1="${y - 6}" y2="${y + 6}" stroke-width="2"/>${mk.join('')}</svg>`;
 }
 function scoreBar(t){
@@ -1878,7 +1938,7 @@ function scoreBar(t){
 }
 function renderQuant(){
   const d = QUANT, pf = d.portfolio || {}, lim = pf.limit_bn;
-  $('quantMeta').textContent = `계산 ${d.generated_at.replace('T', ' ').slice(0, 16)} · 가격 기준 ${d.price_last} · 포지션 ${d.positions_as_of}${d.is_trial ? ' · 가상 시험 포트' : ''}`;
+  $('quantMeta').textContent = `계산 ${d.generated_at.replace('T', ' ').slice(0, 16)} · 가격 기준 ${d.price_last} · 포지션 ${d.positions_as_of}${d.is_trial ? ' · 가상 시험 포트' : ''}`; $('quantMeta').title = $('quantMeta').textContent;
   $('quantPortSub').textContent = `전체 손실한도 ${num(lim, 0)}억 대비 · 포트 손익 이력 ${pf.history_from}~`;
   const rows = [['① 변동성 기준', pf.vol, `최근 변동성(EWMA) 그대로, 추세 없음 · 일 표준편차 ${num((pf.vol || {}).sigma_daily_bn, 1)}억`],
                 ['② 국면 기준', pf.analog, `시장 국면이 비슷했던 과거 ${(pf.analog || {}).n || 0}개 날짜의 실제 이후 6개월${((pf.analog || {}).flags || []).length ? ' · ' + pf.analog.flags.join(',') : ''}`]];
@@ -1888,7 +1948,7 @@ function renderQuant(){
       <div><div class="ql">${lab}</div><div class="kv">${esc(sub)}</div></div>
       <div>${distBar(v.q_bn, lo, hi, {w: 420, h: 22, limit: -lim})}</div>
       <div class="qv"><b>${sg(v.q_bn[2], 0)}억</b><span>중앙</span><b>${num(v.q_bn[0], 0)}억</b><span>5% 최악</span><b class="${v.p_breach >= 20 ? 'bad' : ''}">${v.p_breach}%</b><span>한도 초과</span></div></div>` : '').join('')
-    + `<div class="kv" style="margin-top:8px">상자 = 25~75%, 가는 선 = 5~95%, 흰 눈금 = 중앙, 점선 = 손실한도(−${num(lim, 0)}억). 위험 기여 상위: ${(pf.risk_contrib || []).slice(0, 4).map(x => `${esc(x.id)} ${x.pct}%`).join(' · ')}</div>`;
+    + `<div class="kv" style="margin-top:8px">상자 = 25~75%, 가는 선 = 5~95%, 0 왼쪽 빨강 = 손실 · 오른쪽 초록 = 이익, 검은 눈금 = 중앙, 점선 = 손실한도(−${num(lim, 0)}억). 위험 기여 상위: ${(pf.risk_contrib || []).slice(0, 4).map(x => `${esc(x.id)} ${x.pct}%`).join(' · ')}</div>`;
   const ps = d.positions || [], vals = ps.flatMap(p => [...((p.vol['6M'] || {}).q_bn || []), ...((p.analog['6M'] || {}).q_bn || [])]).filter(v => v !== null && v !== undefined);
   const plo = Math.min(...vals, 0), phi = Math.max(...vals, 0);
   let h = `<table class="btable qtable"><tr><th>포지션</th><th>기술적 매력도</th><th>6개월 예상손익 ①변동성 / ②국면</th><th class="num">손절 먼저<br>① / ②</th><th class="num">목표 먼저<br>① / ②</th><th class="num">②표본</th></tr>`;
@@ -2079,6 +2139,47 @@ window.addEventListener('resize', () => setChatW(chatW(), false));
 $('navToggle').onclick = () => document.body.classList.toggle('side-open');
 $('sideScrim').onclick = () => document.body.classList.remove('side-open');
 $('chatFab').onclick = () => $('chatPanel').hidden ? openChat() : closeChat();
+// 풍선이 본문 글자·표·차트를 가리면 오른쪽 가장자리로 비켜선다(.peek) — 스크롤·크기 변경·화면 갱신 때 다시 본다
+const fabPeek = (() => {
+  let raf = 0, hold = false;   // hold = 마우스로 불러낸 동안(포인터가 풍선 근처를 떠날 때까지) 다시 숨기지 않음
+  const BIG = 'html, body, main, .page, .grid, .agents, .kpis';
+  const SOLID = 'svg, img, button, input, select, textarea, .chip, .flow, .btn, .hm-cell, .meter, .rmeter, .track, .pctl, .vtrack';
+  const meets = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  const textMeets = (el, R) => {   // el 안의 글자 조각이 풍선 영역과 겹치나
+    const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n = 0;
+    while(tw.nextNode() && n++ < 400){ const t = tw.currentNode; if(!t.textContent.trim()) continue;
+      const rg = document.createRange(); rg.selectNodeContents(t); if([...rg.getClientRects()].some(c => meets(c, R))) return true; }
+    return false;
+  };
+  const check = () => {
+    raf = 0; const f = $('chatFab'); if(!f || hold || f.matches(':hover, :focus-visible') || !$('chatPanel').hidden) return;
+    const R = {left: f.offsetLeft + 4, top: f.offsetTop + 4, right: f.offsetLeft + f.offsetWidth - 4, bottom: f.offsetTop + f.offsetHeight - 4};   // 변형(peek) 전 자리
+    const seen = new Set(); let hit = false;
+    for(const fx of [.2, .5, .8]) for(const fy of [.2, .5, .8]){
+      if(hit) break;
+      const el = document.elementsFromPoint(R.left + (R.right - R.left) * fx, R.top + (R.bottom - R.top) * fy).find(e => e !== f && !f.contains(e));
+      if(!el || seen.has(el) || el.matches(BIG)) continue; seen.add(el);
+      hit = !!el.closest(SOLID) || textMeets(el, R);
+    }
+    f.classList.toggle('peek', hit);
+  };
+  // 비켜선 풍선에 마우스를 대면 제자리로 돌아오고, 풍선이 커서 밑에서 빠져나가도 근처(오른쪽 가장자리까지)에 있는 동안은 유지한다
+  $('chatFab').addEventListener('pointerenter', e => { if(e.pointerType === 'mouse' && $('chatFab').classList.contains('peek')){ hold = true; $('chatFab').classList.remove('peek'); } });
+  document.addEventListener('pointermove', e => {
+    if(!hold) return; const r = $('chatFab').getBoundingClientRect();
+    if(e.clientX < r.left - 16 || e.clientY < r.top - 16 || e.clientY > r.bottom + 16){ hold = false; if(!raf) raf = requestAnimationFrame(check); }
+  }, {passive: true});
+  // 불러낸 동안 풍선 오른쪽 빈 띠(원래 비켜서 있던 자리)를 눌러도 풍선을 누른 것으로 친다
+  document.addEventListener('click', e => {
+    if(!hold || e.target.closest('#chatFab')) return; const r = $('chatFab').getBoundingClientRect();
+    if(e.clientX >= r.right && e.clientY >= r.top - 16 && e.clientY <= r.bottom + 16){ hold = false; $('chatFab').click(); }
+  });
+  return () => { if(!raf) raf = requestAnimationFrame(check); };
+})();
+addEventListener('scroll', fabPeek, {passive: true}); addEventListener('resize', fabPeek);
+new MutationObserver(fabPeek).observe(document.querySelector('main'), {childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden']});
+new MutationObserver(fabPeek).observe($('chatPanel'), {attributes: true, attributeFilter: ['hidden']});   // 대화창을 닫으면 다시 본다
+$('chatFab').addEventListener('mouseleave', fabPeek); $('chatFab').addEventListener('blur', fabPeek);
 $('chatClose').onclick = closeChat;
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && !$('chatPanel').hidden) closeChat(); });
 $('chatShare').onclick = () => { CHAT_UI.share = !CHAT_UI.share; $('chatShare').classList.toggle('on', CHAT_UI.share); $('chatShare').setAttribute('aria-pressed', CHAT_UI.share); };
