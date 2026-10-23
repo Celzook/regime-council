@@ -3,7 +3,7 @@
 
 숫자는 모두 코드(CODE)가 계산한다. 데이터는 주식 대시보드가 받아 둔 일별 가격(data/history/equity_daily.csv)과 단기금리.
 - 지수 총수익: S&P500 = SPY, KOSPI200 = KODEX 200(배당 재투자 반영), 나스닥100·닛케이·유로스톡스 = 지수 + 배당수익률 가정
-- 현금(단기금리): 미국 = 13주 국채(^IRX), 한국 = 국고 3년 − 0.3%p(KOFIA, 2012년~ — CD 금리 이력이 없어 대용)
+- 현금(단기금리): 미국 = 3개월 국채 수익률(열 이름 ^IRX, Refinitiv US3MT=RR), 한국 = 국고 3년 − 0.3%p(KOFIA 최종호가, 2012년~ — CD 금리 이력이 없어 대용)
 - 선물 = 지수 총수익 − 현금(완전 담보 가정) · 롤 비용 연 0.3%p(노출 비례) · 노출이 바뀔 때 거래비용 0.05%
 - 옵션 = 블랙숄즈 추정 + 거래비용(건당 명목 0.02% + 프리미엄 3%). 내재변동성: S&P500 = VIX, 나스닥100 = VXN, KOSPI200 = 60일 실제 변동성 × (VIX ÷ S&P 60일 실제 변동성).
   행사가가 멀수록 변동성을 가산(지수 옵션 스큐 근사). 매월 첫 거래일에 1개월 옵션을 새로 잡는다.
@@ -161,7 +161,7 @@ def _align(r: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:
 
 
 def cash(ccy: str, idx: pd.DatetimeIndex) -> pd.Series:
-    """일별 현금 수익률. 한국 = 국고3년 − 0.3%p(2012~), 미국 = 13주 국채."""
+    """일별 현금 수익률. 한국 = 국고3년 − 0.3%p(2012~), 미국 = 3개월 국채(US3MT=RR)."""
     if ccy == "KRW":
         k = pd.read_csv(KOFIA, index_col=0, parse_dates=True)["ktb_3y"].dropna()
         y = (k - 0.3) / 100
@@ -593,7 +593,7 @@ def run(sid: str, params: dict | None = None, period: str = "10y", start: str | 
                   "bench": [round(float(v) * 100, 2) for v in (bnav.reindex(wk.index) if daily else _resample(bnav, "W-FRI").last().reindex(wk.index)).ffill().values] if bnav is not None else None,
                   "dd": [round(float(v) * 100, 2) for v in (dd if daily else _resample(dd, "W-FRI").min().reindex(wk.index)).values]},
         "assumptions": ["과거 데이터로 본 점검 자료 — 매매 지시 아님", "선물 = 지수 총수익 − 현금(완전 담보), 롤 비용 연 0.3%p, 노출 변경 거래비용 0.05%",
-                        "현금: 미국 13주 국채, 한국 국고 3년 − 0.3%p(2012년~, CD 금리 대용)",
+                        "현금: 미국 3개월 국채, 한국 국고 3년 − 0.3%p(2012년~, CD 금리 대용)",
                         "옵션: 블랙숄즈 추정·스큐 근사 — 실제 호가와 다를 수 있음",
                         "샤프: 현금(위 금리) 초과수익 ÷ 변동성 — 지역 상대 뷰는 그 자체가 초과수익. 한국 현금 금리가 없는 2012년 이전은 샤프 계산에서만 뺀다"],
         "generated_at": datetime.datetime.now().isoformat(timespec="seconds"),
