@@ -1283,8 +1283,8 @@ async function loadAnalog(asset){ $('analogBox').textContent = '계산 중…'; 
 $('btnMonthly').onclick = async () => { $('monthlyBox').textContent = '생성 중…'; try { const j = await api('/api/monthly', {method:'POST', body: JSON.stringify({month: $('month').value})}); $('monthlyBox').innerHTML = md(j.markdown); } catch(e){ $('monthlyBox').textContent = e.message; } };
 
 // ── 참고 ──
-const KEY_LABELS = {ktb_2y:'국고 2년',ktb_3y:'국고 3년',ktb_5y:'국고 5년',ktb_10y:'국고 10년',corp_aa_minus_3y:'회사채 AA- 3년',corp_a_grade:'회사채 A급',capital_securities:'자본성증권',global_hy:'해외 하이일드',curve_3s10s_bp:'커브 3s10s',spread_aa_minus_bp:'AA- 스프레드',usdkrw:'USD/KRW',dollar_index:'달러인덱스',hedge_cost_assumption:'헤지비용 가정',swap_point_3m:'스왑포인트 3M',hedge_cost_3m_annualized:'헤지비용(연환산)',kospi:'KOSPI',sp500:'S&P500',vix:'VIX',vkospi:'VKOSPI',vstoxx:'VSTOXX',
-  ust_2y:'미국채 2년',ust_10y:'미국채 10년',fed_funds:'연방기금 실효금리',breakeven_10y:'미국 10년 BEI',ust_2s10s_bp:'미국 2s10s',kr_minus_us_10y_bp:'한미 10년 금리차',
+const KEY_LABELS = {ktb_2y:'국고 2년',ktb_3y:'국고 3년',ktb_5y:'국고 5년',ktb_10y:'국고 10년',corp_aa_minus_3y:'회사채 AA- 3년',corp_a_grade:'회사채 A급',capital_securities:'자본성증권',global_hy:'해외 하이일드',curve_3s10s_bp:'커브 3s10s',spread_aa_minus_bp:'AA- 스프레드',bok_base:'한은 기준금리',cd_91d:'CD 91일',corp_bbb_minus_3y:'회사채 BBB- 3년',spread_bbb_minus_bp:'BBB- 스프레드',ktb3y_minus_base_bp:'국고 3년 − 기준금리',usdkrw:'USD/KRW',dollar_index:'달러인덱스',hedge_cost_assumption:'헤지비용 가정',swap_point_3m:'스왑포인트 3M',hedge_cost_3m_annualized:'헤지비용(연환산)',kospi:'KOSPI',sp500:'S&P500',vix:'VIX',vkospi:'VKOSPI',vstoxx:'VSTOXX',kospi200:'KOSPI200',ks200_fut:'KOSPI200 선물(최근월)',ks200_basis_pct:'선물 베이시스(선물÷현물−1)',
+  ust_2y:'미국채 2년',ust_10y:'미국채 10년',fed_funds:'연준 목표금리(상단)',breakeven_10y:'미국 10년 BEI',ust_2s10s_bp:'미국 2s10s',kr_minus_us_10y_bp:'한미 10년 금리차',
   ig_oas_bp:'미국 IG OAS',hy_oas_bp:'미국 HY OAS',ig_yield:'미국 IG 수익률',hy_yield:'미국 HY 수익률',
   usdjpy:'USD/JPY',eurusd:'EUR/USD',usdcny:'USD/CNY',kosdaq:'KOSDAQ',nasdaq:'나스닥',nikkei:'닛케이225',stoxx50:'유로스톡스50',eem:'MSCI EM(EEM)',
   wti:'WTI',gold:'금',kospi_per_fwd:'KOSPI 선행 PER',sp500_per_fwd:'S&P 선행 PER',kospi_div_yield:'KOSPI 배당수익률'};

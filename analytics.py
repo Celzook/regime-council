@@ -38,6 +38,9 @@ SERIES = {
     "ktb_5y": ("국고 5년", "rate", 1, "%", "Refinitiv KOFIA 최종호가"),
     "ktb_10y": ("국고 10년", "rate", 1, "%", "Refinitiv KOFIA 최종호가"),
     "corp_aa_minus_3y": ("회사채 AA- 3년", "rate", 1, "%", "Refinitiv KOFIA 최종호가"),
+    "corp_bbb_minus_3y": ("회사채 BBB- 3년", "rate", 1, "%", "Refinitiv KOFIA 최종호가"),
+    "cd_91d": ("CD 91일", "rate", 1, "%", "Refinitiv KOFIA 최종호가"),
+    "bok_base": ("한은 기준금리", "rate", 1, "%", "Refinitiv KRBASE=BOKK"),
     "ust_2y": ("미국채 2년", "rate", 1, "%", "Refinitiv US2YT=RR"),
     "ust_10y_cmt": ("미국채 10년", "rate", 1, "%", "Refinitiv US10YT=RR"),
     "fed_funds": ("연준 목표금리(상단)", "rate", 1, "%", "Refinitiv USFFTARGET="),
@@ -57,6 +60,8 @@ SERIES = {
     "nasdaq": ("나스닥", "price", 1, "pt", "Refinitiv"),
     "nikkei": ("닛케이225", "price", 1, "pt", "Refinitiv"),
     "stoxx50": ("유로스톡스50", "price", 1, "pt", "Refinitiv"),
+    "kospi200": ("KOSPI200", "price", 1, "pt", "Refinitiv .KS200"),
+    "ks200_fut": ("KOSPI200 선물(최근월)", "price", 1, "pt", "Refinitiv KSc1"),
     "eem": ("MSCI EM(EEM ETF)", "price", 1, "달러", "Refinitiv"),
     "vix": ("VIX", "point", 1, "pt", "yfinance(Refinitiv 권한 없음)"),
     "wti": ("WTI", "price", 1, "달러/bbl", "Refinitiv"),
@@ -65,6 +70,9 @@ SERIES = {
 # 파생 시계열: 열 → (표시명, a, b) = a − b. 전부 rate(bp 표시).
 DERIVED = {
     "spread_aa": ("AA- 스프레드(3년)", "corp_aa_minus_3y", "ktb_3y"),
+    "spread_bbb": ("BBB- 스프레드(3년)", "corp_bbb_minus_3y", "ktb_3y"),
+    "ktb3y_base": ("국고 3년 − 기준금리", "ktb_3y", "bok_base"),
+    "cd_base": ("CD 91일 − 기준금리", "cd_91d", "bok_base"),
     "ktb_3s10s": ("국고 3s10s", "ktb_10y", "ktb_3y"),
     "ktb_2s10s": ("국고 2s10s", "ktb_10y", "ktb_2y"),
     "ust_2s10s": ("미국채 2s10s", "ust_10y_cmt", "ust_2y"),
@@ -75,11 +83,18 @@ DERIVED = {
 for _k, (_name, _a, _b) in DERIVED.items():
     _bp = _k != "us_real_10y"
     SERIES[_k] = (_name, "rate", 100 if _bp else 1, "bp" if _bp else "%", f"계산({_a} − {_b})")
+# 비율 파생: 열 → (표시명, a, b) = (a ÷ b − 1) × 100 %. 같은 날 둘 다 있을 때만(선물 롤 날엔 최근월이 바뀌어 튈 수 있음).
+RATIO = {"ks200_basis": ("KOSPI200 선물 베이시스", "ks200_fut", "kospi200")}
+for _k, (_name, _a, _b) in RATIO.items():
+    SERIES[_k] = (_name, "rate", 1, "%", f"계산({_a} ÷ {_b} − 1)")
 
 # market.json 최신값 → 시계열 열 (섹션, 키, 나눗수)
 MARKET_MAP = {
     "ktb_2y": ("rates_kr", "ktb_2y", 1), "ktb_3y": ("rates_kr", "ktb_3y", 1), "ktb_5y": ("rates_kr", "ktb_5y", 1),
     "ktb_10y": ("rates_kr", "ktb_10y", 1), "corp_aa_minus_3y": ("rates_kr", "corp_aa_minus_3y", 1),
+    "corp_bbb_minus_3y": ("rates_kr", "corp_bbb_minus_3y", 1), "cd_91d": ("rates_kr", "cd_91d", 1),
+    "bok_base": ("rates_kr", "bok_base", 1),
+    "kospi200": ("equity", "kospi200", 1), "ks200_fut": ("equity", "ks200_fut", 1),
     "ust_2y": ("rates_us", "ust_2y", 1), "ust_10y_cmt": ("rates_us", "ust_10y", 1),
     "fed_funds": ("rates_us", "fed_funds", 1), "be_10y": ("rates_us", "breakeven_10y", 1),
     "us_ig_oas": ("credit_us", "ig_oas_bp", 100), "us_hy_oas": ("credit_us", "hy_oas_bp", 100),
@@ -93,10 +108,11 @@ MARKET_MAP = {
 }
 
 GROUPS = {
-    "rates_kr": ["ktb_2y", "ktb_3y", "ktb_5y", "ktb_10y", "corp_aa_minus_3y", "spread_aa", "ktb_3s10s", "ktb_2s10s"],
+    "rates_kr": ["bok_base", "cd_91d", "ktb_2y", "ktb_3y", "ktb_5y", "ktb_10y", "corp_aa_minus_3y", "corp_bbb_minus_3y",
+                 "spread_aa", "spread_bbb", "ktb3y_base", "cd_base", "ktb_3s10s", "ktb_2s10s"],
     "rates_us": ["fed_funds", "ust_2y", "ust_10y_cmt", "ust_2s10s", "be_10y", "us_real_10y", "kr_us_2y", "kr_us_10y"],
     "credit_us": ["us_ig_oas", "us_hy_oas", "us_ig_yield", "us_hy_yield"],
-    "equity": ["kospi", "kosdaq", "sp500", "nasdaq", "nikkei", "stoxx50", "eem"],
+    "equity": ["kospi", "kospi200", "kosdaq", "sp500", "nasdaq", "nikkei", "stoxx50", "eem"],
     "fx": ["usdkrw", "dxy", "usdjpy", "eurusd", "usdcny"],
     "commodities": ["wti", "gold"],
 }
@@ -105,7 +121,8 @@ GROUPS = {
 SIGNAL_RULES = [
     ("ktb_3y", "chg_1m", 30, "abs", "bond"), ("ktb_10y", "chg_1m", 30, "abs", "bond"),
     ("ust_10y_cmt", "chg_1m", 30, "abs", "bond"),
-    ("spread_aa", "chg_1m", 15, "up", "bond"), ("us_ig_oas", "chg_1m", 25, "up", "bond"),
+    ("spread_aa", "chg_1m", 15, "up", "bond"), ("spread_bbb", "chg_1m", 40, "up", "bond"),
+    ("us_ig_oas", "chg_1m", 25, "up", "bond"),
     ("us_hy_oas", "chg_1m", 75, "up", "bond"),
     ("kospi", "chg_1m", 10, "abs", "equity"), ("kosdaq", "chg_1m", 10, "abs", "equity"),
     ("sp500", "chg_1m", 8, "abs", "equity"), ("nasdaq", "chg_1m", 10, "abs", "equity"),
@@ -114,7 +131,8 @@ SIGNAL_RULES = [
     ("usdkrw", "chg_1m", 3, "abs", "fx"), ("usdjpy", "chg_1m", 4, "abs", "fx"), ("dxy", "chg_1m", 3, "abs", "fx"),
     ("wti", "chg_1m", 15, "abs", "cross"), ("gold", "chg_1m", 10, "abs", "cross"),
 ]
-EXTREME_PCTILE = {"ktb_3y": "bond", "ktb_10y": "bond", "spread_aa": "bond", "ust_10y_cmt": "bond",
+EXTREME_PCTILE = {"ktb_3y": "bond", "ktb_10y": "bond", "spread_aa": "bond", "spread_bbb": "bond", "ust_10y_cmt": "bond",
+                  "ks200_basis": "equity",
                   "us_hy_oas": "bond", "usdkrw": "fx", "vix": "equity", "kr_us_10y": "fx"}
 # 데이터 확인 규칙: 최근 1년 일간 변동이 이 폭(%)을 넘으면 실제 급변인지 데이터 오류인지 확인하라고 표시
 DAILY_JUMP_CHECK = {"kospi": 8, "kosdaq": 8, "sp500": 6, "nasdaq": 7, "nikkei": 8, "stoxx50": 7, "eem": 8,
@@ -157,6 +175,9 @@ def load_panel() -> pd.DataFrame:
         if a in df and b in df:
             both = df[a].notna() | df[b].notna()
             df[k] = (filled[a] - filled[b]).where(both)
+    for k, (_n, a, b) in RATIO.items():
+        if a in df and b in df:
+            df[k] = (df[a] / df[b] - 1) * 100
     _CACHE.update(key=key, df=df)
     return df
 
@@ -352,7 +373,7 @@ def bond_view(df: pd.DataFrame) -> dict:
 
 
 def equity_view(df: pd.DataFrame) -> dict:
-    out = {"indices": [stats(c, df) for c in GROUPS["equity"]], "vix": stats("vix", df)}
+    out = {"indices": [stats(c, df) for c in GROUPS["equity"]], "vix": stats("vix", df), "ks200_basis": stats("ks200_basis", df)}
     k, s, u = df.get("kospi"), df.get("sp500"), df.get("usdkrw")
     rel = {}
     if k is not None and s is not None:
@@ -671,7 +692,7 @@ def to_markdown(section: str = "all", res: dict | None = None) -> str:
     if "equity" in res:
         e = res["equity"]
         L += ["", "### 주식 — 지수"] + _price_table(e["indices"])
-        L += ["", "### 주식 — 위험선호"] + _level_table([e["vix"]])
+        L += ["", "### 주식 — 위험선호"] + _level_table([x for x in (e["vix"], e.get("ks200_basis")) if x])
         rel = e["relative"]
         if rel:
             L.append("- 상대 성과: " + ", ".join(

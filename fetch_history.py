@@ -21,7 +21,8 @@ import refinitiv_src as R
 HIST_DIR = config.DATA_DIR / "history"
 # (RIC, 열 이름) — KOFIA 최종호가수익률. 2년물은 2021-03-10 부터.
 KOFIA_RICS = [("KRTSY2Y=KQ", "ktb_2y"), ("KRTSY3Y=KQ", "ktb_3y"), ("KRTSY5Y=KQ", "ktb_5y"),
-              ("KRTSY10Y=KQ", "ktb_10y"), ("KRGUCORP=KQ", "corp_aa_minus_3y")]
+              ("KRTSY10Y=KQ", "ktb_10y"), ("KRGUCORP=KQ", "corp_aa_minus_3y"),
+              ("KRCORP=KQ", "corp_bbb_minus_3y"), ("KRCD=KQ", "cd_91d"), ("KRBASE=BOKK", "bok_base")]
 KOFIA_START = datetime.date(2012, 1, 1)
 LONG_START = datetime.date(1980, 1, 1)
 
@@ -30,7 +31,8 @@ YF_TICKERS = {"KRW=X": "usdkrw", "^KS11": "kospi", "^GSPC": "sp500",
               "^VIX": "vix", "DX-Y.NYB": "dxy", "^TNX": "ust_10y",
               "^KQ11": "kosdaq", "^IXIC": "nasdaq", "^N225": "nikkei", "^STOXX50E": "stoxx50",
               "EEM": "eem", "JPY=X": "usdjpy", "EURUSD=X": "eurusd", "CNY=X": "usdcny",
-              "CL=F": "wti", "GC=F": "gold"}
+              "CL=F": "wti", "GC=F": "gold",
+              "^KS200": "kospi200", "KSc1": "ks200_fut"}   # KSc1 = KOSPI200 선물 최근월 연결(만기마다 다음 월물로 넘어감)
 
 FRED_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 FRED_START = datetime.date(1990, 1, 1)

@@ -18,13 +18,17 @@ import os
 import config
 import refinitiv_src as R
 
-# (RIC, 키, 이름) — fetch_history.KOFIA_RICS 와 같은 RIC
+# (RIC, 키, 이름, 원천) — fetch_history.KOFIA_RICS 와 같은 RIC
+_KOFIA = "금융투자협회 최종호가수익률 15:30"
 KOFIA_RICS = [
-    ("KRTSY2Y=KQ", "ktb_2y", "국고채 2년"),
-    ("KRTSY3Y=KQ", "ktb_3y", "국고채 3년"),
-    ("KRTSY5Y=KQ", "ktb_5y", "국고채 5년"),
-    ("KRTSY10Y=KQ", "ktb_10y", "국고채 10년"),
-    ("KRGUCORP=KQ", "corp_aa_minus_3y", "회사채 AA- 3년"),
+    ("KRTSY2Y=KQ", "ktb_2y", "국고채 2년", _KOFIA),
+    ("KRTSY3Y=KQ", "ktb_3y", "국고채 3년", _KOFIA),
+    ("KRTSY5Y=KQ", "ktb_5y", "국고채 5년", _KOFIA),
+    ("KRTSY10Y=KQ", "ktb_10y", "국고채 10년", _KOFIA),
+    ("KRGUCORP=KQ", "corp_aa_minus_3y", "회사채 AA- 3년", _KOFIA),
+    ("KRCORP=KQ", "corp_bbb_minus_3y", "회사채 BBB- 3년", _KOFIA),
+    ("KRCD=KQ", "cd_91d", "CD 91일", _KOFIA),
+    ("KRBASE=BOKK", "bok_base", "한국은행 기준금리", "한국은행"),
 ]
 
 # (yfinance 표기 티커, 키, 단위, 이름) — RIC 변환은 refinitiv_src.TICKER_RIC
@@ -43,7 +47,9 @@ MARKET_TICKERS = {
                ("EEM", "eem", "USD", "iShares MSCI EM ETF — 신흥국 지수 대용"),
                ("^VIX", "vix", "pt", "VIX"),
                (".KSVKOSPI", "vkospi", "pt", "VKOSPI"),
-               (".V2TX", "vstoxx", "pt", "VSTOXX")],
+               (".V2TX", "vstoxx", "pt", "VSTOXX"),
+               ("^KS200", "kospi200", "pt", "KOSPI200"),
+               ("KSc1", "ks200_fut", "pt", "KOSPI200 선물 최근월")],
     "commodities": [("CL=F", "wti", "USD/bbl", "WTI 근월물"),
                     ("GC=F", "gold", "USD/oz", "금 현물")],
 }
@@ -78,10 +84,10 @@ def _recent(expr: str):
 def fetch_kr_rates() -> dict:
     """KOFIA 최종호가수익률 최근 영업일 값 + 커브·스프레드."""
     out = {}
-    for ric, key, name in KOFIA_RICS:
+    for ric, key, name, src in KOFIA_RICS:
         try:
             v, as_of = _recent(ric)
-            out[key] = _field(round(v, 3), "%", as_of, f"Refinitiv {ric} (금융투자협회 최종호가수익률 15:30, {name})")
+            out[key] = _field(round(v, 3), "%", as_of, f"Refinitiv {ric} ({src}, {name})")
         except Exception as e:  # noqa: BLE001
             print(f"  경고: {name}({ric}) 수집 실패: {e}")
     if "ktb_3y" in out and "ktb_10y" in out:
@@ -92,6 +98,14 @@ def fetch_kr_rates() -> dict:
         out["spread_aa_minus_bp"] = _field(
             round((out["corp_aa_minus_3y"]["value"] - out["ktb_3y"]["value"]) * 100, 1),
             "bp", out["ktb_3y"]["as_of"], "계산(corp_aa_minus_3y - ktb_3y)")
+    if "ktb_3y" in out and "corp_bbb_minus_3y" in out:
+        out["spread_bbb_minus_bp"] = _field(
+            round((out["corp_bbb_minus_3y"]["value"] - out["ktb_3y"]["value"]) * 100, 1),
+            "bp", out["ktb_3y"]["as_of"], "계산(corp_bbb_minus_3y - ktb_3y)")
+    if "ktb_3y" in out and "bok_base" in out:   # 양수 = 시장이 기준금리 인상 쪽, 음수 = 인하 쪽을 가격에 반영
+        out["ktb3y_minus_base_bp"] = _field(
+            round((out["ktb_3y"]["value"] - out["bok_base"]["value"]) * 100, 1),
+            "bp", out["ktb_3y"]["as_of"], "계산(ktb_3y - bok_base)")
     return out
 
 
@@ -172,6 +186,18 @@ def main():
     mk = fetch_markets()
     for section in MARKET_TICKERS:
         snapshot[section].update(mk.get(section, {}))
+
+    eq = snapshot["equity"]
+    f = eq.get("ks200_fut")
+    if f and eq.get("kospi200"):   # 같은 날 종가끼리(선물 15:45·현물 15:30 마감 차이는 남음) — 선물 날짜의 현물 종가를 쓴다
+        try:
+            from fetch_history import _ref_series
+            spot = _ref_series("^KS200", datetime.date.fromisoformat(f["as_of"]) - datetime.timedelta(days=7))
+            sv = float(spot[spot.index == f["as_of"]].iloc[0])
+            eq["ks200_basis_pct"] = _field(round((f["value"] / sv - 1) * 100, 2), "%", f["as_of"],
+                                           f"계산(ks200_fut ÷ kospi200 {f['as_of']} − 1) — 양수 콘탱고, 음수 백워데이션")
+        except Exception as e:  # noqa: BLE001
+            print(f"  경고: KOSPI200 베이시스 계산 실패: {e}")
 
     us = fetch_us_rates()
     for section, fields in us.items():
