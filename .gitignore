@@ -1,7 +1,21 @@
 __pycache__/
 *.pyc
-# 데이터는 저장소에 포함한다 — 포트는 가상(시험 포트)이고 받은 사람이 바로 같은 화면을 보게 (2026-10-22 사용자 결정)
-# 실행 중에 생기는 것만 뺀다
+# 시장 데이터는 Refinitiv(LSEG) 라이선스라 저장소에 올리지 않는다 — 로컬 전용(2026-10-23 사용자 결정).
+# 원천 값과 그 값으로 계산한 산출물(시세 이력·스냅샷·평가·점검 보고서)이 대상이다.
+# 설정·가상 포트·한도와 *.sample.json 은 그대로 둔다(받은 사람은 Workspace 로그인 후 수집해서 쓴다).
+data/history/
+data/market.json
+data/equity.json
+data/equity_fund.json
+data/macro_live.json
+data/quant.json
+data/quant/
+data/positions.json
+data/strategy.json
+data/backtest_summary.json
+data/checks/
+data/*.tmp
+# 실행 중에 생기는 것
 data/_raw/
 data/log/
 data/share/
@@ -11,3 +25,6 @@ data/.infomax_excel.pid
 ~$*
 # 앱에서 쓰지 않는 옛 예시(PPT 기준) 보관본
 _보관_예시데이터(PPT기준)/
+
+# Claude Code 작업 기록(로컬)
+.omc/

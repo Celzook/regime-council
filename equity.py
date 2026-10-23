@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """주식 대시보드 — 유니버스의 주식 항목을 공개 가격으로 채워 '지금 주식시장'을 한 화면에 보여 준다.
 
-데이터: universe/equity.json 의 티커(yfinance, 2005년~ 일별 종가, 현지 통화, ETF 는 수정주가) → data/history/equity_daily.csv(누적)
+데이터: universe/equity.json 의 티커(Refinitiv — 표기는 yfinance 식 그대로, refinitiv_src 가 RIC 으로 바꾼다. 2005년~ 일별 종가, 현지 통화, 주식·ETF 는 배당 재투자 가격. VIX 만 yfinance) → data/history/equity_daily.csv(누적)
 계산(CODE): 기간 수익률(1주·1개월·3개월·올해·1년), 1년 고점 대비, 60일 변동성, 흐름 점수(quant.tech_score),
            비교 기준 대비 앞선 정도(같은 날짜끼리 맞춘 가격비), 우선주/보통주 가격비 위치, 변동성 지수의 1년 중 위치.
 출력: data/equity.json — 주식 탭·에이전트 컨텍스트가 쓴다. 쉬운 말 결론·타일도 여기서 만든다.
@@ -27,33 +27,11 @@ START = "2005-01-01"
 REGIONS = ["kospi", "sp500", "sx5e", "nikkei", "csi300", "nifty", "taiex"]   # 결론 문장에 쓰는 대표 지역
 
 
-def refresh_prices(tickers) -> pd.DataFrame:
-    """처음엔 2005년부터, 이후엔 최근 3개월만 받아 덧붙인다(한 종목 실패는 기존 이력으로)."""
+def refresh_prices(tickers, full: bool = False) -> pd.DataFrame:
+    """처음엔 2005년부터, 이후엔 최근 3개월만 받아 잇는다(한 종목 실패는 기존 이력으로). 출처는 refinitiv_src."""
     warnings.filterwarnings("ignore")
-    import yfinance as yf
-    old = pd.read_csv(HIST, index_col=0, parse_dates=True) if HIST.exists() else pd.DataFrame()
-    today = pd.Timestamp(datetime.date.today())
-    frames = {}
-    for t in sorted(set(tickers)):
-        have = t in old.columns and old[t].notna().any()
-        if have and old[t].last_valid_index() >= today - pd.Timedelta(days=1):
-            continue
-        try:
-            tk = yf.Ticker(t)
-            h = (tk.history(period="3mo", auto_adjust=True) if have else tk.history(start=START, auto_adjust=True))["Close"]
-            h.index = pd.to_datetime(h.index).tz_localize(None).normalize()
-            frames[t] = h[h.notna()]
-        except Exception as e:  # noqa: BLE001
-            print(f"  경고: {t} 가격 실패 — {e}")
-    if not frames:
-        return old
-    new = pd.DataFrame(frames)
-    df = new.combine_first(old) if len(old) else new
-    df = df[~df.index.duplicated(keep="last")].sort_index()
-    df.index.name = "date"
-    HIST.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(HIST, encoding="utf-8")
-    return df
+    import refinitiv_src
+    return refinitiv_src.refresh_frame(HIST, tickers, START, full=full)
 
 
 def _clean(s: pd.Series) -> pd.Series:
@@ -116,10 +94,10 @@ def _tone(x) -> str:
     return "" if x is None else ("good" if x > 0 else "bad" if x < 0 else "")
 
 
-def build(save: bool = True) -> dict:
+def build(save: bool = True, full: bool = False) -> dict:
     eq = universe.load_equity()
     reg = eq["series"]
-    px = refresh_prices(r["ticker"] for r in reg)
+    px = refresh_prices([r["ticker"] for r in reg], full=full)
     by_key = {r["key"]: r for r in reg}
     col = lambda k: px[by_key[k]["ticker"]] if k in by_key and by_key[k]["ticker"] in px else pd.Series(dtype=float)  # noqa: E731
     rows = {}
@@ -152,7 +130,7 @@ def build(save: bool = True) -> dict:
                         "우선주가 보통주보다 1년 범위의 아래쪽 — 상대적으로 싼 편" if pos <= 30 else "우선주·보통주 가격비가 1년 범위의 가운데")}
 
     # 변동성 — 옵션 보험료(VIX)와 실제 흔들림
-    vol = {"vix": rows.get("vix") if rows.get("vix", {}).get("ok") else None, "vxn": rows.get("vxn") if rows.get("vxn", {}).get("ok") else None}
+    vol = {k: rows.get(k) if rows.get(k, {}).get("ok") else None for k in ("vix", "vxn", "vkospi", "vstoxx")}
     for k in ("kospi200", "sp500"):
         s = _clean(col(k))
         if len(s) > 1300:
@@ -199,7 +177,7 @@ def build(save: bool = True) -> dict:
     dates = sorted({r["as_of"] for r in rows.values() if r.get("ok") and r.get("as_of")})
     d = {"generated_at": datetime.datetime.now().isoformat(timespec="seconds"),
          "price_dates": [dates[0], dates[-1]] if dates else [],
-         "basis": "공개 데이터(yfinance) · 현지 통화 기준(환율 제외) · ETF 는 배당 재투자 반영 가격",
+         "basis": "Refinitiv(VIX 만 yfinance) · 현지 통화 기준(환율 제외) · 주식·ETF 는 배당 재투자 반영 가격",
          "verdict": " · ".join(parts), "sub": " / ".join(sub), "tiles": tiles,
          "groups": groups, "pref": pref, "pff": rows.get("pff"), "vol": vol,
          "universe": v, "readiness_count": cnt, "missing": eq.get("missing", [])}
@@ -242,6 +220,8 @@ def to_markdown(d: dict) -> str:
     vol = d.get("vol") or {}
     if vol.get("vix"):
         L.append(f"\n변동성: VIX {vol['vix']['last']} (1년 중 {vol['vix']['pct_1y']}% 위치)"
+                 + "".join(f", {n} {vol[k]['last']} (1년 중 {vol[k]['pct_1y']}% 위치)"
+                           for k, n in (("vkospi", "VKOSPI"), ("vstoxx", "VSTOXX")) if vol.get(k))
                  + (f", KOSPI200 60일 실제 변동성 {vol['kospi200_rv']['last']}%" if vol.get("kospi200_rv") else "")
                  + (f" — {vol['premium']['say']}" if vol.get("premium") else ""))
     if d.get("pref"):
@@ -266,4 +246,4 @@ def to_markdown(d: dict) -> str:
 if __name__ == "__main__":
     if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    print(to_markdown(build()))
+    print(to_markdown(build(full="--full" in sys.argv)))   # --full: 이력 전체를 다시 받는다

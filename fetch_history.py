@@ -1,33 +1,31 @@
 # -*- coding: utf-8 -*-
 """과거 시계열 수집 → data/history/*.csv  (과거 사례 점검용)
 
-- KOFIA 최종호가수익률(15:30): 국고 2/3/5/10년, 회사채 AA- 3년. 연 단위로 나눠 호출(응답 크기 제한 회피).
-- yfinance: USD/KRW, KOSPI, S&P500, VIX, DXY, 미국채 10년(^TNX) + 시장 전반 분석용
-  (KOSDAQ·나스닥·닛케이·유로스톡스50·EEM, 엔·유로·위안, WTI·금). 가능한 최대 기간.
-- FRED(키 불필요 CSV): 미국채 2·10년, 연방기금 실효금리, 10년 BEI, 미국 IG·HY OAS·유효수익률.
-  ICE BofA 시리즈는 FRED 가 최근 3년만 제공 — 기존 CSV 와 병합해 받은 날부터 누적 보존한다.
-증분 갱신: 기존 CSV 가 있으면 마지막 날짜 이후만 받아 덧붙인다(FRED·yfinance 는 전체를 받아 병합).
+출처는 Refinitiv(LSEG) Workspace 가 기본이다(refinitiv_src). 이 계정에 권한이 없는 시리즈만 예외로 남긴다.
+- kofia_daily.csv: 금융투자협회 최종호가수익률(15:30) — Refinitiv 'KOFIA OTC Last Quote Yield' RIC(=KQ).
+  국고 2/3/5/10년, 회사채 AA- 3년. 원 사이트(kofiabond.or.kr)와 같은 값이다.
+- yf_daily.csv(파일명은 호환 때문에 유지): 환율·지수·원자재·미국채 10년. VIX 는 권한이 없어 yfinance.
+- fred_daily.csv: 미국채 2·10년·10년 BEI(명목−TIPS)·연준 목표금리(상단)는 Refinitiv,
+  ICE BofA IG·HY OAS·유효수익률은 권한이 없어 FRED(키 불필요 CSV). FRED 는 ICE 시리즈를 최근 3년만 줘서
+  기존 CSV 와 병합해 받은 날부터 누적 보존한다.
+갱신: 받은 열은 열 전체를 새 값으로 바꾸고(출처가 한 열 안에서 섞이지 않게), 이번에 실패한 열만 기존 CSV 값을 남긴다.
 """
 import datetime
-import math
-import re
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 import config
+import refinitiv_src as R
 
 HIST_DIR = config.DATA_DIR / "history"
-KOFIA_URL = "https://www.kofiabond.or.kr/proframeWeb/XMLSERVICES/"
-UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-      "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
-REF = ("https://www.kofiabond.or.kr/websquare/websquare.html"
-       "?w2xPath=/xml/bondint/lastrop/BISLastAskPrcTrm.xml")
-KOFIA_CODES = [("3019", "ktb_2y"), ("3000", "ktb_3y"), ("3007", "ktb_5y"),
-               ("3013", "ktb_10y"), ("3009", "corp_aa_minus_3y")]
+# (RIC, 열 이름) — KOFIA 최종호가수익률. 2년물은 2021-03-10 부터.
+KOFIA_RICS = [("KRTSY2Y=KQ", "ktb_2y"), ("KRTSY3Y=KQ", "ktb_3y"), ("KRTSY5Y=KQ", "ktb_5y"),
+              ("KRTSY10Y=KQ", "ktb_10y"), ("KRGUCORP=KQ", "corp_aa_minus_3y")]
 KOFIA_START = datetime.date(2012, 1, 1)
+LONG_START = datetime.date(1980, 1, 1)
 
+# yfinance 표기 티커 → 열 이름. RIC 변환은 refinitiv_src.TICKER_RIC, ^VIX 만 yfinance(YF_ONLY).
 YF_TICKERS = {"KRW=X": "usdkrw", "^KS11": "kospi", "^GSPC": "sp500",
               "^VIX": "vix", "DX-Y.NYB": "dxy", "^TNX": "ust_10y",
               "^KQ11": "kosdaq", "^IXIC": "nasdaq", "^N225": "nikkei", "^STOXX50E": "stoxx50",
@@ -36,60 +34,41 @@ YF_TICKERS = {"KRW=X": "usdkrw", "^KS11": "kospi", "^GSPC": "sp500",
 
 FRED_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 FRED_START = datetime.date(1990, 1, 1)
-# (FRED id, 열 이름, 단위, 설명) — OAS 는 FRED 원값이 %p 라 열에는 그대로 두고 분석 단계에서 bp 로 바꾼다
-FRED_SERIES = [
-    ("DGS2", "ust_2y", "%", "미국채 2년(CMT)"),
-    ("DGS10", "ust_10y_cmt", "%", "미국채 10년(CMT)"),
-    ("DFF", "fed_funds", "%", "연방기금 실효금리"),
-    ("T10YIE", "be_10y", "%", "미국 10년 기대인플레이션(BEI)"),
-    ("BAMLC0A0CM", "us_ig_oas", "%p", "ICE BofA 미국 IG OAS"),
-    ("BAMLH0A0HYM2", "us_hy_oas", "%p", "ICE BofA 미국 HY OAS"),
-    ("BAMLC0A0CMEY", "us_ig_yield", "%", "ICE BofA 미국 IG 유효수익률"),
-    ("BAMLH0A0HYM2EY", "us_hy_yield", "%", "ICE BofA 미국 HY 유효수익률"),
+# (출처, id, 열 이름, 단위, 설명) — OAS 는 FRED 원값이 %p 라 열에는 그대로 두고 분석 단계에서 bp 로 바꾼다
+US_SERIES = [
+    ("refinitiv", "US2YT=RR", "ust_2y", "%", "미국채 2년(벤치마크)"),
+    ("refinitiv", "US10YT=RR", "ust_10y_cmt", "%", "미국채 10년(벤치마크)"),
+    ("refinitiv", "USFFTARGET=", "fed_funds", "%", "연준 목표금리(범위 상단)"),
+    ("refinitiv", "US10YT=RR - US10YTIP=RR", "be_10y", "%", "미국 10년 BEI(명목−TIPS)"),
+    ("fred", "BAMLC0A0CM", "us_ig_oas", "%p", "ICE BofA 미국 IG OAS"),
+    ("fred", "BAMLH0A0HYM2", "us_hy_oas", "%p", "ICE BofA 미국 HY OAS"),
+    ("fred", "BAMLC0A0CMEY", "us_ig_yield", "%", "ICE BofA 미국 IG 유효수익률"),
+    ("fred", "BAMLH0A0HYM2EY", "us_hy_yield", "%", "ICE BofA 미국 HY 유효수익률"),
 ]
+FRED_SERIES = [(sid, key, unit, name) for src, sid, key, unit, name in US_SERIES if src == "fred"]
 
 
-def _kofia_range(start: datetime.date, end: datetime.date) -> dict[str, dict[str, float]]:
-    """{날짜: {key: value}} — 요청 순서가 응답 열 순서(val2..)."""
-    vals = [("val1", "DD"), ("val2", start.strftime("%Y%m%d")),
-            ("val3", end.strftime("%Y%m%d")), ("val4", "1530")]
-    vals += [(f"val{i + 5}", code) for i, (code, _) in enumerate(KOFIA_CODES)]
-    inner = "".join(f"<{k}>{v}</{k}>" for k, v in vals)
-    body = (
-        '<?xml version="1.0" encoding="utf-8"?><message><proframeHeader>'
-        "<pfmAppName>BIS-KOFIABOND</pfmAppName>"
-        "<pfmSvcName>BISLastAskPrcROPSrchSO</pfmSvcName>"
-        "<pfmFnName>listTrm</pfmFnName></proframeHeader><systemHeader></systemHeader>"
-        f"<BISComDspDatDTO>{inner}</BISComDspDatDTO></message>"
-    )
-    with tempfile.NamedTemporaryFile("w", suffix=".xml", delete=False, encoding="utf-8") as f:
-        f.write(body)
-        req_path = f.name
-    resp_path = req_path + ".resp"
-    r = subprocess.run(
-        ["curl", "-s", "-S", "-A", UA, "-e", REF,
-         "-H", "Content-Type: application/xml; charset=utf-8",
-         "--data-binary", f"@{req_path}", "-o", resp_path, "-w", "%{http_code}", KOFIA_URL],
-        capture_output=True, text=True, timeout=180,
-    )
-    if r.returncode != 0 or r.stdout.strip() != "200":
-        raise RuntimeError(f"KOFIA 호출 실패 {start}~{end}: http={r.stdout} {r.stderr[:200]}")
-    text = Path(resp_path).read_text(encoding="utf-8", errors="replace")
-    out = {}
-    for m in re.finditer(r"<BISComDspDatDTO>(.*?)</BISComDspDatDTO>", text, re.S):
-        d = dict(re.findall(r"<(val\d+)>(.*?)</\1>", m.group(1), re.S))
-        raw = re.sub(r"\D", "", d.get("val1", ""))
-        if len(raw) != 8:
-            continue
-        day = f"{raw[:4]}-{raw[4:6]}-{raw[6:]}"
-        row = {}
-        for i, (_, key) in enumerate(KOFIA_CODES):
-            try:
-                row[key] = float(d.get(f"val{i + 2}", "").strip())
-            except ValueError:
-                row[key] = math.nan
-        out[day] = row
-    return out
+def _merge_cols(new, path: Path):
+    """받은 열은 통째로 새 값, 못 받은 열은 기존 CSV 값 유지."""
+    import pandas as pd
+
+    if path.exists():
+        old = pd.read_csv(path, index_col=0, parse_dates=True)
+        for col in old.columns:
+            if col not in new.columns or new[col].dropna().empty:
+                new = new.drop(columns=[col], errors="ignore").join(old[[col]], how="outer")
+    new = new[~new.index.duplicated(keep="last")].sort_index()
+    new.index.name = "date"
+    return new
+
+
+def _ref_series(ric_expr: str, start: datetime.date):
+    """'A - B'(공백 포함) 는 두 RIC 의 차(공통 날짜). RIC 자체에 '-' 가 들어가는 경우(BBB-…)가 있어 공백으로 가른다."""
+    if " - " in ric_expr:
+        a, b = ric_expr.split(" - ")
+        sa, sb = _ref_series(a, start), _ref_series(b, start)
+        return (sa - sb).dropna()
+    return R.history(ric_expr, start, adjusted=False)
 
 
 def fetch_kofia_history() -> Path:
@@ -97,67 +76,55 @@ def fetch_kofia_history() -> Path:
 
     HIST_DIR.mkdir(parents=True, exist_ok=True)
     path = HIST_DIR / "kofia_daily.csv"
-    existing = pd.read_csv(path, index_col=0, parse_dates=True) if path.exists() else None
-    start = (existing.index.max().date() + datetime.timedelta(days=1)) if existing is not None and len(existing) else KOFIA_START
-    today = datetime.date.today()
-    rows = {}
-    cur = start
-    while cur <= today:
-        chunk_end = min(datetime.date(cur.year, 12, 31), today)
-        print(f"  KOFIA {cur} ~ {chunk_end} ...", end=" ", flush=True)
+    cols = {}
+    for ric, key in KOFIA_RICS:
         try:
-            got = _kofia_range(cur, chunk_end)
-            print(f"{len(got)}일")
-            rows.update(got)
+            s = _ref_series(ric, KOFIA_START)
+            cols[key] = s
+            print(f"  {key}({ric}): {len(s)}일 ({s.index.min().date()} ~ {s.index.max().date()})")
         except Exception as e:  # noqa: BLE001
-            print(f"실패: {e}")
-        cur = chunk_end + datetime.timedelta(days=1)
-    new = pd.DataFrame.from_dict(rows, orient="index")
-    if len(new):
-        new.index = pd.to_datetime(new.index)
-        new = new.sort_index()
-    df = pd.concat([existing, new]) if existing is not None else new
-    df = df[~df.index.duplicated(keep="last")].sort_index()
-    df.index.name = "date"
+            print(f"  경고: {key}({ric}) 실패: {e}")
+    df = _merge_cols(pd.DataFrame(cols), path)
+    df = df[df.index >= pd.Timestamp(KOFIA_START)]
     df.to_csv(path, encoding="utf-8")
     print(f"  저장: {path} ({len(df)}일, {df.index.min().date() if len(df) else '-'} ~ {df.index.max().date() if len(df) else '-'})")
     return path
 
 
+def _yf_close(ticker: str):
+    import pandas as pd
+    import yfinance as yf
+
+    h = yf.Ticker(ticker).history(period="max", auto_adjust=False)
+    if h.empty:
+        raise ValueError("빈 응답")
+    s = h["Close"]
+    s.index = pd.to_datetime(s.index).tz_localize(None).normalize()
+    return s
+
+
 def fetch_yf_history() -> Path | None:
-    try:
-        import pandas as pd
-        import yfinance as yf
-    except ImportError:
-        print("  yfinance 미설치 — 건너뜀")
-        return None
+    import pandas as pd
+
     HIST_DIR.mkdir(parents=True, exist_ok=True)
     path = HIST_DIR / "yf_daily.csv"
-    frames = []
+    cols = {}
     for ticker, key in YF_TICKERS.items():
         try:
-            h = yf.Ticker(ticker).history(period="max", auto_adjust=False)
-            if h.empty:
+            s = _yf_close(ticker) if ticker in R.YF_ONLY else R.history(ticker, LONG_START, adjusted=False)
+            if s.empty:
                 raise ValueError("빈 응답")
-            s = h["Close"].rename(key)
-            s.index = pd.to_datetime(s.index).tz_localize(None).normalize()
-            frames.append(s)
-            print(f"  {key}: {len(s)}일 ({s.index.min().date()} ~ {s.index.max().date()})")
+            cols[key] = s
+            print(f"  {key}({R.source_label(ticker)}): {len(s)}일 ({s.index.min().date()} ~ {s.index.max().date()})")
         except Exception as e:  # noqa: BLE001
             print(f"  경고: {key}({ticker}) 실패: {e}")
-    if not frames:
+    if not cols:
         return None
-    df = pd.concat(frames, axis=1, sort=True)
-    df = df[~df.index.duplicated(keep="last")]
-    if path.exists():
-        # 이번에 실패한 티커의 과거 열이 지워지지 않게 기존 CSV 와 열 단위로 병합
-        old = pd.read_csv(path, index_col=0, parse_dates=True)
-        df = df.combine_first(old)
+    df = _merge_cols(pd.DataFrame(cols), path)
     missing = [k for k in YF_TICKERS.values() if k not in df.columns]
     if missing:
         print(f"  경고: 필수 열 누락 {missing} — 주식·환 유사국면 계산에 영향")
-    df.index.name = "date"
-    df.sort_index().to_csv(path, encoding="utf-8")
+    df.to_csv(path, encoding="utf-8")
     print(f"  저장: {path}")
     return path
 
@@ -186,33 +153,38 @@ def fetch_fred_series(series_id: str, start: datetime.date = FRED_START):
 
 
 def fetch_fred_history() -> Path | None:
+    """미국 금리·크레딧 → fred_daily.csv (파일명은 호환 때문에 유지)."""
     import pandas as pd
 
     HIST_DIR.mkdir(parents=True, exist_ok=True)
     path = HIST_DIR / "fred_daily.csv"
-    frames = []
-    for sid, key, _unit, name in FRED_SERIES:
+    cols = {}
+    for src, sid, key, _unit, name in US_SERIES:
         try:
-            s = fetch_fred_series(sid).rename(key)
-            frames.append(s)
-            print(f"  {key}: {len(s)}일 ({s.index.min().date()} ~ {s.index.max().date()})")
+            s = _ref_series(sid, FRED_START) if src == "refinitiv" else fetch_fred_series(sid)
+            cols[key] = s
+            print(f"  {key}({src} {sid}): {len(s)}일 ({s.index.min().date()} ~ {s.index.max().date()})")
         except Exception as e:  # noqa: BLE001
             print(f"  경고: {name}({sid}) 실패: {e}")
-    if not frames:
+    if not cols:
         return None
-    df = pd.concat(frames, axis=1, sort=True)
+    new = pd.DataFrame(cols)
     if path.exists():
-        # 새 값 우선(수정치 반영), 3년 창 밖으로 밀려난 과거값은 기존 CSV 에서 보존
+        # FRED ICE 시리즈는 최근 3년만 온다 — 창 밖으로 밀려난 과거값은 기존 CSV 에서 보존
         old = pd.read_csv(path, index_col=0, parse_dates=True)
-        df = df.combine_first(old)
-    df.index.name = "date"
-    df.sort_index().to_csv(path, encoding="utf-8")
+        fred_cols = [k for src, _, k, _, _ in US_SERIES if src == "fred" and k in old.columns]
+        new = new.combine_first(old[fred_cols]) if fred_cols else new
+    df = _merge_cols(new, path)
+    df.to_csv(path, encoding="utf-8")
     print(f"  저장: {path}")
     return path
 
 
 def main():
-    print("과거 시계열 수집 중...")
+    print("과거 시계열 수집 중... (Refinitiv)")
+    if not R.available(force=True):
+        print(f"  Refinitiv 미연결 — {R.status()['error']}. 기존 CSV 를 그대로 둔다.")
+        return
     try:
         fetch_kofia_history()
     except Exception as e:  # noqa: BLE001

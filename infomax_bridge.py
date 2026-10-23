@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """인포맥스 실시간 브리지 — 엑셀 애드인 함수(IMDP·IMDT)로 받은 값을 시스템으로 가져온다.
 
+2026-10-23 부터 Refinitiv 에 같은 정의가 있는 항목(REFINITIV 표)은 Refinitiv 값으로 덮어쓴다(apply_refinitiv).
+인포맥스에는 Refinitiv 에 없거나 정의가 다른 항목과 경제지표 캘린더만 남는다.
+
 인포맥스 함수는 엑셀 안에서만 돈다. 그래서:
 1. build: 브리지 엑셀(data/인포맥스_브리지.xlsx)을 만든다 — '변수' 시트 한 줄 = 지표 하나(코드·항목·실시간 값 수식),
    '캘린더' 시트 = 경제지표 발표 일정(IMDT), '검증' 시트 = 구분별 대표 항목 시험(코드·항목 이름 확인용).
@@ -85,6 +88,39 @@ REGISTRY = [
     ("cn_pmi", "중국 제조업 PMI", "equity", "경기", "ECO", "702440", "", "pt", "월"),
     ("ez_cpi", "유로존 소비자물가 전년비", "bond", "물가", "ECO", "700344", "전년비_월", "%", "월 · 지수의 전년비"),
 ]
+# Refinitiv 로 옮긴 항목 — key: (RIC, 주기, 배율, 비고). 2026-10-23 인포맥스 값과 같은 날 대조해
+# 정의·단위가 맞는 것만 옮겼다(민평은 KAP·KIS·NICE·FN 4사 평균 — 인포맥스 3사 평균과 0.001%p 안팎 차).
+# 인포맥스에 남긴 것: 카드채 AA+(4사 평균 RIC 없음), TED, 스왑포인트(Refinitiv KRW3M= 은 -6.05원 vs 서울외환 중간값 -3.55원 —
+# 기여사가 달라 정의 불일치), 실업률(국내: 계절조정 차이 2.0 vs 2.6), 취업자·선행지수·수출액(수준)·가계대출,
+# 미국 PCE(Refinitiv 는 근원만)·비농업 고용(수준)·소매매출(수준), 그리고 캘린더.
+REFINITIV = {
+    "ktb_1y": ("KRKTB1YAV=", "daily", 1, "민평 4사 평균"),
+    "ktb_3y": ("KRKTB3YAV=", "daily", 1, "민평 4사 평균"),
+    "ktb_5y": ("KRKTB5YAV=", "daily", 1, "민평 4사 평균"),
+    "ktb_10y": ("KRKTB10YAV=", "daily", 1, "민평 4사 평균"),
+    "ktb_30y": ("KRKTB30YAV=", "daily", 1, "민평 4사 평균"),
+    "msb_1y": ("KRMSB1YAV=", "daily", 1, "민평 4사 평균"),
+    "bank_aaa_3y": ("AAAFIB3YAV=", "daily", 1, "민평 4사 평균"),
+    "corp_aa_3y": ("AA-CNG3YAV=", "daily", 1, "민평 4사 평균"),
+    "corp_a_3y": ("A+CNG3YAV=", "daily", 1, "민평 4사 평균"),
+    "corp_bbb_3y": ("BBB-CNG3YAV=", "daily", 1, "민평 4사 평균"),
+    "ust_3m": ("US3MT=RR", "daily", 1, "벤치마크"),
+    "usdkrw": ("KRW=KFTC", "daily", 1, "서울외환중개 현물"),
+    "dxy": (".DXY", "daily", 1, ""),
+    "eurusd": ("EUR=", "daily", 1, ""),
+    "kr_cpi_yoy": ("KRCPIY=ECI", "monthly", 1, "공식 발표치"),
+    "kr_ca": ("KRCURA=ECI", "monthly", 1e-6, "USD → 백만USD"),
+    "kr_fxres": ("KRFX=ECI", "monthly", 1e-3, "USD → 천USD"),
+    "kr_csi": ("KRCONS=ECI", "monthly", 1, ""),
+    "us_cpi": ("aUSCPIYYR", "monthly", 1, "원계열 전년비(공식 발표 기준)"),
+    "us_core_cpi": ("USCPFY=ECI", "monthly", 1, "공식 발표치(소수 1자리)"),
+    "us_unemp": ("USUNR=ECI", "monthly", 1, ""),
+    "us_claims": ("USJOB=ECI", "weekly", 1e-3, "건 → 천명"),
+    "us_ism_mfg": ("USPMI=ECI", "monthly", 1, ""),
+    "us_ism_svc": ("USNPMI=ECI", "monthly", 1, ""),
+    "cn_pmi": ("CNPMIB=ECI", "monthly", 1, ""),
+    "ez_cpi": ("EUHICF=ECI", "monthly", 1, "공식 발표치(소수 1자리)"),
+}
 COLS = ["키", "이름", "담당", "주제", "구분", "코드", "항목", "단위", "비고", "값", "일자", "상태"]
 
 
@@ -426,6 +462,7 @@ def _read_locked(headless: bool) -> dict:
         if prev.get("series"):                      # 마지막으로 받은 값을 유지(받은 시각은 그대로)
             prev["meta"]["status"] = why or "마지막 값"
             prev["meta"]["checked_at"] = now
+            prev = apply_refinitiv(prev)
             _write(prev)
             return prev
         raw = _read_saved(); mode = "저장값(파일)"
@@ -439,7 +476,45 @@ def _read_locked(headless: bool) -> dict:
                         "ok": ok, "total": len(p["series"]),
                         "note": "인포맥스 데이터 — 사내 화면·코드 계산용. 외부 AI 전송은 라이선스·준법 확인 후(config.SHARE_VENDOR_DATA)."},
                "series": p["series"], "calendar": p["calendar"] or load().get("calendar", [])}
+    doc = apply_refinitiv(doc)
     _write(doc)
+    return doc
+
+
+def apply_refinitiv(doc: dict) -> dict:
+    """REFINITIV 항목을 Refinitiv 값으로 바꾼다(인포맥스가 꺼져 있어도 이 항목들은 채워진다).
+    항목마다 source 를 남겨 화면에서 출처를 구분한다. Refinitiv 미연결이면 그대로 둔다."""
+    import refinitiv_src as R
+
+    by = {s["key"]: s for s in doc.get("series", [])}
+    for row in REGISTRY:
+        by.setdefault(row[0], {"key": row[0], "name": row[1], "desk": row[2], "theme": row[3], "gubun": row[4],
+                               "code": row[5], "item": row[6], "unit": row[7], "note": row[8], "value": None,
+                               "date": None, "status": "인포맥스 값 없음"})
+    for s in by.values():
+        s.setdefault("source", "인포맥스")
+    if not R.available():
+        doc.setdefault("meta", {})["refinitiv"] = R.status()["error"] or "미연결"
+        doc["series"] = [by[r[0]] for r in REGISTRY if r[0] in by]
+        return doc
+    ek = R._ek()
+    start = (datetime.date.today() - datetime.timedelta(days=200)).isoformat()
+    n = 0
+    for key, (ric, interval, scale, note) in REFINITIV.items():
+        s = by[key]
+        try:
+            t = R._call(ek.get_timeseries, ric, start_date=start, interval=interval)
+            col = "CLOSE" if "CLOSE" in t else ("VALUE" if "VALUE" in t else t.columns[0])
+            v = t[col].dropna()
+            if interval == "daily":
+                v = R._today_cut(v, ric)
+            s.update(value=round(float(v.iloc[-1]) * scale, 4), date=v.index[-1].date().isoformat(), status="OK",
+                     source=f"Refinitiv {ric}", code=ric, note=note or s.get("note"))
+            n += 1
+        except Exception as e:  # noqa: BLE001 — 한 항목 실패는 인포맥스 값으로 둔다
+            s["refinitiv_error"] = str(e)[:120]
+    doc.setdefault("meta", {})["refinitiv"] = f"{n}/{len(REFINITIV)}"
+    doc["series"] = [by[r[0]] for r in REGISTRY if r[0] in by]
     return doc
 
 

@@ -5,7 +5,7 @@
 금액·손익은 여기서 다시 계산한다(엑셀 수식의 캐시값에 의존하지 않음).
 
 가격:
-- KRX 주식·ETF: yfinance <코드>.KS / 미국 ETF: 티커 그대로 / 환율: KRW=X, JPYKRW=X
+- 출처 Refinitiv(refinitiv_src 가 아래 표기를 RIC 으로 바꾼다): KRX 주식·ETF <코드>.KS / 미국 ETF 티커 / 환율 KRW=X, JPYKRW=X
 - KOSPI200 선물 → KOSPI200 지수 현물(^KS200), 달러선물 → USD/KRW 현물, 엔선물 → 엔/원 현물×100 (베이시스 무시)
 - 10년 국채선물 → 최신 국고10y 로 할인한 표면 5% 10년 표준물 이론가
 손익 분해: 자산 손익(가격 변화) / 환 손익(외화 자산의 미헤지분 + 환 오버레이). 헤지 비용·거래비용은 미반영.
@@ -105,7 +105,7 @@ def price_source(l: dict) -> str:
 
 def fetch_prices(symbols: set[str]) -> dict[str, tuple[float, str]]:
     warnings.filterwarnings("ignore")
-    import yfinance as yf
+    import refinitiv_src
 
     out = {}
     for s in sorted(symbols):
@@ -116,10 +116,15 @@ def fetch_prices(symbols: set[str]) -> dict[str, tuple[float, str]]:
                 out[s] = (_ktbf_price(v[0]), v[1])
             continue
         try:
-            h = yf.Ticker(s).history(period="7d")
-            h = h[h["Close"].notna()]
-            if len(h):
-                out[s] = (float(h["Close"].iloc[-1]), h.index[-1].date().isoformat())
+            if s in refinitiv_src.YF_ONLY:
+                import yfinance as yf
+                h = yf.Ticker(s).history(period="7d")
+                h = h[h["Close"].notna()]
+                if len(h):
+                    out[s] = (float(h["Close"].iloc[-1]), h.index[-1].date().isoformat())
+            else:
+                v, d = refinitiv_src.last_close(s)
+                out[s] = (v, d.isoformat())
         except Exception as e:  # noqa: BLE001 — 한 종목 실패는 진입가 유지로 처리
             print(f"  경고: {s} 가격 조회 실패 — {e}")
     return out

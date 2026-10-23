@@ -34,6 +34,14 @@ STRATEGY = {
 # 인포맥스(유료 단말) 데이터를 외부 AI(Anthropic)로 보내도 되는지 — 라이선스·준법 확인 전에는 False.
 # False 면 인포맥스 값은 화면·코드 계산에만 쓰고, 에이전트 컨텍스트·대화 '화면 공유'에서는 뺀다.
 SHARE_VENDOR_DATA = False
+# Refinitiv(LSEG) 값을 외부 AI(Anthropic)로 보내도 되는지. 값은 로컬 전용(저장소·공유본 제외)이고,
+# 준법 확인 결과 막아야 하면 False 로 — 에이전트 컨텍스트에서 Refinitiv 원천 수치를 뺀다.
+SHARE_REFINITIV_DATA = True
+# Refinitiv App Key 파일 후보(환경변수 EIKON_APP_KEY 가 우선). Windows 파이썬에서 WSL 홈을 읽는 경로 포함.
+REFINITIV_APPKEY_FILES = [
+    "~/.claude/reference/refinitiv-workspace/.appkey",
+    r"\\wsl.localhost\Ubuntu\home\infomax\.claude\reference\refinitiv-workspace\.appkey",
+]
 # 매크로 화면을 보고 있을 때 인포맥스 값을 다시 받는 주기(분) — 한 번에 숨김 엑셀이 약 10초 떴다 닫힌다.
 INFOMAX_REFRESH_MIN = 5
 

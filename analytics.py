@@ -33,34 +33,34 @@ PCT_YEARS = 5
 # 열 → (표시명, 종류, 표시배율, 단위, 출처)
 # 종류: rate = 금리·스프레드(변화 bp) / price = 지수·환율·원자재(변화 %) / point = VIX(변화 pt)
 SERIES = {
-    "ktb_2y": ("국고 2년", "rate", 1, "%", "KOFIA 최종호가"),
-    "ktb_3y": ("국고 3년", "rate", 1, "%", "KOFIA 최종호가"),
-    "ktb_5y": ("국고 5년", "rate", 1, "%", "KOFIA 최종호가"),
-    "ktb_10y": ("국고 10년", "rate", 1, "%", "KOFIA 최종호가"),
-    "corp_aa_minus_3y": ("회사채 AA- 3년", "rate", 1, "%", "KOFIA 최종호가"),
-    "ust_2y": ("미국채 2년", "rate", 1, "%", "FRED DGS2"),
-    "ust_10y_cmt": ("미국채 10년", "rate", 1, "%", "FRED DGS10"),
-    "fed_funds": ("연방기금 실효금리", "rate", 1, "%", "FRED DFF"),
-    "be_10y": ("미국 10년 BEI", "rate", 1, "%", "FRED T10YIE"),
+    "ktb_2y": ("국고 2년", "rate", 1, "%", "Refinitiv KOFIA 최종호가"),
+    "ktb_3y": ("국고 3년", "rate", 1, "%", "Refinitiv KOFIA 최종호가"),
+    "ktb_5y": ("국고 5년", "rate", 1, "%", "Refinitiv KOFIA 최종호가"),
+    "ktb_10y": ("국고 10년", "rate", 1, "%", "Refinitiv KOFIA 최종호가"),
+    "corp_aa_minus_3y": ("회사채 AA- 3년", "rate", 1, "%", "Refinitiv KOFIA 최종호가"),
+    "ust_2y": ("미국채 2년", "rate", 1, "%", "Refinitiv US2YT=RR"),
+    "ust_10y_cmt": ("미국채 10년", "rate", 1, "%", "Refinitiv US10YT=RR"),
+    "fed_funds": ("연준 목표금리(상단)", "rate", 1, "%", "Refinitiv USFFTARGET="),
+    "be_10y": ("미국 10년 BEI", "rate", 1, "%", "Refinitiv 명목−TIPS"),
     "us_ig_oas": ("미국 IG OAS", "rate", 100, "bp", "FRED ICE BofA"),
     "us_hy_oas": ("미국 HY OAS", "rate", 100, "bp", "FRED ICE BofA"),
     "us_ig_yield": ("미국 IG 유효수익률", "rate", 1, "%", "FRED ICE BofA"),
     "us_hy_yield": ("미국 HY 유효수익률", "rate", 1, "%", "FRED ICE BofA"),
-    "usdkrw": ("USD/KRW", "price", 1, "원", "yfinance"),
-    "dxy": ("달러인덱스", "price", 1, "pt", "yfinance"),
-    "usdjpy": ("USD/JPY", "price", 1, "엔", "yfinance"),
-    "eurusd": ("EUR/USD", "price", 1, "달러", "yfinance"),
-    "usdcny": ("USD/CNY", "price", 1, "위안", "yfinance"),
-    "kospi": ("KOSPI", "price", 1, "pt", "yfinance"),
-    "kosdaq": ("KOSDAQ", "price", 1, "pt", "yfinance"),
-    "sp500": ("S&P500", "price", 1, "pt", "yfinance"),
-    "nasdaq": ("나스닥", "price", 1, "pt", "yfinance"),
-    "nikkei": ("닛케이225", "price", 1, "pt", "yfinance"),
-    "stoxx50": ("유로스톡스50", "price", 1, "pt", "yfinance"),
-    "eem": ("MSCI EM(EEM ETF)", "price", 1, "달러", "yfinance"),
-    "vix": ("VIX", "point", 1, "pt", "yfinance"),
-    "wti": ("WTI", "price", 1, "달러/bbl", "yfinance 근월물"),
-    "gold": ("금", "price", 1, "달러/oz", "yfinance 근월물"),
+    "usdkrw": ("USD/KRW", "price", 1, "원", "Refinitiv"),
+    "dxy": ("달러인덱스", "price", 1, "pt", "Refinitiv"),
+    "usdjpy": ("USD/JPY", "price", 1, "엔", "Refinitiv"),
+    "eurusd": ("EUR/USD", "price", 1, "달러", "Refinitiv"),
+    "usdcny": ("USD/CNY", "price", 1, "위안", "Refinitiv"),
+    "kospi": ("KOSPI", "price", 1, "pt", "Refinitiv"),
+    "kosdaq": ("KOSDAQ", "price", 1, "pt", "Refinitiv"),
+    "sp500": ("S&P500", "price", 1, "pt", "Refinitiv"),
+    "nasdaq": ("나스닥", "price", 1, "pt", "Refinitiv"),
+    "nikkei": ("닛케이225", "price", 1, "pt", "Refinitiv"),
+    "stoxx50": ("유로스톡스50", "price", 1, "pt", "Refinitiv"),
+    "eem": ("MSCI EM(EEM ETF)", "price", 1, "달러", "Refinitiv"),
+    "vix": ("VIX", "point", 1, "pt", "yfinance(Refinitiv 권한 없음)"),
+    "wti": ("WTI", "price", 1, "달러/bbl", "Refinitiv"),
+    "gold": ("금", "price", 1, "달러/oz", "Refinitiv"),
 }
 # 파생 시계열: 열 → (표시명, a, b) = a − b. 전부 rate(bp 표시).
 DERIVED = {
@@ -560,7 +560,17 @@ def status() -> dict:
             "manual_inputs": sorted(manual_inputs().keys()) or None,
             "positions": "positions.json" if not limits.is_sample("positions") else "positions.sample.json(계획치)",
             "need_refresh": bool(problems), "problems": problems,
-            "refresh_cmd": "python main.py fetch && python fetch_history.py  (regime-council 폴더에서)"}
+            "refinitiv": _refinitiv_status(),
+            "refresh_cmd": "python main.py fetch && python fetch_history.py  (Workspace 로그인 · Windows 파이썬, WSL 에선 python.exe)"}
+
+
+def _refinitiv_status() -> dict:
+    try:
+        import refinitiv_src
+        refinitiv_src.available()
+        return refinitiv_src.status()
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "error": str(e)}
 
 
 def compute(section: str = "all") -> dict:

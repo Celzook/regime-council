@@ -12,7 +12,7 @@
 - 포트 전체: 같은 날짜의 경로를 함께 써 상관을 반영 → 기간 중 손실이 손실한도를 넘을 확률.
 - 기회 스캐너: 시장 지표(지수·환율·원자재·금리 가격 환산)의 기술적 매력도와 국면 기준 6개월 중앙값.
 
-가격: data/history/legs_daily.csv (yfinance 전체 이력, 증분 갱신). 대용 — KOSPI200 선물=KODEX 200, 10년 국채선물=국고10y×듀레이션,
+가격: data/history/legs_daily.csv (Refinitiv 전체 이력, 증분 갱신). 대용 — KOSPI200 선물=KODEX 200, 10년 국채선물=국고10y×듀레이션,
 달러·엔선물=현물환. 헤지된 해외 자산은 현지 가격 수익률(환 제외).
 
 사용법:  python quant.py [--json]      결과는 data/quant.json
@@ -54,32 +54,11 @@ def leg_source(leg: dict) -> tuple[str, str]:
     return "yf", code
 
 
-def refresh_prices(symbols: set[str]) -> pd.DataFrame:
-    """처음엔 전체 이력, 이후엔 최근 3개월만 받아 덧붙인다."""
+def refresh_prices(symbols: set[str], full: bool = False) -> pd.DataFrame:
+    """처음엔 전체 이력(1990~), 이후엔 최근 3개월만 받아 잇는다. 출처는 refinitiv_src."""
     warnings.filterwarnings("ignore")
-    import yfinance as yf
-    old = pd.read_csv(LEG_HIST, index_col=0, parse_dates=True) if LEG_HIST.exists() else pd.DataFrame()
-    today = pd.Timestamp(datetime.date.today())
-    frames = {}
-    for s in sorted(symbols):
-        have = s in old.columns and old[s].notna().any()
-        if have and old[s].last_valid_index() >= today - pd.Timedelta(days=1):
-            continue
-        try:
-            h = yf.Ticker(s).history(period="3mo" if have else "max", auto_adjust=True)["Close"]
-            h.index = pd.to_datetime(h.index).tz_localize(None).normalize()
-            frames[s] = h[h.notna()]
-        except Exception as e:  # noqa: BLE001 — 한 종목 실패는 기존 이력으로
-            print(f"  경고: {s} 이력 실패 — {e}")
-    if frames:
-        new = pd.DataFrame(frames)
-        df = new.combine_first(old) if len(old) else new
-        df = df[~df.index.duplicated(keep="last")].sort_index()
-        df.index.name = "date"
-        LEG_HIST.parent.mkdir(parents=True, exist_ok=True)
-        df.to_csv(LEG_HIST, encoding="utf-8")
-        return df
-    return old
+    import refinitiv_src
+    return refinitiv_src.refresh_frame(LEG_HIST, symbols, "1990-01-01", full=full)
 
 
 def _ktb_returns(dur: float) -> pd.Series:
@@ -319,13 +298,13 @@ def scan(panel: pd.DataFrame) -> list[dict]:
 
 
 # ── 실행 ────────────────────────────────────────────────────────
-def run(save: bool = True) -> dict:
+def run(save: bool = True, full: bool = False) -> dict:
     import analytics
     import limits
     doc = limits.load_positions()
     positions = doc.get("positions", [])
     syms = {leg_source(l)[1] for p in positions for l in (p.get("legs") or []) if leg_source(l)[0] == "yf"}
-    px = refresh_prices(syms)
+    px = refresh_prices(syms, full=full)
     panel = analytics.load_panel()
     vix = panel["vix"].dropna() if "vix" in panel else None
     results, series = [], {}
@@ -388,5 +367,5 @@ def to_markdown(d: dict | None = None) -> str:
 if __name__ == "__main__":
     if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    res = run()
+    res = run(full="--full" in sys.argv)   # --full: 이력 전체를 다시 받는다
     print(json.dumps(res, ensure_ascii=False, indent=1, default=str) if "--json" in sys.argv else to_markdown(res))

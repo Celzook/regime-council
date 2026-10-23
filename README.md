@@ -21,12 +21,19 @@
 ```
 pip install -r requirements.txt
 setx ANTHROPIC_API_KEY "sk-ant-..."      # (선택) console.anthropic.com 발급, 새 터미널부터 적용
+setx EIKON_APP_KEY "..."                 # Refinitiv Workspace App Key (Eikon Data API)
 python web.py                            # → http://127.0.0.1:5101
+python fetch_history.py && python main.py fetch && python equity.py --full && python quant.py --full && python fundamentals.py
 ```
 
-저장소에 마지막 계산 데이터(`data/` — 가상 시험 포트, 공개 시세, 인포맥스 마지막 값)가 들어 있어 **받자마자 같은 화면이 뜬다.**
-주식·밸류에이션·백테스트는 공개 데이터라 어느 PC 에서나 '다시 받기'로 새로 받아진다. 인포맥스 실시간은 인포맥스가 깔린 PC 에서만 갱신되고,
-없으면 저장된 마지막 값을 보여 준다. 과거 시계열을 처음부터 다시 받으려면 `python fetch_history.py`.
+**시장 데이터 출처는 Refinitiv(LSEG) Workspace 다(2026-10-23 전환).** 접근은 `refinitiv_src.py` 한 곳에서만 한다.
+- Workspace 가 켜져 로그인돼 있어야 하고, **Windows 파이썬**으로 실행한다(프록시가 127.0.0.1:9000 에만 열려 WSL 리눅스 파이썬에서는 닿지 않는다 — WSL 셸에서는 `python.exe`).
+- 이 계정에 권한이 없어 예외로 남긴 것: **VIX**(yfinance), **미국 IG·HY OAS·유효수익률**(FRED — ICE BofA 지수는 Refinitiv 에 있지만 권한 없음).
+  `.SPX`·`.VXN`·`.N225` 는 시계열 권한은 없지만 `TR.PriceClose` 일별로 받는다.
+- 주식·ETF 가격은 `TR.TotalReturn` 일별 수익률로 만든 배당 재투자 가격이다(yfinance `auto_adjust` 와 같은 뜻).
+- **Refinitiv 값은 로컬 전용** — 시세 이력·스냅샷·평가 산출물은 `.gitignore` 로 저장소에서 뺐다. 저장소를 받은 사람은 위 수집 명령으로 자기 PC 에서 받는다.
+  웹 공유본(`share_site.py`)은 라이선스 확인 전까지 `--force` 없이는 멈춘다. 에이전트로 보내는 것은 `config.SHARE_REFINITIV_DATA` 로 끌 수 있다.
+인포맥스는 Refinitiv 에 같은 정의가 없는 항목(카드채, 스왑포인트, 일부 경제지표)과 경제지표 캘린더만 남았다(`infomax_bridge.REFINITIV` 표).
 
 **평소에는 `대시보드_열기.bat` 을 더블클릭** — 서버를 자기 창에서 켜고 브라우저를 연다(이미 켜져 있으면 브라우저만).
 그 창을 닫으면 서버가 꺼진다. Claude 앱의 미리보기 창에서 띄운 서버는 앱이 그 창을 닫을 때 같이 멈추므로 평소 사용에는 쓰지 않는다.
@@ -123,10 +130,10 @@ python analytics.py calc carry --tenor 5   # 즉석 계산: carry · hedge-cost 
 - 시장 대시보드: 쉬운 말 결론(오르는/내리는 지역·변동성) → 지역별 표(국내·선진국·신흥국: 1주·1개월·3개월·올해·1년 고점 대비·흐름) →
   스타일·팩터 / 섹터·테마(시장 대비 3개월, 막대) → 변동성(VIX·VXN·KOSPI200 실제 흔들림, 옵션 보험료 수준) → 우선주(삼성 우선/보통 가격비 1년 위치).
 - 주식 탭은 **[시장 대시보드 | 유니버스 | 전략]** 세 화면.
-- 유니버스(`fundamentals.py` → `data/equity_fund.json`, 12시간마다 백그라운드 갱신 · 약 20초): 문서 6개 항목별로 33개 지수·ETF·종목의 PER · 선행 PER · 이익 증가 예상 · PBR · 배당 · 시장 대비(비쌈·쌈). 행을 누르면 시트 — 결론 한 줄, 큰 숫자 줄, **상위 10종목별 비중·PER·선행 PER·EPS·선행 EPS·이익 증가·PBR·배당**, 업종 비중, 운용사·보수·순자산. 출처: 해외 = yfinance(지수는 대표 ETF 로 대신: S&P500 = SPY, 나스닥100 = QQQ, 유로스톡스50 = FEZ, 닛케이 = EWJ 등), 국내 = 네이버 증권 모바일 API(종목 PER·EPS·추정치, ETF 상위 10종목·업종, 지수 시총 상위 10). 국내 ETF 의 PER 은 상위 10종목 묶음(비중 가중 조화평균), KOSPI 시장 PER 은 MSCI 한국(EWY). 시장 대비 = 국내는 KOSPI200 묶음, 그 밖은 S&P500 PER 과 비교(±15% 안은 '비슷'). STOCK 에이전트 컨텍스트에도 들어간다.
+- 유니버스(`fundamentals.py` → `data/equity_fund.json`, 12시간마다 백그라운드 갱신 · 약 20초): 문서 6개 항목별로 33개 지수·ETF·종목의 PER · 선행 PER · 이익 증가 예상 · PBR · 배당 · 시장 대비(비쌈·쌈). 행을 누르면 시트 — 결론 한 줄, 큰 숫자 줄, **상위 10종목별 비중·PER·선행 PER·EPS·선행 EPS·이익 증가·PBR·배당**, 업종 비중, 운용사·보수·순자산. 출처: Refinitiv — ETF 구성 종목 전체·비중(TR.FundHoldingRIC), 종목 PER·선행 PER·추정 EPS·PBR·배당·GICS 업종, ETF 배당·총보수·순자산. 지수는 대표 ETF 로 대신(S&P500 = SPY, 나스닥100 = QQQ, 유로스톡스50 = FEZ, 닛케이 = EWJ, KOSPI = MSCI 한국 EWY 등). ETF 의 PER 은 **구성 종목 전체** 묶음(비중 가중 조화평균, 적자 제외 — 덮은 비중 표시), 화면에는 상위 10종목만. 시장 대비 = 국내는 KOSPI200 묶음, 그 밖은 S&P500 PER 과 비교(±15% 안은 '비슷'). STOCK 에이전트 컨텍스트에도 들어간다.
 - 전략: 결합 전략 17개(수단별, 백테스트 준비 칩 — 마우스를 올리면 계산 방법), 주식 관련 파생상품, 미연결 데이터.
 - `python equity.py` 또는 `/api/equity`(6시간 지나면 백그라운드 갱신)·`POST /api/equity/refresh`. 일일 점검 때 자동, 에이전트 컨텍스트에 요약 포함.
-- 데이터: yfinance 2005년~ 일별 종가(`data/history/equity_daily.csv`), 현지 통화 기준, ETF 는 배당 재투자 반영 가격. 기간 수익률은 **달력 기준**
+- 데이터: Refinitiv 2005년~ 일별 종가(`data/history/equity_daily.csv`), 현지 통화 기준, 주식·ETF 는 배당 재투자 반영 가격(TR.TotalReturn). 기간 수익률은 **달력 기준**
   (7일·1개월·3개월·1년 전 — 시장마다 휴장일이 달라 거래일 개수로 세면 어긋난다).
 - 대용: KOSPI200·CSI300 은 지수 이력이 공개 데이터에 없어 KODEX 200·CSI300 ETF(510300), 중소형주는 KOSDAQ, 스타일·팩터는 미국 ETF 중심.
 - 미연결(인포맥스 연결 후): VKOSPI, VSTOXX, 배당선물, 국내 팩터 지수, 지수 옵션 내재변동성, 이벤트 일정.
@@ -174,7 +181,7 @@ python analytics.py calc carry --tenor 5   # 즉석 계산: carry · hedge-cost 
 - **포트**: 같은 날짜 경로로 합산(상관 반영) → 6개월 분포, 기간 중 손실한도 초과 확률, 위험 기여.
 - **기회 스캐너**: 지수·환율·원자재·금리(가격 환산)의 기술 점수와 국면 기준 6개월 중앙값·상승 비율.
 - 화면: **정량** 탭(포트 분포·포지션별 막대·스캐너, 행을 누르면 세부). `python quant.py`, `/api/quant`, 일일 점검 때 자동 갱신, 일별 스냅샷 `data/quant/YYYY-MM-DD.json`(DB 적재용).
-- 가격 이력: `data/history/legs_daily.csv`(yfinance 전체 이력·증분). 대용: KOSPI200 선물=KODEX 200, 10년 국채선물=국고10y×듀레이션, 달러·엔선물=현물환.
+- 가격 이력: `data/history/legs_daily.csv`(Refinitiv 전체 이력·증분). 대용: KOSPI200 선물=KODEX 200, 10년 국채선물=국고10y×듀레이션, 달러·엔선물=현물환.
 
 ## 인포맥스 실시간 (매크로 2단계)
 
@@ -210,7 +217,7 @@ python analytics.py calc carry --tenor 5   # 즉석 계산: carry · hedge-cost 
   파란 글씨가 입력값. 수량·손절·목표를 바꾸면 다음 평가부터 반영된다.
 - 화면: **내 포트** 탭 — 운용 시가·누적 손익·규모 사용·손실한도 소진, BOND·STOCK·FX 별 합계(카드를 누르면 해당 담당만),
   전략 배분(목표 배분선), 스트레스, 포지션 표(손절 ↔ 목표 사이 현재 위치, 행을 누르면 구성 종목·수량·진입가·현재가). API `/api/book`, 재평가 `POST /api/book/mark`.
-- 평가: `python book.py`(또는 `python main.py book`) → yfinance 시가로 다시 평가해 `data/positions.json` 생성.
+- 평가: `python book.py`(또는 `python main.py book`) → Refinitiv 종가로 다시 평가해 `data/positions.json` 생성.
   대시보드 **일일 점검**은 이 파일이 있으면 평가부터 자동으로 한다. `--limits` 는 엑셀 '한도' 시트로 `data/limits.json`(체험용)도 만든다.
 - 대용·근사: 선물은 현물(KOSPI200·환율)·국고10y 이론가로 평가(베이시스 무시), 헤지비용·거래비용·대차 수수료·조달비용 미반영,
   환 오버레이는 `asset: "fx"` 포지션(현금 없음, 명목 = 환오픈)으로 한도 엔진에 들어간다.
@@ -222,9 +229,9 @@ python analytics.py calc carry --tenor 5   # 즉석 계산: carry · hedge-cost 
 |---|---|---|
 | `positions.json` | 집계 버킷 단위 포지션: 평가액, YTD 평가손익(헤지비용 차감 후), 듀레이션·스프레드 듀레이션·spread_beta, 베타, 통화·환노출·헤지비율·환손익, 손절선, `rate_pnl_in_scope`, `pnl_as_of`, 위탁은 `look_through` | 없으면 `positions.sample.json`(전략 문서 계획치) 사용. **종목·거래상대 실명 금지 — 외부 API 로 전송됨** |
 | `limits.json` | 전체·자산별 한도, 단계 임계(50/75/100), 손절 기본값·접근 70%, 스트레스 시나리오 S0~S5, 급변 트리거, 중단 override | 없으면 `limits.sample.json`(**가안**) — 투자위 확정 후 저장 |
-| `market.json` | 시장 스냅샷 (`python main.py fetch` 또는 화면 "시장 갱신") | 금융투자협회 15:30 호가 + yfinance(지수·환율·원자재) + FRED(미국 금리·크레딧, 1영업일 지연) |
+| `market.json` | 시장 스냅샷 (`python main.py fetch` 또는 화면 "시장 갱신") | Refinitiv: 금융투자협회 15:30 최종호가(=KQ RIC)·지수·환율·원자재·미국 금리 / yfinance: VIX / FRED: 미국 크레딧 OAS(1영업일 지연) |
 | `manual_inputs.json` | 스왑포인트·헤지비용, 선행 PER·배당수익률, CPI·기준금리 등 수동 지표 | analytics 가 쓰는 키: `swap_point_3m`, `hedge_cost_3m_annualized`, `kospi_per_fwd`, `sp500_per_fwd`, `kospi_div_yield` (각 value·as_of·source). sample 값은 사실로 쓰지 않는다 |
-| `history/*.csv` | 과거 시계열 (`fetch_history.py`, 증분 갱신): `kofia_daily`, `yf_daily`, `fred_daily` | 유사 국면 탐색·analytics. FRED 의 ICE BofA OAS 는 최근 3년만 제공 → 받은 날부터 누적 보존 |
+| `history/*.csv` | 과거 시계열 (`fetch_history.py`): `kofia_daily`, `yf_daily`, `fred_daily` — 파일명은 호환 때문에 유지, 출처는 Refinitiv(VIX·OAS 제외) | 유사 국면 탐색·analytics. FRED 의 ICE BofA OAS 는 최근 3년만 제공 → 받은 날부터 누적 보존 |
 | `mp/`, `checks/`, `log/` | MP·점검 보고서·경고 레지스트리·이벤트 로그(jsonl, 해시 체인)·일일 스냅샷 | 자동 생성 |
 
 ## 한도 엔진 요점 (limits.py)
@@ -260,7 +267,7 @@ robust z(중앙값·MAD)로 표준화해 유사일 10건(최근 12개월 제외,
 - 한도표·손절선·축소 기한은 **가안** — 운용 개시 전 투자위 확정값으로 `limits.json` 교체.
 - `reports/`·`data/log/` 에는 포지션 수치가 들어간다. 공유 시 범위 확인.
 - 모든 산출물에 모델 ID·프롬프트 버전(해시)·입력 해시가 찍히고, 로그는 해시 체인 + `data/log/head.json` 앵커로 꼬리 절단·재작성을 탐지한다. 환경변수 `LOG_HMAC_KEY` 를 두면 HMAC 서명으로 바뀐다.
-- `data/` 아래 생성물(positions·limits·checks·log·mp·history)은 `.gitignore` 에 있어 저장소·드라이브 공유 대상이 아니다. 샘플(`*.sample.json`)만 추적된다.
+- `data/` 아래 시장 데이터와 그 산출물(history·market·equity·equity_fund·macro_live·quant·positions·strategy·backtest_summary·checks)은 Refinitiv 라이선스라 `.gitignore` 로 저장소에서 뺐다(2026-10-23). 설정·가상 포트·한도와 샘플(`*.sample.json`)만 추적된다.
 
 ## 알려진 한계·다음 단계
 

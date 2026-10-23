@@ -47,11 +47,18 @@ def build_shared_context() -> str:
             "data/market.json 을 읽을 수 없습니다. fetch_market.py 를 실행하거나 "
             "market.sample.json 을 복사해 수정하세요. (UTF-8·JSON 문법 확인)"
         )
-    parts.append(
-        "\n# 시장 스냅샷 (아래 수치만 인용 가능)\n```json\n"
-        + json.dumps(market, ensure_ascii=False, indent=1)
-        + "\n```"
-    )
+    # Refinitiv 원천 수치를 외부 AI 로 보내지 않기로 하면(config.SHARE_REFINITIV_DATA=False) 시장 스냅샷과
+    # 그 값에서 계산한 절(시장 지표·정량·주식·밸류에이션)을 통째로 뺀다 — 포트·한도·전략 보드만 남는다.
+    share_mkt = getattr(config, "SHARE_REFINITIV_DATA", True)
+    if share_mkt:
+        parts.append(
+            "\n# 시장 스냅샷 (아래 수치만 인용 가능)\n```json\n"
+            + json.dumps(market, ensure_ascii=False, indent=1)
+            + "\n```"
+        )
+    else:
+        parts.append("\n# 시장 스냅샷\n(Refinitiv 데이터 외부 전송 제한 — config.SHARE_REFINITIV_DATA=False. "
+                     "시장 수치는 인용하지 말고 '데이터 없음'으로 처리)")
 
     portfolio = load_json(config.DATA_DIR / "portfolio.json") or load_json(
         config.DATA_DIR / "portfolio.sample.json"
@@ -65,41 +72,46 @@ def build_shared_context() -> str:
     else:
         parts.append("\n# 포트폴리오 스냅샷\n(미제공 — 시장 국면만 논의)")
 
+    if not share_mkt:
+        parts.append(_strategy_md())
+        return "\n".join(parts)
     try:
         import analytics  # 지연 import — analytics 가 이 모듈의 load_json 을 쓴다
         parts.append("\n" + analytics.to_markdown("all"))
     except Exception as e:  # noqa: BLE001 — 지표 계산 실패가 에이전트 전체를 막지 않게
         parts.append(f"\n## 시장 분석 지표\n(계산 실패: {type(e).__name__}: {e} — 이 절의 수치는 '데이터 없음'으로 처리)")
     try:
-        import quant  # 공개 가격 데이터 기반이라 외부 전송 제한 대상 아님
+        import quant  # Refinitiv 가격 기반 — SHARE_REFINITIV_DATA 가 True 일 때만 여기까지 온다
         d = quant.load(max_age_hours=36)
         if d:
             parts.append("\n" + quant.to_markdown(d))
     except Exception as e:  # noqa: BLE001
         parts.append(f"\n## 정량 분석\n(불러오기 실패: {type(e).__name__}: {e})")
     try:
-        import equity  # 주식 대시보드(공개 가격·유니버스 전략 목록) — 외부 전송 가능
+        import equity  # 주식 대시보드(Refinitiv 가격·유니버스 전략 목록)
         d = equity.load(max_age_hours=36)
         if d:
             parts.append("\n" + equity.to_markdown(d))
     except Exception as e:  # noqa: BLE001
         parts.append(f"\n## 주식 시장 대시보드\n(불러오기 실패: {type(e).__name__}: {e})")
     try:
-        import fundamentals  # 유니버스 밸류에이션(yfinance·네이버 공개 데이터) — 외부 전송 가능
+        import fundamentals  # 유니버스 밸류에이션(Refinitiv)
         d = fundamentals.load()
         if d:
             parts.append("\n" + fundamentals.to_markdown(d))
     except Exception as e:  # noqa: BLE001
         parts.append(f"\n## 주식 유니버스 밸류에이션\n(불러오기 실패: {type(e).__name__}: {e})")
+    parts.append(_strategy_md())
+    return "\n".join(parts)
+
+
+def _strategy_md() -> str:
     try:
         import strategy  # 규칙 기반 '지금 할 일' — 에이전트는 이 판단을 설명·반론만 한다
         d = strategy.load(max_age_hours=36)
-        if d:
-            parts.append("\n" + strategy.to_markdown(d))
+        return "\n" + strategy.to_markdown(d) if d else ""
     except Exception as e:  # noqa: BLE001
-        parts.append(f"\n## 전략 보드\n(불러오기 실패: {type(e).__name__}: {e})")
-
-    return "\n".join(parts)
+        return f"\n## 전략 보드\n(불러오기 실패: {type(e).__name__}: {e})"
 
 
 class Agent:

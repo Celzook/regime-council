@@ -1,7 +1,8 @@
 flask>=3.0
 pandas>=2.0
 numpy>=1.24
-yfinance>=0.2.50
+eikon>=1.1.18          # Refinitiv(LSEG) Workspace 데스크톱 세션 — Windows 파이썬에서 실행
+yfinance>=0.2.50       # VIX 만(Refinitiv 권한 없음)
 requests>=2.31
 openpyxl>=3.1
 pydantic>=2.0

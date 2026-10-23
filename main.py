@@ -6,7 +6,7 @@
   python main.py ask "지금 금리 국면 어때?"
   python main.py chat
   python main.py research "미국 하이일드 스프레드 전망" [--agent bond]
-  python main.py fetch                      # 시장 스냅샷 갱신 (KOFIA + yfinance + FRED)
+  python main.py fetch                      # 시장 스냅샷 갱신 (Refinitiv + VIX yfinance + OAS FRED)
   python main.py brief [--fetch] [--code-only]  # 시장 브리프 → reports/
 
 공통 옵션: --model MODEL_ID (기본 claude-opus-5-5)

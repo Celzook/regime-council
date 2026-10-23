@@ -1,7 +1,7 @@
 {
  "meta": {
   "title": "주식 — 유니버스 항목별 데이터 연결과 전략 준비 상태",
-  "note": "공개 데이터(yfinance, 현지 통화 기준)로 대시보드를 채운다. 스타일·팩터·섹터는 데이터가 있는 미국 ETF 중심, 국내는 있는 것만. 미연결 항목은 인포맥스 연결 후 채운다.",
+  "note": "Refinitiv(VIX 만 yfinance, 현지 통화 기준)로 대시보드를 채운다. 스타일·팩터·섹터는 데이터가 있는 미국 ETF 중심, 국내는 있는 것만. 미연결 항목은 인포맥스 연결 후 채운다.",
   "as_of": "2026-10-22"
  },
  "groups": [
@@ -323,6 +323,24 @@
    "level": true
   },
   {
+   "key": "vkospi",
+   "name": "VKOSPI (KOSPI200 변동성)",
+   "short": "VKOSPI",
+   "ticker": ".KSVKOSPI",
+   "item": "DV-FUT-05",
+   "group": "변동성",
+   "level": true
+  },
+  {
+   "key": "vstoxx",
+   "name": "VSTOXX (유로스톡스50 변동성)",
+   "short": "VSTOXX",
+   "ticker": ".V2TX",
+   "item": "DV-FUT-05",
+   "group": "변동성",
+   "level": true
+  },
+  {
    "key": "usdkrw",
    "name": "USD/KRW",
    "short": "원/달러",
@@ -352,16 +370,6 @@
   }
  ],
  "missing": [
-  {
-   "name": "VKOSPI (KOSPI200 변동성)",
-   "need": "지수 옵션 전략·변동성 판단",
-   "source": "인포맥스(지수 코드 VKOSPI) — 연결 예정"
-  },
-  {
-   "name": "VSTOXX",
-   "need": "유럽 변동성",
-   "source": "공개 데이터 없음 — 인포맥스·블룸버그"
-  },
   {
    "name": "KOSPI200·유로스톡스50 배당선물",
    "need": "배당 관련 전략",

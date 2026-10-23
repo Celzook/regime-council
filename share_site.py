@@ -6,7 +6,8 @@
 docs/index.html = static/index.html + 응답 가로채기(서버 대신 snap.json·bt.json) + '공유 보기' 안내 한 줄.
 점검 실행·저장·대화처럼 서버가 필요한 버튼은 '원본 앱에서 실행' 안내만 한다. 회사 이름 표시는 뺀다(공개 페이지).
 
-사용법: python share_site.py  → git add docs share_site.py && git commit && git push  (Pages 소스 = main 브랜치 /docs)
+⚠ 2026-10-23 부터 시장 데이터가 Refinitiv 라이선스 — 준법 확인 전에는 실행하지 않는다(--force 없이는 멈춤).
+사용법: python share_site.py --force  → git add docs share_site.py && git commit && git push  (Pages 소스 = main 브랜치 /docs)
        python share_site.py --html  → 화면(index.html)만 다시 만든다(숫자는 그대로, 서버 불필요)
 """
 import datetime
@@ -164,6 +165,10 @@ def write_html(at: str):
 if __name__ == "__main__":
     if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    # 시장 데이터가 Refinitiv(LSEG) 라이선스로 바뀌어(2026-10-23) 공개 페이지에 숫자를 담으면 재배포가 된다.
+    # 준법 확인 전에는 멈춘다. 확인을 받았으면 --force 로 실행한다.
+    if "--force" not in sys.argv:
+        raise SystemExit("중단: 공유본(docs/)에 Refinitiv 시세가 담긴다 — 라이선스(재배포) 확인 후 --force 로 실행하세요.")
     if "--html" in sys.argv:   # 화면만 — 기준 시각은 이미 만든 snap.json 그대로
         write_html(json.loads((OUT / "snap.json").read_text(encoding="utf-8"))["at"])
         print("화면만 다시 만듦 →", OUT / "index.html")
