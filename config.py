@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """국면협의회(regime-council) 설정."""
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -42,6 +43,16 @@ REFINITIV_APPKEY_FILES = [
     "~/.claude/reference/refinitiv-workspace/.appkey",
     r"\\wsl.localhost\Ubuntu\home\infomax\.claude\reference\refinitiv-workspace\.appkey",
 ]
+# 사내망 공유 — 환경변수 REGIME_LAN=1 로 켤 때만(대시보드_사내공유.bat). 평소에는 127.0.0.1 전용.
+# 켜면 0.0.0.0:5101 로 열고, 아래 대역의 PC 만·접속 키를 가진 사람만·읽기 전용으로 받는다.
+# 이 PC 의 주소(220.86.116.130)는 사설망이 아니라 공인 IP 라 대역 제한과 접속 키를 둘 다 건다(2026-10-23 확인).
+LAN_SHARE = os.environ.get("REGIME_LAN") == "1"
+LAN_ALLOW = ["220.86.116.0/24"]          # 같은 서브넷 — 필요하면 동료 PC 주소(/32)로 좁힌다
+LAN_KEY_FILE = DATA_DIR / ".lan_key"     # 접속 키(처음 켤 때 무작위 생성, 저장소 제외)
+# 사내 공유 보기에서 허용하는 POST — 화면을 바꾸지 않는 계산만(백테스트 한 건)
+LAN_POST_ALLOW = {"/api/backtest/run"}
+# 사내 공유 보기에서 숨기는 화면(경로 앞부분) — 무엇을 보일지는 업무 판단으로 정한다
+LAN_HIDE: list[str] = []
 # 매크로 화면을 보고 있을 때 인포맥스 값을 다시 받는 주기(분) — 한 번에 숨김 엑셀이 약 10초 떴다 닫힌다.
 INFOMAX_REFRESH_MIN = 5
 

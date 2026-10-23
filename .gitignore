@@ -28,3 +28,6 @@ _보관_예시데이터(PPT기준)/
 
 # Claude Code 작업 기록(로컬)
 .omc/
+
+# 사내 공유 접속 키
+data/.lan_key

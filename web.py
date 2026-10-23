@@ -4,7 +4,7 @@
 화면: 홈(한도 게이지·신호·괴리·할 일) / 점검 보고서 / MP·괴리 / 한도·로그 / 투자위 보고서 / 참고(매크로·채팅·토의)
 - 한도·소진율·스트레스·괴리·경고는 코드(CODE) 계산 — API 키 없이 동작
 - MP 산출·점검 보고서 해석·브리프·채팅·토의는 Claude(AGENT) — ANTHROPIC_API_KEY 필요
-- 127.0.0.1 바인딩, Origin/Host 검사(CSRF)
+- 127.0.0.1 바인딩, Origin/Host 검사(CSRF). REGIME_LAN=1 이면 사내 공유(허용 대역·접속 키·읽기 전용)
 """
 import datetime
 import os
@@ -49,7 +49,8 @@ def _api_error(e):
         return e
     traceback.print_exc()
     if request.path.startswith("/api/"):
-        return jsonify({"error": f"{type(e).__name__}: {e}"}), 500
+        msg = f"{type(e).__name__}: {e}" if _is_local() else "서버 오류 — 운영 PC 로그를 확인하세요"
+        return jsonify({"error": msg}), 500
     return "서버 오류", 500
 
 
@@ -62,15 +63,91 @@ JOBS_LOCK = threading.Lock()
 FETCH_LOCK = threading.Lock()
 
 
+LAN = {"key": None, "ip": None}
+
+
+def _lan_setup() -> None:
+    """사내 공유를 켤 때 — 접속 키를 준비하고, 이 PC 의 사내 주소를 허용 호스트에 넣는다."""
+    import secrets
+    import socket
+    p = config.LAN_KEY_FILE
+    if not p.exists():
+        p.write_text(secrets.token_urlsafe(12), encoding="utf-8")
+    key = p.read_text(encoding="utf-8").strip()
+    if len(key) < 16:
+        raise SystemExit(f"{p} 가 비었거나 너무 짧습니다 — 파일을 지우고 다시 켜면 새로 만듭니다.")
+    LAN["key"] = key
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("10.255.255.255", 1))
+        LAN["ip"] = s.getsockname()[0]
+    except OSError:
+        LAN["ip"] = socket.gethostbyname(socket.gethostname())
+    finally:
+        s.close()
+    ALLOWED_HOSTS.add(f"{LAN['ip']}:5101")
+    ALLOWED_ORIGINS.add(f"http://{LAN['ip']}:5101")
+
+
+def _key_ok() -> bool:
+    """접속 키 확인 — 키가 준비되지 않았으면 무조건 거부(fail closed), 비교는 상수 시간."""
+    import hmac
+    k = LAN["key"]
+    if not k:
+        return False
+    return any(c and hmac.compare_digest(c.encode(), k.encode())
+               for c in (request.args.get("key"), request.cookies.get("rc_key")))
+
+
+REMOTE_BT = threading.BoundedSemaphore(2)   # 원격 백테스트 동시 실행 상한 — 운영 화면이 느려지지 않게
+
+
+def _is_local() -> bool:
+    return request.remote_addr in ("127.0.0.1", "::1")
+
+
+def _lan_allowed(addr: str) -> bool:
+    import ipaddress
+    try:
+        ip = ipaddress.ip_address(addr)
+    except ValueError:
+        return False
+    return any(ip in ipaddress.ip_network(n, strict=False) for n in config.LAN_ALLOW)
+
+
 @app.before_request
 def _csrf_guard():
     if request.host not in ALLOWED_HOSTS:
         return jsonify({"error": "허용되지 않은 호스트"}), 403
+    if not _is_local():
+        # 사내 공유 보기: 허용 대역 · 접속 키 · 읽기 전용(허용된 계산 하나만)
+        if not config.LAN_SHARE or not _lan_allowed(request.remote_addr):
+            return jsonify({"error": "허용되지 않은 접속"}), 403
+        if not _key_ok():
+            return "접속 키가 필요합니다 — 공유받은 링크(…/?key=…)로 여세요.", 403
+        if any(request.path.startswith(x) for x in config.LAN_HIDE):
+            return jsonify({"error": "사내 공유 보기에서는 볼 수 없는 화면입니다."}), 403
+        if request.method == "POST" and request.path not in config.LAN_POST_ALLOW:
+            return jsonify({"error": "사내 공유 보기는 읽기 전용입니다 — 갱신·점검·AI 기능은 운영 PC 에서만 됩니다."}), 403
+        if request.method == "GET" and "key" in request.args:
+            # 키를 쿠키로 옮기고 주소창·방문 기록·프록시 로그에서 지운다
+            from flask import redirect
+            resp = redirect(request.path, 302)
+            resp.set_cookie("rc_key", LAN["key"], max_age=7 * 86400, httponly=True, samesite="Strict")
+            return resp
     if request.method == "POST":
         origin = request.headers.get("Origin")
         if origin and origin not in ALLOWED_ORIGINS:
             return jsonify({"error": "허용되지 않은 출처"}), 403
     return None
+
+
+@app.after_request
+def _security_headers(resp):
+    resp.headers["X-Frame-Options"] = "DENY"                     # 다른 사이트가 이 화면을 프레임에 넣지 못하게
+    resp.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'")
+    resp.headers["Referrer-Policy"] = "no-referrer"
+    return resp
 
 
 def api_key_set() -> bool:
@@ -86,7 +163,7 @@ def start_job(kind: str, fn, *args, **kwargs) -> str:
     job_id = f"{kind}-{datetime.datetime.now().strftime('%H%M%S%f')[:9]}"
     with JOBS_LOCK:
         running = [j for j in JOBS.values() if j["kind"] == kind and j["status"] == "running"]
-        if running and kind in ("discuss", "daily"):
+        if running and kind in ("discuss", "daily", "equity", "fund"):
             raise RuntimeError(f"{kind} 작업이 이미 진행 중입니다.")
         JOBS[job_id] = {"job_id": job_id, "kind": kind, "status": "running", "started_at": store.now_iso(),
                         "result": None, "error": None}
@@ -506,6 +583,8 @@ def api_quant():
     import quant
     d = quant.load()
     if d is None:
+        if not _is_local():
+            return _err("정량 분석 결과가 아직 없습니다 — 운영 PC 에서 먼저 계산하세요.", 503)
         try:
             d = quant.run()
         except Exception as e:  # noqa: BLE001
@@ -518,7 +597,7 @@ def api_quant():
 def api_strategy():
     """전략 보드 — 포지션·한도·정량 결과로 지금 할 일을 규칙(CODE)으로 정리(가벼워서 요청마다 다시 계산)."""
     import strategy
-    return jsonify(strategy.build())
+    return jsonify(strategy.build(save=_is_local()))
 
 
 @app.get("/api/equity")
@@ -528,7 +607,7 @@ def api_equity():
     d = equity.load() or {}
     age = equity.age_hours()
     running = any(j["kind"] == "equity" and j["status"] == "running" for j in JOBS.values())
-    if (age is None or age > 6) and not running:
+    if (age is None or age > 6) and not running and _is_local():   # 원격 조회로는 수집을 시작하지 않는다
         start_job("equity", equity.build)
         running = True
     d["refreshing"] = running
@@ -553,7 +632,7 @@ def api_equity_fund():
     age = fundamentals.age_hours()
     running = [j for j in JOBS.values() if j["kind"] == "fund" and j["status"] == "running"]
     job_id = running[0]["job_id"] if running else None
-    if (age is None or age > fundamentals.STALE_HOURS) and not running:
+    if (age is None or age > fundamentals.STALE_HOURS) and not running and _is_local():
         job_id = start_job("fund", fundamentals.build)
     d["refreshing"], d["job_id"] = job_id is not None, job_id
     return jsonify(d)
@@ -580,11 +659,17 @@ def api_bt_run():
     """한 전략 백테스트 — 빨라서(1초 안팎) 바로 돌려 결과를 준다."""
     import backtest
     body = request.get_json(silent=True) or {}
+    remote = not _is_local()
+    if remote and not REMOTE_BT.acquire(blocking=False):
+        return _err("다른 백테스트가 돌고 있습니다 — 잠시 뒤 다시 누르세요.", 409)
     try:
         return jsonify(backtest.run(str(body.get("id", "")), body.get("params") or {}, str(body.get("period") or "10y"),
                                     body.get("start") or None, body.get("end") or None))
     except ValueError as e:
         return _err(str(e), 400)
+    finally:
+        if remote:
+            REMOTE_BT.release()
 
 
 @app.post("/api/backtest/all")
@@ -611,11 +696,13 @@ def api_quant_run():
 def api_macro():
     """마지막 값을 바로 돌려주고, 오래됐으면(INFOMAX_REFRESH_MIN) 백그라운드에서 숨김 엑셀로 다시 받는다."""
     import infomax_bridge
-    refreshing = infomax_bridge.refresh_if_stale(config.INFOMAX_REFRESH_MIN) if infomax_bridge.BRIDGE.exists() else False
+    # 원격(사내 공유) 화면이 이 PC 에서 숨김 엑셀을 띄우지 않게 — 자동 갱신은 이 PC 에서 볼 때만
+    refreshing = (infomax_bridge.refresh_if_stale(config.INFOMAX_REFRESH_MIN)
+                  if infomax_bridge.BRIDGE.exists() and _is_local() else False)
     doc = infomax_bridge.load()
     doc["refreshing"] = refreshing
     doc["bridge_exists"] = infomax_bridge.BRIDGE.exists()
-    doc["bridge_path"] = str(infomax_bridge.BRIDGE)
+    doc["bridge_path"] = str(infomax_bridge.BRIDGE) if _is_local() else ""
     doc["share_vendor"] = config.SHARE_VENDOR_DATA
     doc["refresh_min"] = config.INFOMAX_REFRESH_MIN
     return jsonify(doc)
@@ -721,4 +808,10 @@ if __name__ == "__main__":
     print("AI 운용관리 대시보드: http://127.0.0.1:5101")
     if not api_key_set():
         print("주의: ANTHROPIC_API_KEY 미설정 — 한도·신호·괴리(CODE)만 동작, MP·점검 해석·채팅은 비활성.")
-    app.run(host="127.0.0.1", port=5101, debug=False, threaded=True)
+    host = "127.0.0.1"
+    if config.LAN_SHARE:
+        _lan_setup()
+        host = "0.0.0.0"
+        print(f"사내 공유 켜짐(읽기 전용, 허용 대역 {', '.join(config.LAN_ALLOW)}) — 동료에게 줄 링크:")
+        print(f"  http://{LAN['ip']}:5101/?key={LAN['key']}")
+    app.run(host=host, port=5101, debug=False, threaded=True)
