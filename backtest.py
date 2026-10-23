@@ -109,9 +109,9 @@ CATALOG = {
     "EQ-STR-01": {"how": "매년 초 1년 만기 원금보장형: 이자만큼으로 지수 콜을 사서 오르면 일부 참여(참여율은 그때 금리·변동성으로 계산).", "params": [
         {"key": "under", "label": "대상 지수", "options": _opt(("kospi200", "KOSPI200"), ("sp500", "S&P500")), "default": "kospi200"},
         {"key": "fee", "label": "발행 비용 (연)", "options": _opt((0.3, "0.3%"), (0.5, "0.5%"), (1.0, "1.0%")), "default": 0.5}]},
-    "EQ-STR-03": {"how": "기간 초마다 하한(손실 한도)을 정하고, 하한 위 여유의 몇 배만 주식에 넣습니다. 빠질수록 주식을 줄입니다.", "params": [
+    "EQ-STR-03": {"how": "기간 초마다 하한(그때 평가액의 몇 %)을 정하고, 하한 위 여유의 몇 배만 주식에 넣습니다. 빠질수록 주식을 줄입니다. 하한은 기간 초 평가액 기준이라, 기간 중 고점에서 잰 최대 낙폭은 하한 폭보다 클 수 있습니다.", "params": [
         {"key": "under", "label": "대상 지수", "options": _opt(("kospi200", "KOSPI200"), ("sp500", "S&P500")), "default": "kospi200"},
-        {"key": "floor", "label": "1년 손실 하한", "options": _opt((80, "−20%까지"), (85, "−15%까지"), (90, "−10%까지")), "default": 90},
+        {"key": "floor", "label": "하한 (기간 초 평가액 대비)", "options": _opt((80, "80% (−20%)"), (85, "85% (−15%)"), (90, "90% (−10%)")), "default": 90},
         {"key": "m", "label": "승수 (여유의 몇 배)", "options": _opt((3, "3배"), (4, "4배"), (5, "5배")), "default": 4},
         {"key": "reset", "label": "하한 다시 정하기", "options": _opt(("year", "매년 초"), ("month", "매월 초 (오른 만큼 자주 잠금)")), "default": "year"}]},
 }
@@ -144,6 +144,20 @@ def tr_ret(key: str) -> pd.Series:
     _, trt, _, div, *_ = UNDER[key]
     r = _s(trt).pct_change().dropna()
     return r + div / 252 if div else r
+
+
+def _align(r: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:
+    """벤치마크 일간 수익을 전략 날짜에 맞춘다. 전략에 없는 날의 수익은 버리지 않고 다음 전략 날짜로 복리 합산한다
+    (reindex().fillna(0) 은 전략이 빠진 날 — 예: VIX 가 빈 날 — 의 벤치마크 수익을 통째로 잃었다. 2026-10-23 검증)."""
+    if len(idx) == 0:
+        return pd.Series(dtype=float, index=idx)
+    lvl = (1 + r.dropna()).cumprod()
+    L = lvl.reindex(lvl.index.union(idx)).ffill().fillna(1.0)
+    Li = L.reindex(idx)
+    out = Li / Li.shift(1) - 1
+    before = L[L.index < idx[0]]
+    out.iloc[0] = float(Li.iloc[0]) / (float(before.iloc[-1]) if len(before) else 1.0) - 1
+    return out.fillna(0)
 
 
 def cash(ccy: str, idx: pd.DatetimeIndex) -> pd.Series:
@@ -250,7 +264,7 @@ def s_factor_trs(p, start):
     keys = {"defensive": ["f_minvol", "f_quality", "f_div"], "value_mom": ["f_value", "f_mom"], "all": list(FACTORS)}[p["basket"]]
     df = pd.concat({k: _s(FACTORS[k][1]) for k in keys}, axis=1).dropna().pct_change().dropna()
     ret = df.mean(axis=1) - float(p["spread"]) / 100 / 252          # 매일 같은 비중(월 재조정의 근사)
-    bench = tr_ret("sp500").reindex(ret.index).fillna(0)
+    bench = _align(tr_ret("sp500"), ret.index)
     return ret, bench, {"바스켓": " · ".join(FACTORS[k][0] for k in keys), "데이터 시작": df.index[0].date().isoformat()}
 
 
@@ -264,7 +278,7 @@ def s_qis(p, start):
     r = r.reindex(W.index)
     c = cash("USD", W.index)
     ret = c + (W * r.sub(c, axis=0)).sum(axis=1) - float(p["fee"]) / 100 / 252 - W.diff().abs().sum(axis=1).fillna(0) * COST
-    bench = tr_ret("sp500").reindex(ret.index).fillna(0)
+    bench = _align(tr_ret("sp500"), ret.index)
     return ret, bench, {"평균 순노출": f"{W.loc[start:].sum(axis=1).mean() * 100:+.0f}%"}
 
 
@@ -280,12 +294,15 @@ def _option_run(key, legs, stock: bool, start):
     rolls = [d for d in _month_starts(idx) if d >= idx[0]]
     nav, out, prem_paid = 1.0, {}, []
     for i, t0 in enumerate(rolls):
-        t1 = rolls[i + 1] if i + 1 < len(rolls) else idx[-1]
+        # 만기는 데이터와 무관한 규칙(다음 달 첫 영업일)으로 모든 구간에 같이 정한다 — 데이터 끝이나 실제 롤 날짜를
+        # 만기로 쓰면 새 데이터가 올 때마다 지난 구간의 일간 수익이 다시 계산된다. 롤(구간 경계)은 실제 첫 거래일.
+        exp = t0.normalize() + pd.offsets.BMonthBegin(1)
+        t1 = rolls[i + 1] if i + 1 < len(rolls) else exp
         if t1 <= t0:
             break
         days = idx[(idx > t0) & (idx <= t1)]
         S0, r0 = float(S[t0]), float(c[t0]) * 252
-        T0 = (t1 - t0).days / 365
+        T0 = (exp - t0).days / 365
         units = nav / S0
         strikes = [(call, S0 * k / 100, n) for call, k, n in legs]
         legp = [(n, bs(S0, K, T0, r0, q, _skew(float(IV[t0]), K / S0), call)) for call, K, n in strikes]
@@ -295,7 +312,7 @@ def _option_run(key, legs, stock: bool, start):
         cash0 = (0.0 if stock else nav) - units * (price0 + tcost)
         prev = nav
         for t in days:
-            tau = (t1 - t).days / 365
+            tau = max((exp - t).days, 0) / 365
             St = float(S[t]); rt = float(c[t]) * 252
             opt = sum(n * bs(St, K, tau, rt, q, _skew(float(IV[t]), K / St), call) for call, K, n in strikes)
             grow = math.exp(rt * (t - t0).days / 365)
@@ -304,7 +321,7 @@ def _option_run(key, legs, stock: bool, start):
             prev = v
         nav = prev
     ret = pd.Series(out).sort_index()
-    bench = tr_ret(key).reindex(ret.index).fillna(0)
+    bench = _align(tr_ret(key), ret.index)
     avg = np.mean(prem_paid) * 100 if prem_paid else 0
     return ret, bench, {"월평균 옵션 순비용": f"{avg:+.2f}% (+ 는 지불, − 는 수취)", "변동성": "VIX" if key == "sp500" else "VXN" if key == "ndx" else "실제 변동성 × (VIX÷S&P 실제 변동성) 근사"}
 
@@ -323,17 +340,18 @@ def s_elb(p, start):
     rolls = _year_starts(idx)
     nav, out, parts = 1.0, {}, []
     for i, t0 in enumerate(rolls):
-        t1 = rolls[i + 1] if i + 1 < len(rolls) else idx[-1]
+        exp = t0.normalize() + pd.offsets.BYearBegin(1)    # 만기 = 다음 해 첫 영업일(데이터와 무관한 규칙)
+        t1 = rolls[i + 1] if i + 1 < len(rolls) else exp
         if t1 <= t0:
             break
-        S0, r0, T0 = float(S[t0]), float(c[t0]) * 252, (t1 - t0).days / 365
+        S0, r0, T0 = float(S[t0]), float(c[t0]) * 252, (exp - t0).days / 365
         budget = 1 - math.exp(-r0 * T0) - fee * T0
         call0 = bs(S0, S0, T0, r0, q, float(IV[t0]), True) / S0
         part = max(0.0, budget / call0) if call0 > 0 else 0.0
         parts.append(part)
         prev = nav
         for t in idx[(idx > t0) & (idx <= t1)]:
-            tau = (t1 - t).days / 365; rt = float(c[t]) * 252
+            tau = max((exp - t).days, 0) / 365; rt = float(c[t]) * 252
             v_unit = math.exp(-rt * tau) + part * bs(float(S[t]), S0, tau, rt, q, float(IV[t]), True) / S0
             v0_unit = math.exp(-r0 * T0) + part * call0
             v = nav * v_unit / v0_unit
@@ -341,7 +359,7 @@ def s_elb(p, start):
             prev = v
         nav = prev
     ret = pd.Series(out).sort_index()
-    return ret, tr_ret(key).reindex(ret.index).fillna(0), {"평균 참여율": f"{np.mean(parts) * 100:.0f}% (지수 상승분 중 받는 비율)" if parts else "-",
+    return ret, _align(tr_ret(key), ret.index), {"평균 참여율": f"{np.mean(parts) * 100:.0f}% (지수 상승분 중 받는 비율)" if parts else "-",
                                                            "주의": "발행사 신용위험·중도 환매 손실은 반영 안 함"}
 
 
@@ -355,15 +373,15 @@ def s_cppi(p, start):
     for t in r.index:
         if floor is None or t in ys:
             floor = nav * float(p["floor"]) / 100
-        ret_t = E * float(r[t]) + (1 - E) * float(c[t])
-        nav *= 1 + ret_t
-        out[t] = ret_t
+        prev = nav
+        nav *= 1 + E * float(r[t]) + (1 - E) * float(c[t])
         newE = min(1.0, max(0.0, float(p["m"]) * (nav - floor) / nav))
-        out[t] -= abs(newE - E) * COST
+        nav *= 1 - abs(newE - E) * COST           # 재조정 비용도 노출·하한을 정하는 NAV 에서 뺀다
+        out[t] = nav / prev - 1
         E = newE
         expo.append(E)
     ret = pd.Series(out)
-    return ret, tr_ret(k).reindex(ret.index).fillna(0), {"평균 주식 비중": f"{np.mean(expo) * 100:.0f}%", "최저 주식 비중": f"{min(expo) * 100:.0f}%"}
+    return ret, _align(tr_ret(k), ret.index), {"평균 주식 비중": f"{np.mean(expo) * 100:.0f}%", "최저 주식 비중": f"{min(expo) * 100:.0f}%"}
 
 
 RUNNERS = {
@@ -387,8 +405,13 @@ def _resample(x, rule):
         return x.resample(rule.rstrip("E"))
 
 
-def stats(ret: pd.Series, bench: pd.Series | None = None) -> dict:
+def stats(ret: pd.Series, bench: pd.Series | None = None, rf: pd.Series | None = None) -> dict:
+    """rf(일별 현금 수익)를 주면 샤프는 초과수익(ret − rf) 기준, 없으면 원수익 기준.
+    현금 금리가 없는 날(한국 국고 3년은 2012년부터)은 0 으로 채우지 않고 샤프 계산에서 뺀다."""
     ret = ret.dropna()
+    ex = (ret - rf.reindex(ret.index).ffill()).dropna() if rf is not None else ret
+    if len(ex) < 60:
+        ex = ret
     nav = (1 + ret).cumprod()
     yrs = max((ret.index[-1] - ret.index[0]).days / 365.25, 1e-9)
     vol = float(ret.std() * math.sqrt(252))
@@ -397,7 +420,7 @@ def stats(ret: pd.Series, bench: pd.Series | None = None) -> dict:
     y = _resample(1 + ret, "YE").prod() - 1
     out = {"cagr": round((float(nav.iloc[-1]) ** (1 / yrs) - 1) * 100, 2), "vol": round(vol * 100, 2),
            "mdd": round(float(dd.min()) * 100, 2), "mdd_date": dd.idxmin().date().isoformat(),
-           "sharpe": round(float(ret.mean() / ret.std() * math.sqrt(252)), 2) if ret.std() > 0 else None,
+           "sharpe": round(float(ex.mean() / ex.std() * math.sqrt(252)), 2) if ex.std() > 0 else None,
            "win_m": round(float((m > 0).mean()) * 100), "best_m": round(float(m.max()) * 100, 1), "worst_m": round(float(m.min()) * 100, 1),
            "total": round((float(nav.iloc[-1]) - 1) * 100, 1), "yearly": {str(d.year): round(float(v) * 100, 1) for d, v in y.items()},
            "monthly": {f"{d:%Y-%m}": round(float(v) * 100, 1) for d, v in m.items()}}
@@ -541,9 +564,12 @@ def run(sid: str, params: dict | None = None, period: str = "10y", start: str | 
         raise ValueError(f"이 기간에는 계산할 수 있는 날이 {len(ret)}일뿐입니다(최소 {MIN_DAYS}일). "
                          + (f"이 전략은 {first}부터 계산할 수 있습니다" if first else "데이터가 없습니다")
                          + " — 한국 지수 전략은 현금 금리 데이터가 2012년부터라 그 전은 안 됩니다.")
-    bench = bench.reindex(ret.index).fillna(0) if bench is not None else None
-    st = stats(ret, bench)
-    bst = stats(bench) if bench is not None else None
+    bench = _align(bench, ret.index) if bench is not None else None
+    # 샤프는 현금 초과수익 기준 — 지역 상대 뷰(EQ-FUT-02)는 이미 초과수익(롱−숏)이라 현금을 빼지 않는다
+    rf_key = p.get("under") or ("sp500" if sid in ("EQ-TRS-02", "EQ-TRS-03") else None)
+    rf = cash(UNDER[rf_key][4], ret.index) if rf_key else None
+    st = stats(ret, bench, rf)
+    bst = stats(bench, rf=rf) if bench is not None else None
     years = (ret.index[-1] - ret.index[0]).days / 365.25
     u = next(s for s in universe.load()["strategies"] if s["id"] == sid)
     under_key = p.get("under") or ("sp500" if sid in ("EQ-TRS-02", "EQ-TRS-03") else None)
@@ -568,7 +594,8 @@ def run(sid: str, params: dict | None = None, period: str = "10y", start: str | 
                   "dd": [round(float(v) * 100, 2) for v in (dd if daily else _resample(dd, "W-FRI").min().reindex(wk.index)).values]},
         "assumptions": ["과거 데이터로 본 점검 자료 — 매매 지시 아님", "선물 = 지수 총수익 − 현금(완전 담보), 롤 비용 연 0.3%p, 노출 변경 거래비용 0.05%",
                         "현금: 미국 13주 국채, 한국 국고 3년 − 0.3%p(2012년~, CD 금리 대용)",
-                        "옵션: 블랙숄즈 추정·스큐 근사 — 실제 호가와 다를 수 있음"],
+                        "옵션: 블랙숄즈 추정·스큐 근사 — 실제 호가와 다를 수 있음",
+                        "샤프: 현금(위 금리) 초과수익 ÷ 변동성 — 지역 상대 뷰는 그 자체가 초과수익. 한국 현금 금리가 없는 2012년 이전은 샤프 계산에서만 뺀다"],
         "generated_at": datetime.datetime.now().isoformat(timespec="seconds"),
     }
 

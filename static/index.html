@@ -1782,7 +1782,7 @@ function renderBtRes(r){
     tile('최대 낙폭', `${num(s.mdd, 1)}%`, b ? `그냥 보유 ${num(b.mdd, 1)}% · ${s.mdd_date}` : s.mdd_date, signTone(s.mdd), bmChip(s.mdd, b && b.mdd, '%p')),
     // 변동성은 방향(좋음/나쁨)이 부호와 맞지 않아 칩을 중립색으로
     tile('흔들림 (연 변동성)', `${num(s.vol, 1)}%`, b ? `그냥 보유 ${num(b.vol, 1)}%` : '', '', bmChip(s.vol, b && b.vol, '%p', 1, true)),
-    tile('위험 대비 수익 (샤프)', `${s.sharpe ?? '-'}`, b ? `그냥 보유 ${b.sharpe ?? '-'}` : '1 이상이면 좋은 편', signTone(s.sharpe), bmChip(s.sharpe, b && b.sharpe, '', 2)),
+    tile('위험 대비 수익 (샤프)', `${s.sharpe ?? '-'}`, b ? `그냥 보유 ${b.sharpe ?? '-'} · 현금 초과수익 기준` : '현금 초과수익 기준 · 1 이상이면 좋은 편', signTone(s.sharpe), bmChip(s.sharpe, b && b.sharpe, '', 2)),
   ].join('');
   // 최대 낙폭 구간 — 낙폭이 가장 깊은 날과 그 직전 고점(낙폭 0)
   const dz = (() => { const dd = c.dd || []; let ti = -1; dd.forEach((v, i) => { if(v !== null && v !== undefined && (ti < 0 || v < dd[ti])) ti = i; });
