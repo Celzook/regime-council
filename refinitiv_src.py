@@ -192,6 +192,11 @@ def _today_cut(s, ric: str):
     return s[s.index.date < today]
 
 
+def _empty():
+    import pandas as pd
+    return pd.Series(dtype=float, index=pd.DatetimeIndex([]))
+
+
 def _chunks(start: datetime.date, end: datetime.date, years: int = 5):
     cur = start
     while cur <= end:
@@ -215,14 +220,16 @@ def _close_series(ric: str, start: datetime.date, end: datetime.date):
                 if "No data available" in str(e):
                     continue
                 raise
-            if t is not None and len(t):
+            if t is None:
+                raise RuntimeError(f"{ric}: 응답 없음 — Workspace 연결 확인({status()['error'] or '프록시'})")
+            if len(t):
                 parts.append(t["CLOSE"] if "CLOSE" in t else t.iloc[:, 0])
     except Exception as e:  # noqa: BLE001
         if "permission" not in str(e):
             raise
         return _priceclose_series(ric, start, end)
     if not parts:
-        return pd.Series(dtype=float)
+        return _empty()
     s = pd.concat(parts)
     s.index = pd.to_datetime(s.index).tz_localize(None).normalize()
     s = pd.to_numeric(s, errors="coerce").dropna()
@@ -277,7 +284,7 @@ def _tr_series(ric: str, start: datetime.date, end: datetime.date, anchor_ric: s
     r = rt.reindex(idx).fillna(rc.reindex(idx)).dropna()
     r = _today_cut(r, ric)
     if r.empty:
-        return pd.Series(dtype=float)
+        return _empty()
     level = (1 + r).cumprod()
     # 기준 종가도 당일 미완성 봉을 뺀 뒤에 맞춘다 — 장중 지연가에 맞추면 전 구간 레벨이 어긋난다
     if anchor_ric and anchor_ric != ric:
@@ -399,6 +406,9 @@ def refresh_frame(path: Path, tickers, start: str, full: bool = False, recent_da
     import pandas as pd
 
     old = pd.read_csv(path, index_col=0, parse_dates=True) if path.exists() else pd.DataFrame()
+    if not available(force=True):
+        print(f"  Refinitiv 미연결 — 기존 이력 유지: {status()['error']}")
+        return old
     today = pd.Timestamp(datetime.date.today())
     s0 = datetime.date.fromisoformat(start)
     cols, changed = {}, False

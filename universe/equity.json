@@ -360,13 +360,22 @@
   },
   {
    "key": "us_cash",
-   "name": "미국 13주 국채금리",
+   "name": "미국 3개월 국채금리",
    "short": "^IRX",
    "ticker": "^IRX",
    "item": null,
    "group": null,
    "level": true,
-   "note": "백테스트용 — 미국 현금 수익률"
+   "note": "백테스트용 — 미국 현금 수익률(Refinitiv US3MT=RR)"
+  },
+  {
+   "key": "ks200_px",
+   "name": "KOSPI200 (가격지수)",
+   "short": "^KS200",
+   "ticker": "^KS200",
+   "item": null,
+   "group": null,
+   "note": "백테스트용 — KOSPI200 옵션·ELB 의 행사가·정산 기준(배당 미포함 가격지수)"
   }
  ],
  "missing": [
