@@ -756,6 +756,7 @@
   <button class="cp-icon" id="navToggle" aria-label="메뉴 열기" aria-controls="side">☰</button>
   <div class="hright">
     <span class="pill" id="asofPill"></span>
+    <span class="pill" id="feedPill"></span>
     <span class="pill" id="keyPill">확인 중</span>
     <span class="pill" id="jobPill" style="display:none"></span>
     <button class="btn" id="btnFetch">시장 갱신</button>
@@ -1054,6 +1055,19 @@ async function pollJob(jobId, label, onDone){
   setTimeout(tick, 1500);
 }
 
+// ── 데이터 연결 표시 — Refinitiv 연결과 마지막 자동 갱신(refresh_all.py) 결과 ──
+function renderFeed(f){
+  const el = $('feedPill'); if(!el || !f) return;
+  const last = f.last, when = last && (last.finished_at || last.started_at || '').replace('T', ' ').slice(5, 16);
+  const lastTxt = !last ? '자동 갱신 기록 없음' : last.error ? `${when} 갱신 중단` : last.ok ? `${when} 갱신` : `${when} 일부 실패`;
+  const bad = !f.refinitiv_ok || (last && !last.ok);
+  el.className = 'pill ' + (bad ? 'bad' : 'ok');
+  el.innerHTML = `<span class="dot" style="background:var(${f.refinitiv_ok ? '--ok' : '--halt'})"></span>Refinitiv ${f.refinitiv_ok ? '연결' : '끊김'} · ${esc(lastTxt)}`;
+  el.title = [f.refinitiv_ok ? '' : `Refinitiv: ${f.refinitiv_error || '미연결'} — Workspace 를 켜고 로그인하세요.`,
+              last && last.error ? `마지막 갱신: ${last.error}` : '', last && last.failed && last.failed.length ? `실패 단계: ${last.failed.join(', ')}` : '',
+              '자동 갱신: 평일 16:30 (refresh_all.py)'].filter(Boolean).join('\n');
+}
+
 // ── 개요(대시보드) ──
 async function loadOverview(){
   try {
@@ -1061,7 +1075,8 @@ async function loadOverview(){
     $('keyPill').innerHTML = ov.api_key_set ? '<span class="dot" style="background:var(--ok)"></span>API 키 OK' : '<span class="dot" style="background:var(--halt)"></span>API 키 미설정';
     $('keyPill').title = ov.api_key_set ? '' : 'MP 산출·해석·대화는 Claude 호출이 필요합니다. 한도·신호·괴리 계산은 동작합니다.';
     $('keyPill').className = 'pill ' + (ov.api_key_set ? 'ok' : 'bad');
-    $('asofPill').textContent = `포지션 ${ov.limits ? ov.limits.as_of : '-'} · 시장 ${(ov.market_as_of||'').slice(5,16)}`;
+    $('asofPill').textContent = `포지션 ${ov.limits ? ov.limits.as_of : '-'} · 시장 ${(ov.market_as_of||'').replace('T', ' ').slice(5,16)}`;
+    renderFeed(ov.data_feed);
     const w = ov.data_warnings || [];
     $('warnBar').style.display = w.length ? '' : 'none'; $('warnBar').textContent = w.length ? '⚠ ' + w.join(' | ') : '';
     if($('btnDiscuss')) $('btnDiscuss').disabled = !ov.api_key_set;

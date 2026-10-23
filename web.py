@@ -242,7 +242,18 @@ def api_overview():
         "data_warnings": [f"{n}: {e}" for n, e in LOAD_ERRORS.items()] + problems,
         "market_as_of": (market or {}).get("meta", {}).get("generated_at"),
         "log_chain": store.verify_log_chain(),
+        "data_feed": _data_feed(),
     })
+
+
+def _data_feed() -> dict:
+    """상단 표시용 — Refinitiv 연결(5분 캐시)과 마지막 자동 갱신 결과(refresh_all.py)."""
+    import refinitiv_src
+    refinitiv_src.available()
+    st = refinitiv_src.status()
+    last = load_json(config.DATA_DIR / "log" / "refresh_status.json") or {}
+    return {"refinitiv_ok": bool(st.get("ok")), "refinitiv_error": st.get("error") if _is_local() else ("미연결" if not st.get("ok") else ""),
+            "last": {k: last.get(k) for k in ("started_at", "finished_at", "ok", "failed", "error")} if last else None}
 
 
 @app.post("/api/daily/run")
