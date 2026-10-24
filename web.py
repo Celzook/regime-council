@@ -247,13 +247,18 @@ def api_overview():
 
 
 def _data_feed() -> dict:
-    """상단 표시용 — Refinitiv 연결(5분 캐시)과 마지막 자동 갱신 결과(refresh_all.py)."""
+    """상단 표시용 — Refinitiv 연결(5분 캐시)과 마지막 자동 갱신 결과(refresh_all.py)·데이터 점검(datahealth.py)."""
     import refinitiv_src
     refinitiv_src.available()
     st = refinitiv_src.status()
     last = load_json(config.DATA_DIR / "log" / "refresh_status.json") or {}
+    h = load_json(config.DATA_DIR / "log" / "data_health.json")  # datahealth.py — 사내 공유 접속엔 건수만
+    iss = (h or {}).get("issues") or []
+    health = {"checked_at": h.get("checked_at"), "n_warn": sum(i.get("severity") == "warn" for i in iss),
+              "n_info": sum(i.get("severity") == "info" for i in iss), "issues": iss[:20] if _is_local() else []} if h else None
     return {"refinitiv_ok": bool(st.get("ok")), "refinitiv_error": st.get("error") if _is_local() else ("미연결" if not st.get("ok") else ""),
-            "last": {k: last.get(k) for k in ("started_at", "finished_at", "ok", "failed", "error")} if last else None}
+            "last": {k: last.get(k) for k in ("started_at", "finished_at", "ok", "failed", "error")} if last else None,
+            "health": health}
 
 
 @app.post("/api/daily/run")

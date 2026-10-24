@@ -2,7 +2,7 @@
 """장 마감 뒤 자동 갱신 — Windows 작업 스케줄러가 평일 16:30 에 부른다(register_refresh_task.ps1).
 
 순서: Workspace 연결 확인 → 과거 시계열 → 시장 스냅샷 → 인포맥스·매크로 → 주식 대시보드 → 정량 → 밸류에이션(12시간 지났을 때)
-     → 시험 포트 평가 → 전략 보드 → 백테스트 요약.
+     → 시험 포트 평가 → 전략 보드 → 백테스트 요약 → 데이터 점검(datahealth.py — 찾은 이상은 실패로 치지 않는다).
 한 단계가 실패해도 나머지는 계속한다. 결과는 data/log/refresh_status.json(화면용)과 data/log/refresh_YYYYMMDD.log 에 남는다.
 Workspace 가 꺼져 있거나 로그아웃돼 있으면(무인 실행 중 세션 타임아웃 포함) 아무것도 덮어쓰지 않고 Windows 알림을 띄운 뒤 끝낸다.
 
@@ -58,6 +58,12 @@ def _book():
     return f"손익 {r.get('pnl_bn')}억"
 
 
+def _health():
+    import datahealth
+    iss = datahealth.run()["issues"]
+    return f"이상 {sum(i['severity'] == 'warn' for i in iss)}건" + (f" · 참고 {sum(i['severity'] == 'info' for i in iss)}건" if iss else "")
+
+
 def steps(quick: bool):
     import backtest
     import equity
@@ -75,8 +81,9 @@ def steps(quick: bool):
         ("시험 포트 평가", _book),
         ("전략 보드", lambda: strategy.build() and "갱신"),
         ("백테스트 요약", lambda: backtest.run_all() and "갱신"),
+        ("데이터 점검", _health),
     ]
-    return [s for s in full if s[0] in ("시장 스냅샷", "주식 대시보드")] if quick else full
+    return [s for s in full if s[0] in ("시장 스냅샷", "주식 대시보드", "데이터 점검")] if quick else full
 
 
 def main() -> int:
