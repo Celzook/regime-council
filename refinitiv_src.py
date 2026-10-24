@@ -16,6 +16,8 @@ import logging
 import os
 import socket
 import threading
+import urllib.error
+import urllib.request
 import warnings
 from pathlib import Path
 
@@ -123,8 +125,19 @@ def available(force: bool = False) -> bool:
         if s.connect_ex(("127.0.0.1", 9000)) != 0:
             err = "Workspace 프록시(127.0.0.1:9000) 닫힘 — Workspace 실행·로그인 확인, Windows 파이썬으로 실행"
         else:
-            with _LOCK:
+            # 포트는 열려 있는데 프록시가 멈춘 경우(2026-10-24 실측)에도 화면이 매달리지 않게 — 응답·잠금 모두 시간 제한
+            try:
+                urllib.request.urlopen("http://127.0.0.1:9000/api/status", timeout=3).close()
+            except urllib.error.HTTPError:
+                pass  # 상태 코드가 오면 살아 있음
+            except OSError as e:
+                raise RuntimeError(f"Workspace 프록시 응답 없음({e}) — Workspace 재시작·재로그인") from None
+            if not _LOCK.acquire(timeout=3):
+                raise RuntimeError("이전 Refinitiv 요청이 끝나지 않음 — Workspace 응답 확인")
+            try:
                 _ek()
+            finally:
+                _LOCK.release()
             ok = True
     except Exception as e:  # noqa: BLE001
         err = f"Refinitiv 연결 실패: {e}"
