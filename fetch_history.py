@@ -24,6 +24,7 @@ KOFIA_RICS = [("KRTSY2Y=KQ", "ktb_2y"), ("KRTSY3Y=KQ", "ktb_3y"), ("KRTSY5Y=KQ",
               ("KRTSY10Y=KQ", "ktb_10y"), ("KRGUCORP=KQ", "corp_aa_minus_3y"),
               ("KRCORP=KQ", "corp_bbb_minus_3y"), ("KRCD=KQ", "cd_91d"), ("KRBASE=BOKK", "bok_base")]
 KOFIA_START = datetime.date(2012, 1, 1)
+LONG_KOFIA = {"cd_91d"}   # 이 열만 KOFIA_START 이전까지 받는다 — 백테스트 한국 현금 금리(KRCD=KQ 1996-05~)
 LONG_START = datetime.date(1980, 1, 1)
 
 # yfinance 표기 티커 → 열 이름. RIC 변환은 refinitiv_src.TICKER_RIC, ^VIX 만 yfinance(YF_ONLY).
@@ -81,13 +82,14 @@ def fetch_kofia_history() -> Path:
     cols = {}
     for ric, key in KOFIA_RICS:
         try:
-            s = _ref_series(ric, KOFIA_START)
+            s = _ref_series(ric, LONG_START if key in LONG_KOFIA else KOFIA_START)
             cols[key] = s
             print(f"  {key}({ric}): {len(s)}일 ({s.index.min().date()} ~ {s.index.max().date()})")
         except Exception as e:  # noqa: BLE001
             print(f"  경고: {key}({ric}) 실패: {e}")
     df = _merge_cols(pd.DataFrame(cols), path)
-    df = df[df.index >= pd.Timestamp(KOFIA_START)]
+    df.loc[df.index < pd.Timestamp(KOFIA_START), ~df.columns.isin(LONG_KOFIA)] = float("nan")
+    df = df.dropna(how="all")
     df.to_csv(path, encoding="utf-8")
     print(f"  저장: {path} ({len(df)}일, {df.index.min().date() if len(df) else '-'} ~ {df.index.max().date() if len(df) else '-'})")
     return path

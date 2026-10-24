@@ -60,7 +60,7 @@ def test_sharpe_excess_of_cash():
 
 
 def test_sharpe_drops_days_without_rf():
-    """현금 금리가 없는 날(한국 2012년 이전)은 0 으로 채우지 않고 샤프 계산에서만 뺀다."""
+    """현금 금리가 없는 날(한국 CD 91일 이력 이전)은 0 으로 채우지 않고 샤프 계산에서만 뺀다."""
     ret = _ret()
     rf = pd.Series(0.0002, index=ret.index[150:])
     ex = (ret - rf.reindex(ret.index)).dropna()
@@ -74,6 +74,17 @@ def test_sharpe_falls_back_to_raw_when_rf_too_short():
     ret = _ret()
     rf = pd.Series(0.0002, index=ret.index[-10:])
     assert backtest.stats(ret, rf=rf)["sharpe"] == backtest.stats(ret)["sharpe"]
+
+
+# ── 한국 현금 금리 ──
+def test_krw_cash_uses_cd_and_falls_back_before_cd_start(tmp_path, monkeypatch):
+    """CD 91일이 있으면 CD, CD 이력 앞만 국고 3년 − 0.3%p, 그 뒤 빈 날(수집 실패 포함)은 직전 CD."""
+    k = pd.DataFrame({"ktb_3y": [4.0] * 10, "cd_91d": [None, None, 3.5, 3.6, None, 3.7, 3.8, 3.9, None, None]}, index=D)
+    k.index.name = "date"
+    k.to_csv(tmp_path / "kofia.csv")
+    monkeypatch.setattr(backtest, "KOFIA", tmp_path / "kofia.csv")
+    c = backtest.cash("KRW", D) * 252 * 100
+    assert list(c.round(6)) == [3.7, 3.7, 3.5, 3.6, 3.6, 3.7, 3.8, 3.9, 3.9, 3.9]
 
 
 # ── 총수익 이력 잇기(splice) ──

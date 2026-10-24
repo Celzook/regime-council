@@ -3,7 +3,7 @@
 
 숫자는 모두 코드(CODE)가 계산한다. 데이터는 주식 대시보드가 받아 둔 일별 가격(data/history/equity_daily.csv)과 단기금리.
 - 지수 총수익: S&P500 = SPY, KOSPI200 = KODEX 200(배당 재투자 반영), 나스닥100·닛케이·유로스톡스 = 지수 + 배당수익률 가정
-- 현금(단기금리): 미국 = 3개월 국채 수익률(열 이름 ^IRX, Refinitiv US3MT=RR), 한국 = 국고 3년 − 0.3%p(KOFIA 최종호가, 2012년~ — CD 금리 이력이 없어 대용)
+- 현금(단기금리): 미국 = 3개월 국채 수익률(열 이름 ^IRX, Refinitiv US3MT=RR), 한국 = CD 91일(KOFIA 최종호가 KRCD=KQ, 없는 구간만 국고 3년 − 0.3%p)
 - 선물 = 지수 총수익 − 현금(완전 담보 가정) · 롤 비용 연 0.3%p(노출 비례) · 노출이 바뀔 때 거래비용 0.05%
 - 옵션 = 블랙숄즈 추정 + 거래비용(건당 명목 0.02% + 프리미엄 3%). 내재변동성: S&P500 = VIX, 나스닥100 = VXN, KOSPI200 = VKOSPI(2009-04~).
   KOSPI200 옵션·ELB 의 행사가·정산은 가격지수 .KS200(배당 미포함), 보유분 수익은 KODEX 200 총수익.
@@ -163,10 +163,15 @@ def _align(r: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:
 
 
 def cash(ccy: str, idx: pd.DatetimeIndex) -> pd.Series:
-    """일별 현금 수익률. 한국 = 국고3년 − 0.3%p(2012~), 미국 = 3개월 국채(US3MT=RR)."""
+    """일별 현금 수익률. 한국 = CD 91일(KOFIA 최종호가 KRCD=KQ), 미국 = 3개월 국채(US3MT=RR).
+    CD 가 받아진 첫날 이전만 국고 3년 − 0.3%p 로 메운다. 그 뒤 빈 날(휴일·CD 수집 실패)은 직전 CD 값을 잇는다."""
     if ccy == "KRW":
-        k = pd.read_csv(KOFIA, index_col=0, parse_dates=True)["ktb_3y"].dropna()
-        y = (k - 0.3) / 100
+        k = pd.read_csv(KOFIA, index_col=0, parse_dates=True)
+        cd = k["cd_91d"].dropna() if "cd_91d" in k else pd.Series(dtype=float)
+        fb = (k["ktb_3y"] - 0.3).dropna()
+        if len(cd):
+            fb = fb[fb.index < cd.index[0]]
+        y = pd.concat([cd, fb]).sort_index() / 100
     else:
         y = _s("^IRX") / 100
     return y.reindex(idx.union(y.index)).ffill().reindex(idx) / 252
@@ -409,7 +414,7 @@ def _resample(x, rule):
 
 def stats(ret: pd.Series, bench: pd.Series | None = None, rf: pd.Series | None = None) -> dict:
     """rf(일별 현금 수익)를 주면 샤프는 초과수익(ret − rf) 기준, 없으면 원수익 기준.
-    현금 금리가 없는 날(한국 국고 3년은 2012년부터)은 0 으로 채우지 않고 샤프 계산에서 뺀다."""
+    현금 금리가 없는 날(한국 CD 91일 데이터 이전)은 0 으로 채우지 않고 샤프 계산에서 뺀다."""
     ret = ret.dropna()
     ex = (ret - rf.reindex(ret.index).ffill()).dropna() if rf is not None else ret
     if len(ex) < 60:
@@ -567,7 +572,7 @@ def run(sid: str, params: dict | None = None, period: str = "10y", start: str | 
     if len(ret) < MIN_DAYS:
         raise ValueError(f"이 기간에는 계산할 수 있는 날이 {len(ret)}일뿐입니다(최소 {MIN_DAYS}일). "
                          + f"이 전략은 {first}부터 계산할 수 있습니다"
-                         + " — 한국 지수 전략은 현금 금리 데이터가 2012년부터라 그 전은 안 됩니다.")
+                         + " — 그 전에는 가격·변동성 데이터가 없습니다(KOSPI200 옵션·ELB 는 VKOSPI 가 2009년 4월부터).")
     bench = _align(bench, ret.index) if bench is not None else None
     # 샤프는 현금 초과수익 기준 — 지역 상대 뷰(EQ-FUT-02)는 이미 초과수익(롱−숏)이라 현금을 빼지 않는다
     rf_key = p.get("under") or ("sp500" if sid in ("EQ-TRS-02", "EQ-TRS-03") else None)
@@ -597,9 +602,9 @@ def run(sid: str, params: dict | None = None, period: str = "10y", start: str | 
                   "bench": [round(float(v) * 100, 2) for v in (bnav.reindex(wk.index) if daily else _resample(bnav, "W-FRI").last().reindex(wk.index)).ffill().values] if bnav is not None else None,
                   "dd": [round(float(v) * 100, 2) for v in (dd if daily else _resample(dd, "W-FRI").min().reindex(wk.index)).values]},
         "assumptions": ["과거 데이터로 본 점검 자료 — 매매 지시 아님", "선물 = 지수 총수익 − 현금(완전 담보), 롤 비용 연 0.3%p, 노출 변경 거래비용 0.05%",
-                        "현금: 미국 3개월 국채, 한국 국고 3년 − 0.3%p(2012년~, CD 금리 대용)",
+                        "현금: 미국 3개월 국채, 한국 CD 91일(KOFIA 최종호가, 없는 구간만 국고 3년 − 0.3%p)",
                         "옵션: 블랙숄즈 추정·스큐 근사 — 실제 호가와 다를 수 있음",
-                        "샤프: 현금(위 금리) 초과수익 ÷ 변동성 — 지역 상대 뷰는 그 자체가 초과수익. 한국 현금 금리가 없는 2012년 이전은 샤프 계산에서만 뺀다"],
+                        "샤프: 현금(위 금리) 초과수익 ÷ 변동성 — 지역 상대 뷰는 그 자체가 초과수익. 현금 금리가 없는 날은 샤프 계산에서만 뺀다"],
         "generated_at": datetime.datetime.now().isoformat(timespec="seconds"),
     }
 
@@ -622,7 +627,7 @@ def catalog() -> dict:
              "date": x.get("date"), "desc": x.get("desc", ""), "source": x.get("source")} for x in sc]
     return {"strategies": rows, "presets": pre(PERIODS), "scenarios": scen, "categories": cats, "default_period": "10y",
             "range": {"min": _px().index[0].date().isoformat(), "max": _px().index[-1].date().isoformat()},
-            "notes": "한국 지수 전략은 현금 금리 데이터가 2012년부터, 팩터 ETF 는 2013년 무렵부터라 그 전 기간은 짧아질 수 있습니다."}
+            "notes": "KOSPI200 옵션·ELB 는 VKOSPI 가 2009년 4월부터, 팩터 ETF 는 2013년 무렵부터라 그 전 기간은 짧아질 수 있습니다."}
 
 
 def run_all(period: str = "10y", start: str | None = None, end: str | None = None, save: bool = True) -> dict:
