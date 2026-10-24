@@ -9,8 +9,10 @@
   국내 ETF 의 NAV·괴리율은 이 단말에서 안 나온다(README §4) — 쓰지 않는다.
 계산(CODE): 묶음 PER·선행 PER·PBR(비중 가중 조화평균 = 묶음 시가총액 ÷ 묶음 이익). ETF 는 구성 종목 '전체'로 계산하고
            화면에는 상위 10종목만 보인다. 이익 증가 예상(선행 EPS ÷ EPS − 1, 묶음은 PER ÷ 선행 PER − 1),
-           지수 환산 EPS(지수 ÷ PER), 업종 비중(구성 종목 GICS 합산),
-           시장 대비 비쌈·쌈(국내 = KOSPI200 묶음, 그 밖 = S&P500 의 PER 과 비교, ±15% 안은 '비슷').
+           지수 환산 EPS(지수 ÷ PER), 업종 비중(구성 종목 GICS 합산).
+           종목 PER < 1·PBR < 0.05 는 원천 오류로 보고 뺀다(sane — valhist 와 같은 규칙).
+           우선주(PREF)는 Refinitiv 가 보통주 PER·PBR 을 주므로 '보통주 값 × 우선주 가격 ÷ 보통주 가격'으로 바꾼다.
+           비싼지 싼지는 다른 시장이 아니라 자기 과거 범위로 본다(valhist.py — 에이전트 컨텍스트에 5년 위치).
 출력: data/equity_fund.json — 주식 탭 '유니버스'와 STOCK 에이전트 컨텍스트가 쓴다. 12시간 지나면 웹이 백그라운드로 다시 받는다.
 
 사용법: python fundamentals.py
@@ -52,6 +54,10 @@ SOURCE = {
 }
 INDEX_EPS = {"sp500", "ndx", "sx5e"}          # ETF 가 그 지수를 그대로 따라가 '지수 ÷ PER' 이 뜻이 있는 것
 NO_PER = {"pff": "우선주 ETF 라 PER 대신 배당을 봅니다"}
+# 우선주 → 보통주. Refinitiv 가 우선주(005935.KS)에 보통주 PER·PBR 을 그대로 준다(2026-10-24 실측, 월말 이력도 같음) — 가격 비율로 환산
+PREF = {"005935.KS": "005930.KS"}
+PREF_NOTE = "우선주 PER·PBR = 보통주 값 × 우선주 가격 ÷ 보통주 가격(Refinitiv 가 보통주 값을 주므로 환산)"
+PE_MIN, PB_MIN = 1.0, 0.05     # 이보다 작은 종목 PER·PBR 은 원천 오류로 보고 뺀다(묶음 조화평균을 한 종목이 끌어내리지 않게)
 SECTOR_KO = {
     "Information Technology": "IT", "Health Care": "헬스케어", "Industrials": "산업재",
     "Communication Services": "커뮤니케이션", "Materials": "소재", "Consumer Discretionary": "경기소비재",
@@ -77,6 +83,11 @@ def _f(v):
 
 def _pos(x):
     return x if x is not None and x > 0 else None
+
+
+def sane(pe, pb):
+    """종목 (PER, PBR) — 0 이하·없음·PER < 1·PBR < 0.05 는 None(valhist 월말 값에도 같은 규칙)."""
+    return (pe if pe is not None and pe >= PE_MIN else None), (pb if pb is not None and pb >= PB_MIN else None)
 
 
 def _growth(eps, feps):
@@ -108,16 +119,24 @@ def _rows(rics: list[str], fields: list[str], batch: int = 500) -> dict[str, lis
 def stocks(rics: list[str]) -> dict[str, dict]:
     """종목 지표 — PER 은 최근 실적, 선행 PER·추정 EPS 는 컨센서스(1년 예상). EPS = 가격 ÷ PER."""
     rics = list(dict.fromkeys(r for r in rics if r))
+    raw = _rows(list(dict.fromkeys(rics + [PREF[r] for r in rics if r in PREF])), STOCK_FIELDS)   # 우선주는 보통주도 함께
     out = {}
-    for ric, v in _rows(rics, STOCK_FIELDS).items():
+    for ric, v in raw.items():
         name, price, per, fper, feps, pbr, div, mcap, sector, roe = v
-        per, fper, pbr, price = _pos(_f(per)), _pos(_f(fper)), _pos(_f(pbr)), _f(price)
+        per, fper, pbr, price = _f(per), _pos(_f(fper)), _f(pbr), _f(price)
+        c = raw.get(PREF.get(ric))
+        if c:   # 우선주 — 보통주 PER·PBR × 가격 비율(선행 PER 은 이미 우선주 가격 기준이라 그대로)
+            k = price / _f(c[1]) if price and _f(c[1]) else None
+            per, pbr = (_f(c[2]) * k if k and _f(c[2]) else None), (_f(c[5]) * k if k and _f(c[5]) else None)
+        per, pbr = sane(per, pbr)
         eps = _r(price / per, 2) if price and per else None
         out[ric] = {"code": ric, "name": name or ric, "src": "Refinitiv", "ccy": _ccy(ric), "price": price,
                     "per": _r(per), "fper": _r(fper), "eps": eps, "feps": _r(_f(feps)), "pbr": _r(pbr),
                     "bps": _r(price / pbr, 2) if price and pbr else None, "div": _r(_f(div)),
                     "roe": _r(_f(roe), 1), "mcap": _f(mcap), "growth": _growth(eps, _f(feps)),
                     "sector": SECTOR_KO.get(sector, sector) if sector else None}
+        if c:
+            out[ric]["note"] = PREF_NOTE
     return out
 
 
@@ -159,23 +178,14 @@ def basket(hs: list) -> dict:
             "cover": _r(cov / total * 100, 0) if total else None}
 
 
-def _vs(per, ref_per, ref_name):
-    if not per or not ref_per:
-        return None
-    diff = round((per / ref_per - 1) * 100)
-    word = "비슷" if abs(diff) < 15 else ("쌈" if diff < 0 else "비쌈")
-    return {"ref_name": ref_name, "ref_per": ref_per, "diff": diff, "word": word,
-            "text": f"{ref_name}과 비슷" if word == "비슷" else f"{ref_name}보다 {abs(diff)}% {word}"}
-
-
 def _say(x):
-    """쉬운 말 한 줄 — 결론(비쌈·쌈) → 이익 전망."""
+    """쉬운 말 한 줄 — PER → 이익 전망. 비싼지 싼지는 다른 시장과 견주지 않는다(자기 과거 위치는 valhist)."""
     parts = []
     per = x.get("per") or (x.get("basket") or {}).get("per")
     if x.get("no_per"):
         parts.append(f"{x['no_per']} — 배당 {x['div']:.1f}%" if x.get("div") is not None else x["no_per"])
     elif per:
-        parts.append(f"이익의 {per:.1f}배 가격(PER)" + (f" — {x['vs']['text']}" if x.get("vs") else ""))
+        parts.append(f"이익의 {per:.1f}배 가격(PER)")
     g = x.get("growth")
     if g is not None:
         who = "이 종목" if x["kind"] == "stock" else "구성 종목"
@@ -193,6 +203,13 @@ def _sectors(hs: list) -> list:
     return sorted(({"name": k, "w": _r(v / tot * 100, 1)} for k, v in acc.items()), key=lambda x: -x["w"]) if tot else []
 
 
+def series_plan(eq: dict | None = None) -> tuple[list, dict]:
+    """유니버스 주식 항목과 받을 곳 — ([series…], {key: (종류, 코드, 메모)}). valhist 도 같은 목록을 쓴다."""
+    eq = eq or universe.load_equity()
+    series = [s for s in eq["series"] if s.get("item") and s.get("group") not in (None, "변동성")]
+    return series, {s["key"]: SOURCE.get(s["key"], ("etf", s["ticker"], "")) for s in series}
+
+
 def build(save: bool = True) -> dict:
     warnings.filterwarnings("ignore")
     if not R.available(force=True):
@@ -206,8 +223,7 @@ def build(save: bool = True) -> dict:
                 last[r["key"]] = r.get("last")
     except Exception:  # noqa: BLE001
         pass
-    series = [s for s in eq["series"] if s.get("item") and s.get("group") not in (None, "변동성")]
-    plan = {s["key"]: SOURCE.get(s["key"], ("etf", s["ticker"], "")) for s in series}
+    series, plan = series_plan(eq)
 
     # 1) ETF 머리 정보 + 구성 종목 전체, 2) 구성 종목과 단일 종목 항목의 지표를 한 번에
     heads = etfs([c for k, c, _ in plan.values() if k == "etf"])
@@ -223,6 +239,8 @@ def build(save: bool = True) -> dict:
             h = st.get(single[code], {})
             x["error"] = None if h else "Refinitiv 값 없음"
             x.update({k: h.get(k) for k in ("price", "per", "fper", "eps", "feps", "pbr", "bps", "div", "roe", "mcap", "growth", "ccy")})
+            if h.get("note"):
+                x["memo"] = h["note"]
         else:
             h = heads.get(code, {})
             x["error"] = h.get("holdings_error") or (None if h.get("holdings") else "구성 종목 없음")
@@ -244,14 +262,6 @@ def build(save: bool = True) -> dict:
             x["per"] = x["fper"] = x["growth"] = None
         items.append(x)
 
-    # 3) 시장 대비 — 국내는 KOSPI200 묶음, 나머지는 S&P500
-    by = {x["key"]: x for x in items}
-    ref_kr, ref_us = (by.get("kospi200") or {}).get("per"), (by.get("sp500") or {}).get("per")
-    for x in items:
-        kr = str(x["code"]).endswith((".KS", ".KQ")) and x["key"] not in ("kospi", "kospi200", "kosdaq")
-        if x["key"] in ("sp500", "kospi200") or x.get("no_per"):
-            continue
-        x["vs"] = _vs(x.get("per"), ref_kr, "KOSPI200") if kr else _vs(x.get("per"), ref_us, "S&P500")
     for x in items:
         x["say"] = _say(x)
 
@@ -262,6 +272,7 @@ def build(save: bool = True) -> dict:
          "notes": ["PER·PBR 은 최근 실적 기준, 선행 PER·추정 EPS 는 애널리스트 1년 예상(컨센서스)입니다.",
                    "지수는 이익 데이터가 없어 대표 ETF 로 대신했습니다(항목마다 '기준' 표시).",
                    "ETF 의 PER 은 구성 종목 전체의 비중 가중 묶음 기준(적자 종목은 제외, '덮은 비중' 표시).",
+                   "비싼지 싼지는 다른 시장이 아니라 자기 과거 PER·PBR 범위 안 위치로 봅니다(과거와 같은 기준 = 구성 상위 90%).",
                    "출처: Refinitiv(LSEG) · 로컬 전용(재배포 금지) · 매매 지시 아님."]}
     if save:
         tmp = OUT.with_suffix(".json.tmp")
@@ -285,14 +296,18 @@ def age_hours() -> float | None:
 
 
 def to_markdown(d: dict) -> str:
-    """STOCK 에이전트 컨텍스트 — 항목별 한 줄."""
+    """STOCK 에이전트 컨텍스트 — 항목별 한 줄. 위치 = 자기 과거 5년 월말 값 중 백분위(valhist, 없으면 '-')."""
+    import valhist   # 순환 import 피하려고 여기서
+    vh = valhist.load()
     n = lambda v, s="": "-" if v is None else f"{v:.1f}{s}"  # noqa: E731
     lines = [f"## 주식 유니버스 밸류에이션 ({d['generated_at'][:16]} · Refinitiv)",
-             "| 항목 | PER | 선행 PER | 이익 증가 예상 | PBR | 배당 | 시장 대비 | 기준 |", "|---|---|---|---|---|---|---|---|"]
+             "| 항목 | PER(구성 전체) | 선행 PER | 이익 증가 예상 | PBR | 배당 | 자기 과거 5년 위치 | 기준 |", "|---|---|---|---|---|---|---|---|"]
     for x in d["items"]:
         lines.append(f"| {x['name']} | {n(x.get('per'), '배')} | {n(x.get('fper'), '배')} | {n(x.get('growth'), '%')} | {n(x.get('pbr'), '배')} | "
-                     f"{n(x.get('div'), '%')} | {(x.get('vs') or {}).get('text', '-')} | {x.get('memo') or x.get('per_src') or x['src']} |")
+                     f"{n(x.get('div'), '%')} | {'-' if x.get('no_per') else valhist.position_text(vh, x['key'])} | {x.get('memo') or x.get('per_src') or x['src']} |")
     lines += [f"- {t}" for t in d.get("notes", [])]
+    if vh:
+        lines.append("- 위치 = 지금 값보다 낮았던 달 비율(높을수록 자기 과거보다 비쌈). ETF·지수는 과거와 같은 기준(구성 상위 90%)의 값이라 PER 열(구성 전체)과 다를 수 있음.")
     return "\n".join(lines)
 
 

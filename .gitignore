@@ -7,6 +7,7 @@ data/history/
 data/market.json
 data/equity.json
 data/equity_fund.json
+data/equity_valhist.json
 data/macro_live.json
 data/quant.json
 data/quant/

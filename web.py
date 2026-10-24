@@ -661,6 +661,13 @@ def api_equity_fund():
     return jsonify(d)
 
 
+@app.get("/api/equity/valhist")
+def api_equity_valhist():
+    """유니버스 항목별 자기 과거 PER·PBR 월말 이력(valhist.py) — 없으면 빈 items."""
+    import valhist
+    return jsonify(valhist.load() or {"generated_at": None, "method": None, "items": {}})
+
+
 @app.post("/api/equity/fund/refresh")
 def api_equity_fund_refresh():
     import fundamentals
