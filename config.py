@@ -52,7 +52,7 @@ LAN_KEY_FILE = DATA_DIR / ".lan_key"     # 접속 키(처음 켤 때 무작위 �
 # 사내 공유 보기에서 허용하는 POST — 화면을 바꾸지 않는 계산만(백테스트 한 건)
 LAN_POST_ALLOW = {"/api/backtest/run"}
 # 사내 공유 보기에서 숨기는 화면(경로 앞부분) — 무엇을 보일지는 업무 판단으로 정한다
-LAN_HIDE: list[str] = []
+LAN_HIDE: list[str] = ["/api/universe/spark"]   # 점수판 차트용 1년 일별 원시 시계열(Refinitiv) — 운영 PC 에서만
 # 매크로 화면을 보고 있을 때 인포맥스 값을 다시 받는 주기(분) — 한 번에 숨김 엑셀이 약 10초 떴다 닫힌다.
 INFOMAX_REFRESH_MIN = 5
 

@@ -292,7 +292,10 @@ def scan(panel: pd.DataFrame) -> list[dict]:
         ap, _, flags = analog_paths(r, HORIZONS["6M"], vix)
         med = round(float(np.median(ap[:, -1])) * 100, 2) if len(ap) else None
         up = round(float((ap[:, -1] > 0).mean()) * 100) if len(ap) else None
+        fin = np.sort(ap[:, -1]) * 100 if len(ap) else np.empty(0)   # 국면 표본의 6개월 뒤 수익률 — 홈 점수판 히스토그램
         rows.append({"key": col, "name": name, **t, "analog_6m_median_pct": med, "analog_6m_up_pct": up, "flags": flags,
+                     "analog_6m_sample": [round(float(x), 1) for x in fin],
+                     "analog_6m_q": [round(float(x), 1) for x in np.percentile(fin, [5, 25, 50, 75, 95])] if len(fin) else None,
                      "as_of": s.index[-1].date().isoformat()})
     return sorted(rows, key=lambda x: -x["score"])
 

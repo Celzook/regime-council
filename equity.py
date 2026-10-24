@@ -188,12 +188,84 @@ def build(save: bool = True, full: bool = False) -> dict:
     return d
 
 
+KR_RATES = [("bok_base", "기준금리"), ("cd_91d", "CD91"), ("ktb3y_base", "국고3년−기준"),
+            ("spread_bbb", "BBB- 스프레드"), ("ks200_basis", "베이시스")]
+
+
+def kr_rates() -> list[dict] | None:
+    """주식 탭 '시장 한눈에' 위 한 줄 — 국내 금리·크레딧·선물 베이시스의 수준과 1주·1개월 변화(analytics 시계열).
+    변화 단위: 금리·스프레드는 bp, 베이시스는 %p. 시계열을 못 읽으면 None(화면은 줄을 숨긴다)."""
+    try:
+        import analytics
+        df = analytics.load_panel()
+        out = []
+        for col, label in KR_RATES:
+            s = analytics.stats(col, df)
+            if not s or s.get("value") is None:
+                continue
+            pp = col == "ks200_basis"   # stats 는 rate 변화를 ×100(bp) 으로 준다 — 베이시스는 %p 로 되돌린다
+            cv = lambda x: None if x is None else (round(x / 100, 2) if pp else x)  # noqa: E731
+            out.append({"key": col, "label": label, "name": s["name"], "value": s["value"], "unit": s["unit"],
+                        "as_of": s["as_of"], "chg_1w": cv(s.get("chg_1w")), "chg_1m": cv(s.get("chg_1m")),
+                        "chg_unit": "%p" if pp else "bp", "source": s["source"]})
+        return out or None
+    except Exception:  # noqa: BLE001 — 보조 줄이라 주식 탭 전체를 막지 않는다
+        return None
+
+
+_SPARK: dict = {}
+
+
+def sparks() -> dict:
+    """홈 점수판 차트용 1년 일별 값 — 주식 유니버스(equity_daily.csv)와 정량 스캐너(analytics 패널, 금리는 가격 환산).
+    항목마다 {d0: 첫 날짜, t: d0 부터 날짜 수, v: 값, m: 200일 이동평균}. 원본 파일이 바뀔 때만 다시 계산한다."""
+    import analytics
+    import quant
+    files = [HIST] + [analytics.HIST_DIR / f for f in analytics.HIST_FILES] + [config.DATA_DIR / "market.json"]
+    key = tuple((p.name, p.stat().st_mtime) for p in files if p.exists())
+    if _SPARK.get("key") == key:
+        return _SPARK["d"]
+    g = lambda x: None if x is None or not math.isfinite(x) else float(f"{x:.6g}")  # noqa: E731
+
+    def pack(s: pd.Series) -> dict | None:
+        s = _clean(s)
+        if len(s) < 30:
+            return None
+        ma = s.rolling(200).mean()
+        w = s[s.index > s.index[-1] - pd.DateOffset(years=1)]
+        d0 = w.index[0]
+        return {"d0": d0.date().isoformat(), "t": [(d - d0).days for d in w.index], "v": [g(float(x)) for x in w],
+                "m": [g(float(x)) for x in ma.reindex(w.index)]}
+
+    out = {"eq": {}, "q": {}}
+    if HIST.exists():
+        px = pd.read_csv(HIST, index_col=0, parse_dates=True)
+        for r in universe.load_equity()["series"]:
+            if not r.get("level") and r["ticker"] in px:
+                p = pack(px[r["ticker"]])
+                if p:
+                    out["eq"][r["key"]] = p
+    panel = analytics.load_panel()
+    for col, _name, mult in quant.SCAN:
+        if col not in panel:
+            continue
+        s = _clean(panel[col])
+        nav = (1 + mult * s.diff().fillna(0) / 100).cumprod() * 100 if mult < 0 else s   # 금리는 scan() 과 같은 가격 환산 지수
+        p = pack(nav)
+        if p:
+            out["q"][col] = p
+    _SPARK.update(key=key, d=out)
+    return out
+
+
 def load(max_age_hours: float | None = None) -> dict | None:
     d = load_json(OUT)
     if d and max_age_hours is not None:
         age = datetime.datetime.now() - datetime.datetime.fromisoformat(d["generated_at"])
         if age.total_seconds() > max_age_hours * 3600:
             return None
+    if d is not None:
+        d["kr_rates"] = kr_rates()
     return d
 
 

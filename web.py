@@ -632,6 +632,13 @@ def api_equity():
     return jsonify(d)
 
 
+@app.get("/api/universe/spark")
+def api_universe_spark():
+    """홈 점수판 차트 — 주식 유니버스·정량 스캐너의 1년 일별 값과 200일선(읽기 전용, 원본 파일이 바뀔 때만 다시 계산)."""
+    import equity
+    return jsonify(equity.sparks())
+
+
 @app.post("/api/equity/refresh")
 def api_equity_refresh():
     import equity

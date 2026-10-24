@@ -113,6 +113,23 @@
   .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px; vertical-align:middle; }
   .pill { font-size:12px; padding:0 6px; color:var(--muted); white-space:nowrap; font-weight:500; font-variant-numeric:tabular-nums; }
   .pill.bad { color:var(--bad-ink); } .pill.ok { color:var(--good-ink); }
+  /* 데이터 점검(지연·급변·정지·누락) 배지 + 목록 — 경고가 있을 때만 배지 */
+  .hbadge { margin-left:6px; padding:0 7px; border:none; border-radius:99px; font:inherit; font-size:11px; font-weight:700; line-height:18px; vertical-align:1px; cursor:pointer;
+            background:color-mix(in srgb, var(--caution) 18%, transparent); color:var(--caution-ink); }
+  .hbadge:hover, .hbadge[aria-expanded="true"] { background:color-mix(in srgb, var(--caution) 30%, transparent); }
+  .hbadge:focus-visible { outline:2px solid var(--brand); outline-offset:1px; }
+  #healthPop { position:fixed; z-index:72; width:min(380px, calc(100vw - 24px)); max-height:min(60vh, 420px); overflow-y:auto; padding:10px 12px 8px;
+               background:var(--surface); border-radius:var(--r-sm); box-shadow:var(--shadow-lg); font-size:12px; color:var(--ink); animation:fadeUp .15s ease both; }
+  #healthPop[hidden] { display:none; }
+  #healthPop .hp-head { display:flex; justify-content:space-between; gap:8px; font-weight:700; font-size:13px; margin-bottom:6px; }
+  #healthPop .hp-head .kv { font-weight:500; white-space:nowrap; }
+  #healthPop ul { list-style:none; margin:0; padding:0; }
+  #healthPop li { display:grid; grid-template-columns:auto auto 1fr; gap:2px 8px; align-items:baseline; padding:5px 0; border-top:1px solid var(--hair); }
+  #healthPop li b { font-weight:600; white-space:nowrap; }
+  #healthPop .hk { font-size:11px; font-weight:700; padding:0 6px; border-radius:99px; white-space:nowrap; background:var(--fill-2); color:var(--muted); }
+  #healthPop li.warn .hk { background:color-mix(in srgb, var(--caution) 18%, transparent); color:var(--caution-ink); }
+  #healthPop .hd { color:var(--muted); min-width:0; overflow-wrap:anywhere; }
+  #healthPop .hp-foot { color:var(--muted); font-size:11px; margin-top:6px; }
   .btn { padding:6px 14px; border-radius:99px; border:none; background:var(--fill-2); cursor:pointer; color:var(--ink); font-weight:600; font-size:13px; transition:background .15s, transform .1s, box-shadow .2s; }
   .btn:hover { background:var(--fill-4); } .btn:active { transform:scale(.97); }
   .btn.primary { background:var(--brand-btn); color:var(--on-accent); } .btn.primary:hover { background:var(--brand-btn-hover); }
@@ -532,7 +549,80 @@
   .hm-foot { font-size:12px; color:var(--muted); margin-top:8px; }
   .hm-vol { display:flex; flex-wrap:wrap; align-items:center; gap:6px 18px; font-size:13px; margin:0 0 8px; padding-bottom:8px; border-bottom:1px solid var(--hair); }
   .hm-vx { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-variant-numeric:tabular-nums; } .hm-vx b { font-weight:700; }
+  /* ── 홈 · 유니버스 점수판 (기술 점수 반원 게이지) — 음수 빨강 · 양수 초록 · ±10 안 회색 ── */
+  .sb-wrap { --tw:96px; display:flex; flex-wrap:wrap; gap:10px 22px; }
+  .sb-grp { flex:0 1 auto; width:max(calc(var(--n) * (var(--tw) + 6px) - 6px), 236px); max-width:100%; min-width:0; }   /* 236px = 이름·정량·평균 머리줄이 겹치지 않는 폭 */
+  .sb-gh { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); margin:0 0 4px; white-space:nowrap; }
+  .sb-gh > b { color:var(--ink2); font-weight:700; letter-spacing:.02em; }
+  .sb-gh .sb-src { font-size:11px; padding:0 6px; border-radius:99px; background:var(--fill-2); }
+  .sb-avg { display:inline-flex; align-items:center; gap:5px; margin-left:auto; font-variant-numeric:tabular-nums; }   /* 그룹 폭 = 타일 폭이라 오른쪽 끝이 곧 마지막 타일 끝 */
+  .sb-avg .ab { position:relative; width:40px; height:4px; border-radius:2px; background:var(--fill-3); }
+  .sb-avg .ab::after { content:''; position:absolute; left:50%; top:-2px; width:1px; height:8px; background:var(--axis); }
+  .sb-avg .ab i { position:absolute; top:0; bottom:0; border-radius:2px; background:var(--flat); }
+  .sb-avg .ab i.up { background:var(--up); } .sb-avg .ab i.down { background:var(--down); }
+  .sb-avg b { font-weight:700; color:var(--ink2); } .sb-avg b.up { color:var(--up-ink); } .sb-avg b.down { color:var(--down-ink); }
+  .sb-tiles { display:grid; grid-template-columns:repeat(auto-fill, minmax(var(--tw), 1fr)); gap:6px; }
+  .sb-tile { display:flex; flex-direction:column; align-items:center; min-width:0; padding:6px 6px 5px; border:none; border-radius:var(--r-sm); background:var(--fill-1);
+             font:inherit; color:inherit; cursor:pointer; transition:background .15s, box-shadow .15s; }
+  .sb-tile:hover { background:var(--fill-2); box-shadow:inset 0 0 0 1px var(--line); }
+  .sb-tile:focus-visible { outline:2px solid var(--brand); outline-offset:1px; }
+  .sb-tile svg { width:64px; height:36px; flex:none; overflow:visible; }
+  .sb-tile .trk { fill:none; stroke:var(--fill-3); stroke-width:6; stroke-linecap:round; }
+  .sb-tile .tk { stroke:var(--axis); stroke-width:1; }
+  .sb-tile .arc { fill:none; stroke:var(--flat); stroke-width:6; }
+  .sb-tile .nd { fill:var(--flat); stroke:var(--surface); stroke-width:1.5; }
+  .sb-tile.up .arc { stroke:var(--up); } .sb-tile.up .nd { fill:var(--up); }
+  .sb-tile.down .arc { stroke:var(--down); } .sb-tile.down .nd { fill:var(--down); }
+  .sb-nm { max-width:100%; margin-top:1px; font-size:12px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sb-sc { display:flex; align-items:baseline; gap:4px; font-size:11px; color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .sb-sc b { font-size:12px; font-weight:700; color:var(--ink2); }
+  .sb-tile.up .sb-sc b { color:var(--up-ink); } .sb-tile.down .sb-sc b { color:var(--down-ink); }
+  .sb-note { font-size:12px; color:var(--muted); margin-top:8px; }
+  /* 점수판 차트 팝오버 — 고정 크기, 텍스트는 글자 토큰만(데이터 색은 막대·선에만) */
+  #sbPop { position:fixed; z-index:72; width:340px; max-width:calc(100vw - 16px); height:338px; padding:10px 12px; overflow:hidden; background:var(--surface); border-radius:var(--r-sm);
+           box-shadow:var(--shadow-lg); font-size:12px; color:var(--ink); animation:fadeUp .12s ease both; }
+  #sbPop[hidden] { display:none; }
+  #sbPop svg { display:block; max-width:100%; overflow:visible; }
+  #sbPop .kv b { color:var(--ink); }
+  .pp-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:4px; }
+  .pp-nm { min-width:0; display:flex; flex-direction:column; } .pp-nm b { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .pp-nm .kv { font-size:11px; white-space:nowrap; }
+  .pp-score { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .pp-score b { font-size:14px; color:var(--ink); } .pp-score i { width:8px; height:8px; border-radius:50%; background:var(--flat); }
+  .pp-score.up i { background:var(--up); } .pp-score.down i { background:var(--down); }
+  .pp-h { display:flex; justify-content:space-between; align-items:baseline; gap:6px; margin:6px 0 2px; font-size:11px; font-weight:700; color:var(--ink2); white-space:nowrap; }
+  .pp-h .kv { font-size:11px; font-weight:500; }
+  .pp-h .lk { display:inline-block; width:10px; height:2px; margin:0 3px 3px 6px; vertical-align:middle; border-radius:1px; background:var(--series-1); }
+  .pp-h .lk.ma { background:var(--series-bench); } .pp-h .lk.dd { height:8px; margin-bottom:0; background:color-mix(in srgb, var(--down) 18%, transparent); }
+  .pp-read { font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; height:15px; font-variant-numeric:tabular-nums; }
+  .pp-cols { display:grid; grid-template-columns:140px 1fr; gap:8px; }
+  .pp-cols > div { min-width:0; }
+  .pp-rsi { display:flex; align-items:center; gap:5px; margin-top:3px; font-size:11px; color:var(--muted); white-space:nowrap; } .pp-rsi b { color:var(--ink); font-variant-numeric:tabular-nums; }
+  .pp-val { padding:6px 4px 2px; } .pp-val .vtrack { display:block; width:100%; }
+  .pp-cap { display:flex; justify-content:space-between; gap:6px; font-size:11px; color:var(--muted); white-space:nowrap; } .pp-cap b { color:var(--ink); font-weight:600; }
+  .pp-cap > span:nth-child(2) { overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .pp-empty { display:flex; align-items:center; font-size:11px; color:var(--muted); min-height:22px; }
+  #sbPop .pl, #sbPop .pv { font-size:11px; fill:var(--muted); font-variant-numeric:tabular-nums; } #sbPop .pv { fill:var(--ink2); }
+  #sbPop .pz { stroke:var(--axis); stroke-width:1; } #sbPop .pg { stroke:var(--grid); stroke-width:1; }
+  #sbPop .pb { fill:var(--flat); } #sbPop .pb.up { fill:var(--up); } #sbPop .pb.down { fill:var(--down); }
+  #sbPop .ppx { fill:none; stroke:var(--series-1); stroke-width:1.5; stroke-linejoin:round; stroke-linecap:round; }
+  #sbPop .pma { fill:none; stroke:var(--series-bench); stroke-width:1.5; stroke-linejoin:round; }
+  #sbPop .pdd { fill:color-mix(in srgb, var(--down) 14%, transparent); } #sbPop .phi { stroke:color-mix(in srgb, var(--down) 45%, transparent); stroke-width:1; }
+  #sbPop .pxh { stroke:var(--axis); stroke-width:1; } #sbPop .pdot { fill:var(--series-1); stroke:var(--surface); stroke-width:2; }
+  #sbPop .phit { cursor:crosshair; }
+  #sbPop .rz { fill:var(--fill-3); } #sbPop .rlo { fill:color-mix(in srgb, var(--cheap) 40%, transparent); } #sbPop .rhi { fill:color-mix(in srgb, var(--rich) 45%, transparent); }
+  #sbPop .rdot { fill:var(--ink); stroke:var(--surface); stroke-width:2; }
+  #sbPop .pw { stroke:var(--axis); stroke-width:1; } #sbPop .pbx { fill:var(--fill-3); stroke:var(--axis); stroke-width:1; } #sbPop .pmed { stroke:var(--ink); stroke-width:2; }
+  @container main (max-width:600px){   /* 폰: 한 줄 4개 — 게이지·여백을 줄인다 */
+    .sb-wrap { --tw:74px; gap:8px 14px; } .sb-tile { padding:5px 3px 4px; } .sb-tile svg { width:54px; height:31px; }
+    .sb-sc { gap:3px; letter-spacing:-.02em; } }
   .pctl.sm { width:48px; height:6px; margin:0; } .pctl.sm i { top:-3px; height:12px; width:3px; margin-left:-1.5px; }
+  /* 국내 금리·크레딧 한 줄 — 수준 + 1개월 변화(조이는 쪽 = 빨강, 푸는 쪽 = 초록, 베이시스는 중립) */
+  .hm-rates { gap:4px 10px; font-size:12px; }   /* 1024 이상 한 줄에 들어가게 맞춘 폭 — 넘치면 항목 단위로 줄바꿈 */
+  .hm-rates .hm-vx { gap:4px; } .hm-rates .hm-vx b { color:var(--ink); }
+  .hm-rates .hm-vx > span:first-child { color:var(--ink2); font-weight:600; }
+  .hm-rates .rchg { font-size:11px; font-weight:600; color:var(--muted); }
+  .hm-rates .rchg.tight { color:var(--down-ink); } .hm-rates .rchg.ease { color:var(--up-ink); }
+  .hm-rates .hm-vx.stale { opacity:.55; }
   /* ── 주식 · 유니버스 밸류에이션 ── */
   table.eqt td.chev { color:var(--muted); font-size:16px; line-height:1; padding-left:2px; }
   .flow.cheap { background:color-mix(in srgb, var(--cheap) 12%, transparent); color:var(--cheap-ink); } .flow.rich { background:color-mix(in srgb, var(--rich) 15%, transparent); color:var(--rich-ink); }
@@ -733,6 +823,8 @@
 <body>
 <div id="siriGlow" aria-hidden="true"></div>
 <div id="tip" role="tooltip"></div>
+<div id="healthPop" role="dialog" aria-label="데이터 점검 결과" hidden></div>
+<div id="sbPop" role="tooltip" hidden></div>
 
 <!-- 에이전트 대화 — 왼쪽 아래 풍선 + 챗봇 창 (모든 탭에서) -->
 <button id="chatFab" class="chat-fab" aria-label="에이전트와 대화" aria-expanded="false" aria-controls="chatPanel">
@@ -918,6 +1010,8 @@
 <section class="page" id="page-home">
   <div id="sampleNotice" class="notice" style="display:none"></div>
   <div class="kpis" id="gauges"></div>
+  <div class="card" id="scoreCard"><h2>유니버스 점수판 <span class="sub">기술 점수 −100(약세) ~ +100(강세) = 추세·6개월·1개월 모멘텀·RSI 합성 · 마우스를 올리면(폰은 한 번 누르면) 차트, 누르면 해당 탭</span></h2>
+    <div id="scoreBoard"><div class="empty">불러오는 중…</div></div></div>
   <!-- 비어 있는 카드(발동 신호·괴리·브리프·검증)는 이 띠에 한 줄씩 모이고, 아래 격자에서는 빠진다 -->
   <div class="card quiet" id="homeQuiet" hidden></div>
   <div class="grid g2" id="homeGrid">
@@ -1069,6 +1163,7 @@ function showTab(t){
   if(t === 'strategy') loadStrategy();
   if(t === 'equity') loadEquity();
   if(t === 'bt') loadBt();
+  if(t === 'home' && Date.now() - SB.qAt > 600000) loadScoreboard();
   if(!$('chatPanel').hidden) refreshChatContext();  // 대화창이 열려 있으면 '화면 공유' 대상도 바뀐다
 }
 
@@ -1096,10 +1191,43 @@ function renderFeed(f){
   const bad = !f.refinitiv_ok || (last && !last.ok);
   el.className = 'pill ' + (bad ? 'bad' : 'ok');
   el.innerHTML = `<span class="dot" style="background:var(${f.refinitiv_ok ? '--ok' : '--halt'})"></span>Refinitiv ${f.refinitiv_ok ? '연결' : '끊김'} · ${esc(lastTxt)}`;
+  const h = f.health, nw = (h && +h.n_warn) || 0, ni = (h && +h.n_info) || 0;
+  if(nw > 0) el.insertAdjacentHTML('beforeend', `<button type="button" class="hbadge" id="healthBadge" aria-haspopup="dialog" aria-controls="healthPop" aria-expanded="${$('healthPop').hidden ? 'false' : 'true'}" title="">데이터 점검 ${nw}</button>`);
   el.title = [f.refinitiv_ok ? '' : `Refinitiv: ${f.refinitiv_error || '미연결'} — Workspace 를 켜고 로그인하세요.`,
               last && last.error ? `마지막 갱신: ${last.error}` : '', last && last.failed && last.failed.length ? `실패 단계: ${last.failed.join(', ')}` : '',
-              '자동 갱신: 평일 16:30 (refresh_all.py)'].filter(Boolean).join('\n');
+              '자동 갱신: 평일 16:30 (refresh_all.py)',
+              h ? `데이터 점검 ${(h.checked_at || '').replace('T', ' ').slice(5, 16)} — 경고 ${nw} · 참고 ${ni}${nw ? ' (배지를 눌러 목록)' : ''}` : ''].filter(Boolean).join('\n');
+  HEALTH = h || null;
+  if(!$('healthPop').hidden) nw > 0 ? renderHealthPop() : closeHealthPop();
 }
+// 데이터 점검 목록 — 배지에 마우스를 올리거나 누르면 열린다(누르면 고정). 원격 화면은 세부 없이 건수만 올 수 있다
+let HEALTH = null, HP_PIN = false, HP_T = null;
+const HK = {stale: '지연', jump: '급변', flat: '정지', missing: '누락'};
+function renderHealthPop(){
+  const h = HEALTH || {}, iss = Array.isArray(h.issues) ? [...h.issues].sort((a, b) => (a.severity === 'warn' ? 0 : 1) - (b.severity === 'warn' ? 0 : 1)) : null;
+  const nw = +h.n_warn || 0, ni = +h.n_info || 0;
+  $('healthPop').innerHTML = `<div class="hp-head"><span>데이터 점검</span><span class="kv">경고 ${nw} · 참고 ${ni}${h.checked_at ? ` · ${esc(h.checked_at.replace('T', ' ').slice(5, 16))}` : ''}</span></div>`
+    + (iss && iss.length ? `<ul>${iss.map(i => `<li class="${i.severity === 'warn' ? 'warn' : 'info'}"><span class="hk">${esc(HK[i.kind] || i.kind || '-')}</span><b>${esc(i.label || i.key || '')}</b><span class="hd">${esc(i.detail || '')}</span></li>`).join('')}</ul>`
+         + (nw + ni > iss.length ? `<div class="hp-foot">외 ${nw + ni - iss.length}건 — 전체는 data/log/data_health.json</div>` : '')
+       : nw + ni ? '<div class="hp-foot">세부 항목은 운영 PC 화면에서만 보입니다.</div>' : '')
+    + '<div class="hp-foot">지연 = 기준일이 오래됨 · 급변 = 하루 변화가 평소보다 큼 · 정지 = 값이 며칠째 그대로 · 누락 = 값 없음</div>';
+}
+function openHealthPop(pin){
+  const btn = $('healthBadge'), pop = $('healthPop'); if(!btn) return;
+  HP_PIN = HP_PIN || !!pin; clearTimeout(HP_T); renderHealthPop(); pop.hidden = false; btn.setAttribute('aria-expanded', 'true');
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth;
+  pop.style.top = (r.bottom + 6) + 'px'; pop.style.left = Math.max(12, Math.min(r.right - w, innerWidth - w - 12)) + 'px';
+}
+function closeHealthPop(){ HP_PIN = false; clearTimeout(HP_T); $('healthPop').hidden = true; const b = $('healthBadge'); if(b) b.setAttribute('aria-expanded', 'false'); }
+document.addEventListener('click', e => {
+  if(e.target.closest('#healthBadge')){ (!$('healthPop').hidden && HP_PIN) ? closeHealthPop() : openHealthPop(true); return; }
+  if(!e.target.closest('#healthPop') && !$('healthPop').hidden) closeHealthPop();
+});
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && !$('healthPop').hidden){ const b = $('healthBadge'); closeHealthPop(); if(b) b.focus(); } });
+document.addEventListener('mouseover', e => {
+  if(e.target.closest('#healthBadge, #healthPop')){ clearTimeout(HP_T); if($('healthPop').hidden) openHealthPop(false); }
+  else if(!$('healthPop').hidden && !HP_PIN){ clearTimeout(HP_T); HP_T = setTimeout(closeHealthPop, 250); }
+});
 
 // ── 개요(대시보드) ──
 async function loadOverview(){
@@ -1447,11 +1575,232 @@ function renderStrategy(){
 $('btnStrat').onclick = async () => { try { const j = await api('/api/quant/run', {method:'POST'}); pollJob(j.job_id, '전략 재계산', () => loadStrategy()); } catch(e){ alert(e.message); } };
 document.addEventListener('keydown', e => { const r = e.target.closest && e.target.closest('.prow2'); if(r && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); r.click(); } });
 
+// ── 홈 · 유니버스 점수판 — 주식 유니버스(/api/equity groups)와 정량 스캐너(/api/quant scanner)의 기술 점수 ──
+// 주식 쪽은 시작 때 loadEquity 가 받아 오는 것을 같이 쓰고, 정량 쪽만 따로 받는다(둘 중 하나가 실패해도 나머지는 그린다)
+const SB = {eq: null, q: null, eqErr: null, qErr: null, qAt: 0, items: {}};
+const SB_EQ_GROUPS = ['국내', '선진국', '신흥국', '스타일·팩터', '섹터·테마', '우선주'];
+const SB_Q_GROUPS = [['주가지수', null], ['환율', ['dxy', 'usdkrw', 'usdjpy', 'eurusd', 'usdcny']], ['채권(가격)', ['ktb_10y', 'ktb_3y', 'ust_10y_cmt', 'ust_2y']], ['원자재', ['wti', 'gold']]];
+async function loadScoreboard(){
+  SB.qAt = Date.now();
+  try { SB.q = await api('/api/quant'); SB.qErr = null; } catch(e){ SB.qErr = e.message; }
+  renderScoreboard();
+}
+const sbTone = s => s >= 10 ? 'up' : s <= -10 ? 'down' : '';
+function sbGauge(score){   // 반원: 왼쪽 끝 −100, 꼭대기 0, 오른쪽 끝 +100. 0 에서 점수까지 호를 채우고 끝에 점
+  const s = Math.max(-100, Math.min(100, +score || 0)), cx = 32, cy = 31, r = 25, f = a => (a * Math.PI) / 180;
+  const a = 90 - s * 0.9, x = (cx + r * Math.cos(f(a))).toFixed(2), y = (cy - r * Math.sin(f(a))).toFixed(2);
+  return `<svg viewBox="0 0 64 36" aria-hidden="true"><path class="trk" d="M${cx - r} ${cy} A${r} ${r} 0 0 1 ${cx + r} ${cy}"/>`
+    + `<line class="tk" x1="${cx}" y1="${cy - r - 5}" x2="${cx}" y2="${cy - r + 5}"/>`
+    + (Math.abs(s) >= 0.5 ? `<path class="arc" d="M${cx} ${cy - r} A${r} ${r} 0 0 ${s > 0 ? 1 : 0} ${x} ${y}"/>` : '')
+    + `<circle class="nd" cx="${x}" cy="${y}" r="3.6"/></svg>`;
+}
+const sbNum = (v, d = 1, u = '') => v === null || v === undefined || !isFinite(v) ? '-' : sgf(v, d) + u;
+function sbTile(it){
+  const t = it.t, sc = +t.score, tone = sbTone(sc), id = `${it.src}:${it.key}`;
+  SB.items[id] = it;
+  return `<button type="button" class="sb-tile ${tone}" data-id="${esc(id)}" data-tab="${it.src === 'eq' ? 'equity' : 'quant'}" aria-label="${esc(`${it.name} 기술 점수 ${sbNum(sc, 0)}, ${t.label || ''} — 누르면 ${it.src === 'eq' ? '주식' : '정량'} 탭`)}">`
+    + `${sbGauge(sc)}<span class="sb-nm">${esc(it.short)}</span><span class="sb-sc"><b>${sbNum(sc, 0)}</b>${esc(t.label || '')}</span></button>`;
+}
+function sbGroup(name, items, src){
+  if(!items.length) return '';
+  const avg = items.reduce((a, it) => a + (+it.t.score), 0) / items.length, tone = sbTone(avg), w = Math.min(50, Math.abs(avg) / 2);
+  return `<div class="sb-grp" style="--n:${items.length}"><div class="sb-gh"><b>${esc(name)}</b>${src ? `<span class="sb-src">${src}</span>` : ''}`
+    + `<span class="sb-avg" aria-label="${esc(`${name} 평균 ${sbNum(avg, 0)}`)}">평균<span class="ab"><i class="${tone}" style="${avg >= 0 ? 'left' : 'right'}:50%;width:${w.toFixed(1)}%"></i></span><b class="${tone}">${sbNum(avg, 0)}</b></span></div>`
+    + `<div class="sb-tiles">${items.map(sbTile).join('')}</div></div>`;
+}
+function renderScoreboard(){
+  const box = $('scoreBoard'); if(!box) return;
+  const ok = x => x && x.score !== null && x.score !== undefined && isFinite(x.score);
+  let h = '';
+  const groups = (SB.eq && SB.eq.groups) || [];
+  SB_EQ_GROUPS.forEach(n => { const g = groups.find(x => x.name === n); if(!g) return;
+    h += sbGroup(n, g.rows.filter(r => ok(r.tech)).map(r => ({src: 'eq', key: r.key, t: r.tech, name: r.name, short: r.short || r.name, ticker: r.ticker, as_of: r.as_of, row: r})), ''); });
+  const sc = ((SB.q && SB.q.scanner) || []).filter(ok), used = new Set(SB_Q_GROUPS.flatMap(([, ks]) => ks || []));
+  SB_Q_GROUPS.forEach(([n, ks]) => h += sbGroup(n, sc.filter(s => ks ? ks.includes(s.key) : !used.has(s.key)).map(s => ({src: 'q', key: s.key, t: s, name: s.name, short: s.name.replace(/\s*\(가격 환산\)/, ''), as_of: s.as_of})), '정량'));
+  const err = [SB.eqErr ? `주식 유니버스: ${SB.eqErr}` : '', SB.qErr ? `정량 스캐너: ${SB.qErr}` : ''].filter(Boolean);
+  if(!h){ box.innerHTML = `<div class="empty">${err.length ? esc(err.join(' · ')) : '불러오는 중…'}</div>`; return; }
+  box.innerHTML = `<div class="sb-wrap">${h}</div><div class="sb-note">강세 ≥ +30 · 우호 ≥ +10 · 중립 ±10 · 약세 ≤ −10 · 매우 약세 ≤ −30 · '정량' = 정량 탭 스캐너(채권은 금리를 가격으로 환산)${err.length ? ` · ⚠ ${esc(err.join(' · '))}` : ''}</div>`;
+}
+// ── 점수판 차트 팝오버 — 타일에 마우스를 올리거나(포커스) 폰에서 한 번 누르면 연다(두 번째 누름 = 해당 탭으로 이동)
+//    1년 가격·200일선·고점 대비 낙폭 / 기간 수익률 / 기술 점수 구성 / (주식) PER 위치 · (정량) 비슷한 국면 6개월 뒤 분포
+const SBP = {id: null, tile: null, showT: null, hideT: null, ptr: 'mouse', spark: null, sparkAt: 0, sparkReq: null};
+const SB_FUND_KEY = {nasdaq: 'ndx', stoxx50: 'sx5e'};   // 정량 스캐너 키 → 유니버스 밸류에이션 키(이름이 다른 것만)
+const svgE = (w, h, body, cls = '') => `<svg class="${cls}" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">${body}</svg>`;
+const sbTn = v => v === null || v === undefined || !isFinite(v) || Math.abs(v) < 0.05 ? 'flat' : v > 0 ? 'up' : 'down';
+// 가로 막대 — 0 기준선에서 자라고 바깥 끝만 둥글게(4px 규칙을 9px 막대에 맞춰 3px)
+function hbarPath(x0, x1, y, h, r = 3){
+  if(Math.abs(x1 - x0) < 0.5) return '';
+  const d = x1 > x0 ? 1 : -1, rr = Math.min(r, Math.abs(x1 - x0), h / 2), xe = x1 - d * rr;
+  return `M${x0} ${y}H${xe}Q${x1} ${y} ${x1} ${y + rr}V${y + h - rr}Q${x1} ${y + h} ${xe} ${y + h}H${x0}Z`;
+}
+// 가로 발산 막대 묶음: rows = [[이름, 값, 표시문자열]], 값 축은 ±dom
+function hbars(rows, w, labW, valW, dom, rowH = 14){
+  const pw = w - labW - valW, cx = labW + pw / 2, sc = v => cx + Math.max(-1, Math.min(1, v / dom)) * (pw / 2 - 2);
+  let b = `<line class="pz" x1="${cx}" y1="0" x2="${cx}" y2="${rows.length * rowH}"/>`;
+  rows.forEach(([lab, v, txt], i) => {
+    const y = i * rowH, ok = v !== null && v !== undefined && isFinite(v), x1 = ok ? sc(v) : cx;
+    b += `<text class="pl" x="0" y="${y + rowH - 4}">${esc(lab)}</text>`;
+    if(ok) b += `<path class="pb ${sbTn(v)}" d="${hbarPath(cx, x1, y + 2.5, rowH - 5)}"/>`;
+    b += `<text class="pv" x="${w}" y="${y + rowH - 4}" text-anchor="end">${esc(ok ? txt : '-')}</text>`;
+  });
+  return svgE(w, rows.length * rowH, b);
+}
+function sbSparkData(it){
+  const s = SBP.spark && SBP.spark[it.src] && SBP.spark[it.src][it.key];
+  if(!s || !s.v || s.v.length < 5) return null;
+  const d0 = new Date(s.d0 + 'T00:00:00');
+  return {...s, date: i => { const d = new Date(d0); d.setDate(d.getDate() + s.t[i]); return d; }};
+}
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+// 스캐너는 수익률 1일·1주·YTD 가 없어 1년 시계열에서 계산한다(달력 기준 — 주식 탭과 같은 정의)
+function sbRetFrom(sp, back){
+  const n = sp.v.length - 1, last = sp.date(n), lim = back(new Date(last));
+  let j = -1; for(let i = n - 1; i >= 0; i--) if(sp.date(i) <= lim){ j = i; break; }
+  return j < 0 ? null : (sp.v[n] / sp.v[j] - 1) * 100;
+}
+function sbReturns(it, sp){
+  if(it.src === 'eq'){ const r = it.row; return [['1일', r.r1d], ['1주', r.r1w], ['1개월', r.r1m], ['3개월', r.r3m], ['1년', r.r1y], ['YTD', r.ytd]]; }
+  const t = it.t, f = back => sp ? sbRetFrom(sp, back) : null;
+  return [['1일', sp ? (sp.v[sp.v.length - 1] / sp.v[sp.v.length - 2] - 1) * 100 : null], ['1주', f(d => (d.setDate(d.getDate() - 7), d))],
+          ['1개월', t.ret_1m], ['3개월', t.ret_3m], ['6개월', t.ret_6m], ['YTD', f(d => new Date(d.getFullYear() - 1, 11, 31))]];
+}
+function sbSpark(it, sp){
+  const W = 316, H = 66, P = 3;
+  if(!sp) return `<div class="pp-empty" style="height:${H}px">${SBP.sparkReq ? '1년 흐름 불러오는 중…' : '1년 시계열 없음'}</div>`;
+  const vals = sp.v.concat(sp.m.filter(x => x !== null)), lo = Math.min(...vals), hi = Math.max(...vals), tmax = sp.t[sp.t.length - 1] || 1;
+  const X = i => P + (sp.t[i] / tmax) * (W - 2 * P - 6), Y = v => P + (1 - (v - lo) / ((hi - lo) || 1)) * (H - 2 * P);
+  const line = arr => { let d = '', pen = false; arr.forEach((v, i) => { if(v === null){ pen = false; return; } d += `${pen ? 'L' : 'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`; pen = true; }); return d; };
+  let iHi = 0; sp.v.forEach((v, i) => { if(v >= sp.v[iHi]) iHi = i; });
+  const vHi = sp.v[iHi], n = sp.v.length - 1;
+  let dd = `M${X(iHi).toFixed(1)} ${Y(vHi).toFixed(1)}`;   // 1년 고점 이후, 고점 수평선과 가격 사이 = 낙폭 음영
+  for(let i = iHi; i <= n; i++) dd += `L${X(i).toFixed(1)} ${Y(sp.v[i]).toFixed(1)}`;
+  dd += `L${X(n).toFixed(1)} ${Y(vHi).toFixed(1)}Z`;
+  return svgE(W, H, `<line class="pg" x1="0" y1="${H - 0.5}" x2="${W}" y2="${H - 0.5}"/>`
+    + (n > iHi ? `<path class="pdd" d="${dd}"/><line class="phi" x1="${X(iHi).toFixed(1)}" y1="${Y(vHi).toFixed(1)}" x2="${X(n).toFixed(1)}" y2="${Y(vHi).toFixed(1)}"/>` : '')
+    + `<path class="pma" d="${line(sp.m)}"/><path class="ppx" d="${line(sp.v)}"/>`
+    + `<line class="pxh" x1="0" y1="0" x2="0" y2="${H}" visibility="hidden"/><circle class="pdot" cx="${X(n).toFixed(1)}" cy="${Y(sp.v[n]).toFixed(1)}" r="3.5"/>`
+    + `<rect class="phit" x="0" y="0" width="${W}" height="${H}" fill="transparent"/>`, 'pp-spark');
+}
+function sbSparkRead(sp, i){
+  const v = sp.v[i], m = sp.m[i], hiSoFar = Math.max(...sp.v.slice(0, i + 1));
+  const big = Math.abs(v) >= 1000 ? 0 : Math.abs(v) >= 10 ? 2 : 4;
+  return `${ymd(sp.date(i))} · <b>${num(v, big)}</b>${m ? ` · 200일선 ${sbNum((v / m - 1) * 100, 1, '%')}` : ''} · 고점 대비 ${sbNum((v / hiSoFar - 1) * 100, 1, '%')}`;
+}
+function sbComp(t){   // 점수 = 35×추세 + 35×6개월 + 15×1개월 + 15×RSI 역추세 (quant.tech_score)
+  const rev = -Math.tanh((t.rsi - 50) / 25);
+  const rows = [['추세(200일선)', 35 * t.trend], ['6개월 모멘텀', 35 * t.mom6], ['1개월 모멘텀', 15 * t.mom1], ['RSI 역추세', 15 * rev]];
+  const rsi = Math.max(0, Math.min(100, +t.rsi || 0)), RW = 168;
+  return hbars(rows.map(([l, v]) => [l, v, sbNum(v, 0)]), RW, 78, 26, 35)
+    + `<div class="pp-rsi"><span>RSI</span>${svgE(110, 10, `<rect class="rz" x="0" y="3" width="110" height="4" rx="2"/><rect class="rlo" x="0" y="3" width="${110 * .3}" height="4" rx="2"/>`
+      + `<rect class="rhi" x="${110 * .7}" y="3" width="${110 * .3}" height="4" rx="2"/><line class="pz" x1="${110 * .3}" y1="1" x2="${110 * .3}" y2="9"/><line class="pz" x1="${110 * .7}" y1="1" x2="${110 * .7}" y2="9"/>`
+      + `<circle class="rdot" cx="${(rsi * 1.06 + 2).toFixed(1)}" cy="5" r="4"/>`)}<b>${num(t.rsi, 0)}</b><span class="kv">${rsi >= 70 ? '과열' : rsi <= 30 ? '과매도' : ''}</span></div>`;
+}
+function sbVal(it){
+  const key = it.src === 'eq' ? it.key : (SB_FUND_KEY[it.key] || it.key), x = ((FUND && FUND.items) || []).find(f => f.key === key);
+  if(!x) return `<div class="pp-empty">${FUND ? '밸류에이션 정보 없음' : '밸류에이션 받는 중…'}</div>`;
+  if(x.no_per) return `<div class="pp-empty">배당 ${num(x.div, 1)}% — ${esc(x.no_per)}</div>`;
+  const vs = x.vs;
+  if(!vs) return `<div class="pp-empty">PER ${num(x.per, 1)}배 — 다른 항목의 비교 기준</div>`;
+  const p = Math.max(-1, Math.min(1, Math.log2(1 + vs.diff / 100))), cls = vs.word === '쌈' ? 'cheap' : vs.word === '비쌈' ? 'rich' : '';
+  return `<div class="pp-val"><span class="vtrack"><i class="${cls}" style="left:${(50 + p * 50).toFixed(1)}%"></i></span></div>`
+    + `<div class="pp-cap"><span>싸다 ←</span><span>PER <b>${num(x.per, 1)}배</b> · ${esc(vs.ref_name)} ${num(vs.ref_per, 1)}배 대비 <b>${sbNum(vs.diff, 0, '%')}</b> (${esc(vs.word)})</span><span>→ 비싸다</span></div>`;
+}
+function sbHist(t){
+  const xs = (t.analog_6m_sample || []).filter(v => isFinite(v)), W = 316, H = 40;
+  if(xs.length < 5){
+    const q = t.analog_6m_q;
+    if(!q) return `<div class="pp-empty">${t.analog_6m_median_pct === null || t.analog_6m_median_pct === undefined ? '비슷한 국면 표본 부족' : `중앙값 ${sbNum(t.analog_6m_median_pct, 1, '%')} · 오른 비율 ${t.analog_6m_up_pct ?? '-'}% (분포는 다음 정량 계산부터)`}</div>`;
+    const lo = Math.min(q[0], 0), hi = Math.max(q[4], 0), X = v => 4 + (v - lo) / ((hi - lo) || 1) * (W - 8);
+    return svgE(W, 22, `<line class="pz" x1="${X(0)}" y1="0" x2="${X(0)}" y2="22"/><line class="pw" x1="${X(q[0])}" y1="11" x2="${X(q[4])}" y2="11"/>`
+      + `<rect class="pbx" x="${X(q[1])}" y="5" width="${Math.max(2, X(q[3]) - X(q[1]))}" height="12" rx="2"/><line class="pmed" x1="${X(q[2])}" y1="3" x2="${X(q[2])}" y2="19"/>`);
+  }
+  const span = Math.max(...xs.map(Math.abs), 1), step = [1, 2, 2.5, 5, 10, 20, 25, 50].find(s => span * 2 / s <= 12) || 50;
+  const lo = Math.floor(Math.min(...xs, 0) / step) * step, hi = Math.ceil(Math.max(...xs, 0) / step) * step || step, nb = Math.max(1, Math.round((hi - lo) / step));
+  const cnt = Array(nb).fill(0); xs.forEach(v => cnt[Math.min(nb - 1, Math.floor((v - lo) / step))]++);
+  const mx = Math.max(...cnt), bw = (W - 8) / nb, X = v => 4 + (v - lo) / (hi - lo) * (W - 8), med = xs.slice().sort((a, b) => a - b)[Math.floor(xs.length / 2)];
+  let b = '';
+  cnt.forEach((c, i) => { if(!c) return; const h = (c / mx) * (H - 14), x = 4 + i * bw + 1, c0 = lo + i * step + step / 2;
+    b += `<path class="pb ${c0 > 0 ? 'up' : 'down'}" d="M${x} ${H - 12}V${H - 12 - h + 3}Q${x} ${H - 12 - h} ${x + 3} ${H - 12 - h}H${x + bw - 5}Q${x + bw - 2} ${H - 12 - h} ${x + bw - 2} ${H - 12 - h + 3}V${H - 12}Z"/>`; });
+  b += `<line class="pg" x1="0" y1="${H - 11.5}" x2="${W}" y2="${H - 11.5}"/><line class="pz" x1="${X(0)}" y1="0" x2="${X(0)}" y2="${H - 10}"/><line class="pmed" x1="${X(t.analog_6m_median_pct ?? med).toFixed(1)}" y1="0" x2="${X(t.analog_6m_median_pct ?? med).toFixed(1)}" y2="${H - 10}"/>`
+    + `<text class="pl" x="4" y="${H - 1}">${sbNum(lo, 0, '%')}</text><text class="pl" x="${X(0)}" y="${H - 1}" text-anchor="middle">0</text><text class="pl" x="${W - 4}" y="${H - 1}" text-anchor="end">${sbNum(hi, 0, '%')}</text>`;
+  return svgE(W, H, b);
+}
+function sbPopHtml(it){
+  const t = it.t, sp = sbSparkData(it), sc = +t.score, tone = sbTone(sc);
+  const rets = sbReturns(it, sp), dom = Math.max(5, ...rets.map(r => Math.abs(r[1] ?? 0)));
+  const bottom = it.src === 'q'
+    ? `<div class="pp-h"><span>비슷한 국면 6개월 뒤</span><span class="kv">중앙값 <b>${sbNum(t.analog_6m_median_pct, 1, '%')}</b> · 오른 비율 ${t.analog_6m_up_pct ?? '-'}%${t.analog_6m_sample ? ` · 표본 ${t.analog_6m_sample.length}` : ''}</span></div>${sbHist(t)}`
+    : `<div class="pp-h"><span>밸류에이션 위치</span><span class="kv">PER, 비교 시장 대비</span></div>${sbVal(it)}`;
+  return `<div class="pp-top"><div class="pp-nm"><b>${esc(it.name)}</b><span class="kv">${esc([it.ticker, it.as_of].filter(Boolean).join(' · '))}</span></div>`
+    + `<span class="pp-score ${tone}"><i></i><b>${sbNum(sc, 0)}</b>${esc(t.label || '')}</span></div>`
+    + `<div class="pp-h"><span>1년 흐름 <i class="lk px"></i>가격 <i class="lk ma"></i>200일선 <i class="lk dd"></i>고점 대비</span></div>`
+    + `<div class="pp-read kv">${sp ? sbSparkRead(sp, sp.v.length - 1) : '&nbsp;'}</div>${sbSpark(it, sp)}`
+    + `<div class="pp-cols"><div><div class="pp-h"><span>기간 수익률</span></div>${hbars(rets.map(([l, v]) => [l, v, sbNum(v, 1, '%')]), 140, 34, 42, dom)}</div>`
+    + `<div><div class="pp-h"><span>점수 구성</span><span class="kv">합 ${sbNum(sc, 0)}</span></div>${sbComp(t)}</div></div>${bottom}`;
+}
+async function sbLoadSpark(){
+  if(SBP.sparkReq || (SBP.spark && Date.now() - SBP.sparkAt < 1800000)) return;
+  SBP.sparkReq = api('/api/universe/spark');
+  try { SBP.spark = await SBP.sparkReq; SBP.sparkAt = Date.now(); } catch(e){ SBP.spark = SBP.spark || {}; SBP.sparkAt = Date.now() - 1740000; }   // 실패하면 1분 뒤에 다시
+  SBP.sparkReq = null;
+  if(SBP.id && !$('sbPop').hidden) sbFill();
+}
+function sbFill(){
+  const it = SB.items[SBP.id], pop = $('sbPop'); if(!it) return;
+  pop.innerHTML = sbPopHtml(it);
+  const svg = pop.querySelector('.pp-spark'), sp = sbSparkData(it);
+  if(svg && sp){   // 크로스헤어 — 포인터에서 가장 가까운 날짜로 붙는다
+    const hit = svg.querySelector('.phit'), xh = svg.querySelector('.pxh'), dot = svg.querySelector('.pdot'), rd = pop.querySelector('.pp-read'), n = sp.v.length - 1;
+    const pts = [...svg.querySelector('.ppx').getAttribute('d').matchAll(/[ML]([\d.]+) ([\d.]+)/g)].map(m => [+m[1], +m[2]]);
+    const at = i => { const [x, y] = pts[i]; xh.setAttribute('x1', x); xh.setAttribute('x2', x); xh.setAttribute('visibility', i === n ? 'hidden' : 'visible'); dot.setAttribute('cx', x); dot.setAttribute('cy', y); rd.innerHTML = sbSparkRead(sp, i); };
+    hit.addEventListener('pointermove', e => { const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) * (316 / r.width);
+      let b = 0; pts.forEach((p, i) => { if(Math.abs(p[0] - x) < Math.abs(pts[b][0] - x)) b = i; }); at(b); });
+    hit.addEventListener('pointerleave', () => at(n));
+  }
+}
+function sbPlace(tile){
+  const pop = $('sbPop'), r = tile.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight, m = 8;
+  let top = r.bottom + 6 + h <= innerHeight - m ? r.bottom + 6 : r.top - 6 - h >= m ? r.top - 6 - h : Math.max(m, innerHeight - h - m);
+  let left = r.left + r.width / 2 - w / 2;
+  if(top < r.bottom && top + h > r.top){ left = r.right + 8 + w <= innerWidth - m ? r.right + 8 : r.left - 8 - w; }   // 위아래 모두 안 되면 옆으로
+  pop.style.left = Math.max(m, Math.min(left, innerWidth - w - m)) + 'px'; pop.style.top = top + 'px';
+}
+function sbShow(tile){
+  clearTimeout(SBP.showT); clearTimeout(SBP.hideT);
+  const pop = $('sbPop'), id = tile.dataset.id;
+  if(SBP.tile && SBP.tile !== tile) SBP.tile.removeAttribute('aria-describedby');
+  SBP.tile = tile;
+  if(SBP.id !== id || pop.hidden){ SBP.id = id; sbFill(); }
+  pop.hidden = false; tile.setAttribute('aria-describedby', 'sbPop'); sbPlace(tile);
+  sbLoadSpark();
+}
+function sbHide(){ clearTimeout(SBP.showT); clearTimeout(SBP.hideT); $('sbPop').hidden = true; if(SBP.tile) SBP.tile.removeAttribute('aria-describedby'); SBP.tile = null; SBP.id = null; }
+const sbHideSoon = () => { clearTimeout(SBP.hideT); SBP.hideT = setTimeout(sbHide, 180); };
+document.addEventListener('pointerdown', e => { SBP.ptr = e.pointerType || 'mouse'; if(!e.target.closest('.sb-tile, #sbPop') && !$('sbPop').hidden) sbHide(); }, true);
+document.addEventListener('pointerover', e => {
+  if(e.pointerType === 'touch') return;
+  const tile = e.target.closest('.sb-tile');
+  if(tile){ clearTimeout(SBP.hideT); if(!$('sbPop').hidden) sbShow(tile); else { clearTimeout(SBP.showT); SBP.showT = setTimeout(() => sbShow(tile), 120); } return; }
+  if(e.target.closest('#sbPop')){ clearTimeout(SBP.hideT); return; }
+  clearTimeout(SBP.showT); if(!$('sbPop').hidden) sbHideSoon();
+});
+document.addEventListener('click', e => {
+  const t = e.target.closest('.sb-tile'); if(!t) return;
+  if(SBP.ptr === 'touch' && (SBP.tile !== t || $('sbPop').hidden)){ sbShow(t); return; }   // 폰: 첫 누름 = 차트, 두 번째 = 이동
+  sbHide(); showTab(t.dataset.tab);
+});
+document.addEventListener('focusin', e => { const t = e.target.closest('.sb-tile'); if(t && SBP.ptr !== 'touch') sbShow(t); });
+$('scoreCard').addEventListener('pointerenter', sbLoadSpark);   // 차트용 1년 시계열은 점수판에 처음 다가올 때 미리 받는다
+document.addEventListener('focusout', e => { if(e.target.closest('.sb-tile') && !(e.relatedTarget && e.relatedTarget.closest('.sb-tile'))) sbHideSoon(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && !$('sbPop').hidden) sbHide(); });
+// 스크롤하면 닫는다 — 단, 키보드로 고른 타일을 브라우저가 화면 안으로 굴려 온 경우는 따라가 붙는다
+addEventListener('scroll', () => { if($('sbPop').hidden) return; if(SBP.tile && document.activeElement === SBP.tile) sbPlace(SBP.tile); else sbHide(); }, {passive: true});
+
 // ── 주식 ──
 let EQ = null;
 async function loadEquity(){
-  try { EQ = await api('/api/equity'); renderEquity(); clearTimeout(EQ_T); if(EQ.refreshing) EQ_T = setTimeout(loadEquity, 15000); }
-  catch(e){ $('eqVerdict').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+  try { EQ = await api('/api/equity'); SB.eq = EQ; SB.eqErr = null; renderScoreboard(); renderEquity(); clearTimeout(EQ_T); if(EQ.refreshing) EQ_T = setTimeout(loadEquity, 15000); }
+  catch(e){ SB.eqErr = e.message; renderScoreboard(); $('eqVerdict').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
 let EQ_T = null;
 const pc = (v, d = 1) => v === null || v === undefined ? '<span class="kv">-</span>' : `<span class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${sgf(v, d)}%</span>`;
@@ -1485,6 +1834,24 @@ function vCell(x){
   const tip = `${x.name}\nPER ${num(x.per, 1)}배 · 선행 ${ft(x.fper)} · PBR ${ft(x.pbr, '배', 2)}\n${vs.ref_name} PER ${num(vs.ref_per, 1)}배 대비 ${sg(vs.diff, 0)}% (${vs.word})`;
   return `<span class="vcell" data-tip="${esc(tip)}"><span class="vtrack"><i class="${cls}" style="left:${(50 + p * 50).toFixed(1)}%"></i></span><b class="${cls}">${sg(vs.diff, 0)}%</b></span>`;
 }
+// 국내 금리·크레딧 한 줄 — 1개월 변화 색: 금리·기간·신용 프리미엄이 오르면(여건이 조여지면) 빨강, 내리면 초록. 베이시스는 방향 의미가 없어 회색
+const RATE_NOTE = {bok_base: '한국은행 기준금리', cd_91d: '단기 자금 금리 — 기준금리와 벌어지면 단기 유동성 경색',
+  ktb3y_base: '국고 3년 − 기준금리 — 양수면 시장이 인상(또는 덜 인하)을, 음수면 인하를 반영',
+  spread_bbb: '회사채 BBB- 3년 − 국고 3년 — 넓어질수록 신용 위험 회피(주식에 부담)',
+  ks200_basis: 'KOSPI200 선물 ÷ 현물 − 1 — 양수 콘탱고, 음수 백워데이션(만기·배당·수급 영향). 롤 날엔 튈 수 있음'};
+function ratesLine(rs){
+  rs = (rs || []).filter(r => r && r.value !== null && r.value !== undefined && isFinite(r.value));
+  if(!rs.length) return '';
+  return `<div class="hm-vol hm-rates" role="group" aria-label="국내 금리·크레딧"><span class="kv" data-tip="국내 금리·크레딧 수준과 1개월 변화(bp, 베이시스는 %p)\n빨강 = 금리·스프레드 상승(여건이 조여짐) · 초록 = 하락 · 베이시스는 방향 의미 없음">금리·1개월</span>${rs.map(r => {
+    const bp = r.unit === 'bp', pp = r.chg_unit === '%p', c = r.chg_1m, basis = r.key === 'ks200_basis';
+    const val = bp ? `${num(r.value, 0)}bp` : `${basis ? sgf(r.value, 2) : (+r.value).toFixed(2)}%`;
+    const flat = c === null || c === undefined || Math.abs(c) < (pp ? 0.005 : 0.5);
+    const chg = c === null || c === undefined ? '' : flat ? `±0${r.chg_unit}` : `${pp ? sgf(c, 2) : sgf(c, 0)}${r.chg_unit}`;
+    const cls = basis || flat ? '' : c > 0 ? 'tight' : 'ease';
+    const fx = v => v === null || v === undefined ? '-' : `${pp ? sgf(v, 2) : sgf(v, 1)}${r.chg_unit}`;
+    const tip = `${r.name} ${val} · ${r.as_of}\n1주 ${fx(r.chg_1w)} · 1개월 ${fx(c)}\n${RATE_NOTE[r.key] || ''}\n출처: ${r.source}`;
+    return `<span class="hm-vx${staleClass(r.as_of)}" data-tip="${esc(tip)}"><span>${esc(r.label)}</span><b>${val}</b>${chg ? `<span class="rchg ${cls}">${chg}</span>` : ''}</span>`; }).join('')}</div>`;
+}
 function renderHeat(){
   const d = EQ; if(!d || !d.groups) return;
   const groups = HM_GROUPS.map(n => d.groups.find(g => g.name === n)).filter(g => g && g.rows.length);
@@ -1495,7 +1862,7 @@ function renderHeat(){
   const vol = d.vol || {}, vxs = [['vix', 'VIX'], ['vxn', 'VXN'], ['vkospi', 'VKOSPI'], ['vstoxx', 'VSTOXX']].filter(([k]) => vol[k] && vol[k].last !== undefined && vol[k].last !== null);
   const vline = vxs.length ? `<div class="hm-vol"><span class="kv">변동성 지수</span>${vxs.map(([k, n]) => { const p = vol[k].pct_1y;
       return `<span class="hm-vx" data-tip="${esc(`${n} ${num(vol[k].last, 1)}${p !== undefined && p !== null ? ` · 지난 1년 중 ${p}% 위치(높을수록 불안)` : ''}${vol[k].as_of ? ` · ${vol[k].as_of}` : ''}`)}"><b>${n}</b> ${(+vol[k].last).toFixed(1)}${p !== undefined && p !== null ? `<span class="pctl sm"><i style="left:${p}%"></i></span>` : ''}</span>`; }).join('')}</div>` : '';
-  $('eqHeat').innerHTML = vline + `<div class="hm-legend"><span class="sw">${swatch('d').join('')}<i class="hm-cell" style="--t:0"></i>${swatch('u').reverse().join('')}</span><span>하락 ← 보합 → 상승 · 색이 진할수록 그 기간 안에서 크게 움직인 것</span>
+  $('eqHeat').innerHTML = vline + ratesLine(d.kr_rates) + `<div class="hm-legend"><span class="sw">${swatch('d').join('')}<i class="hm-cell" style="--t:0"></i>${swatch('u').reverse().join('')}</span><span>하락 ← 보합 → 상승 · 색이 진할수록 그 기간 안에서 크게 움직인 것</span>
       ${hasV ? `<span class="vax"><b style="color:var(--cheap-ink)">싸다</b><span class="vtrack"><i style="left:50%"></i></span><b style="color:var(--rich-ink)">비싸다</b> <span>PER, 비교 시장 대비</span></span>` : ''}</div>
     <div class="hm-grid">${groups.map(g => `<div class="hm-grp"><table class="hm-tbl"><tr><th>${esc(g.name)}</th>${HM_COLS.map(([, l]) => `<th>${l}</th>`).join('')}${hasV ? '<th>밸류</th>' : ''}</tr>
       ${g.rows.map(r => `<tr data-tip="${esc(eqTip(r))}"><td class="hn" title="${esc(r.name)}">${esc(r.short || r.name)}</td>${HM_COLS.map(([k]) => `<td>${hmCell(r[k], sc[k])}</td>`).join('')}${hasV ? `<td>${vCell(F[r.key])}</td>` : ''}</tr>`).join('')}</table></div>`).join('')}</div>
@@ -1769,7 +2136,7 @@ function bindRg(){ document.querySelectorAll('#rgList .rgi').forEach(b => b.oncl
 function btPerNote(){
   const d = (new Date(BT.to) - new Date(BT.from)) / 864e5;
   const len = d >= 730 ? `약 ${Math.round(d / 365)}년` : `약 ${Math.max(1, Math.round(d / 30.4))}개월`;
-  return `${len}${BT.from < '2012-01-01' ? ' · 한국 지수 전략은 2012년부터 계산됩니다' : ''} · 1~2초`;
+  return `${len}${BT.from < '2009-04-13' ? ' · KOSPI200 옵션·ELB 는 VKOSPI 가 있는 2009년 4월부터 계산됩니다' : ''} · 1~2초`;
 }
 function bindBtPeriod(){
   bindRg();
@@ -2289,7 +2656,7 @@ document.querySelectorAll('.ai-input textarea').forEach(t => t.addEventListener(
 // 넓은 화면에서 지난번에 대화창을 열어 두었으면 다시 연다(본문을 가리지 않는 폭일 때만)
 if(store_.get('rc.chatOpen') === '1' && window.innerWidth >= 1500) openChat();
 
-loadOverview(); loadRoom(); loadEquity();
+loadOverview(); loadRoom(); loadEquity(); loadScoreboard();
 </script>
 </body>
 </html>
