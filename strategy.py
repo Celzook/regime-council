@@ -32,6 +32,7 @@ OUT = config.DATA_DIR / "strategy.json"
 TECH_BAD, TECH_GOOD = -30, 30
 SIGMA_FLOOR = 0.75            # 손절폭이 1개월 1σ 의 75% 미만이면 잡음에도 걸리기 쉽다
 TYPICAL_STOP = {"equity": 8.0, "bond": 2.0, "mixed": 3.0, "fx": 3.0}   # 새 기회의 '최대 규모' 환산용 손절폭 가정(%)
+QUANT_MAX_AGE_H = 80          # quant.json 이 이보다 오래되면 규칙에서 뺌(평일 16:30 갱신 — 금→월 72시간은 넘기지 않게)
 
 # 순서 = 우선순위. tone 은 화면 색(bad 빨강 · warn 주황 · good 초록 · neutral 회색)
 ACTIONS = {"손절": ("bad", 100), "축소": ("bad", 90), "익절": ("good", 80), "규모 조정": ("warn", 70),
@@ -155,11 +156,16 @@ def _leg_keys(p: dict, l: dict) -> list[tuple[str, int]]:
     return []
 
 
+def _base(p: dict) -> float:
+    """포지션 기준액 — 환 오버레이는 명목, 그 밖은 진입 기준(없으면 시가). 통화와 무관하게 같은 기준."""
+    return float(p.get("fx_exposure_bn") or 0) if p.get("asset") == "fx" else float(p.get("base_bn") or p.get("mv_bn") or 0)
+
+
 def _exposures(positions: list[dict]) -> dict[str, list[dict]]:
     """지표별로 그 방향의 노출을 가진 포지션(베타 가중 순노출이 포지션 기준의 15% 이상)."""
     out: dict[str, list[dict]] = {}
     for p in positions:
-        base = float(p.get("fx_exposure_bn") or p.get("base_bn") or p.get("mv_bn") or 0)
+        base = _base(p)
         net: dict[str, float] = {}
         for l in p.get("legs", []):
             sign = -1 if l.get("side") == "숏" else 1
@@ -216,7 +222,7 @@ def _position_rows(doc: dict, ev: dict, q: dict | None) -> list[dict]:
         r = rows.get(p["id"], {})
         is_fx = p.get("asset") == "fx"
         fx = r.get("fx") or {}
-        base = float(p.get("fx_exposure_bn") or 0) if is_fx else float(p.get("base_bn") or p.get("mv_bn") or 0)
+        base = _base(p)
         mv_now = base if is_fx else float(p.get("mv_bn") or base)   # 주문 금액은 지금 시가 기준(수량 계산과 같은 기준)
         pnl = float(p.get("pnl_ytd_bn") or 0) + float(p.get("pnl_fx_ytd_bn") or 0)
         ret = pnl / base * 100 if base else 0.0
@@ -281,16 +287,18 @@ def _position_rows(doc: dict, ev: dict, q: dict | None) -> list[dict]:
             hits.append(("유지", f"논리·한도 이상 없음 — {gap_s}, {gap_t}", 0.0, []))
             plain["유지"] = (f"할 일 없음" + (f" · 손절선까지 {ret - stop:.1f}%p" if stop is not None else ""),
                            f"손익 {ret:+.1f}%" + (f" · 목표까지 {target - ret:.1f}%p" if target else ""))
-        hits.sort(key=lambda h: -ACTIONS[h[0]][1])
         if against.get(p["id"]) and p.get("strategy") != "상대가치":   # 페어는 다리별 방향이 논리가 아님
-            hits.append(("논리 점검", "시장 신호가 보유 방향과 반대 — "
-                         + ", ".join(f"{scan[k]['name']} 기술 {sc:+.0f}" for k, sc in against[p["id"]]) + " · 반증 조건 확인", 0.0,
-                         [f"반증 조건: {p.get('invalidation') or '(엑셀에 미기재)'}"]))
+            sig_txt = "시장 신호가 보유 방향과 반대 — " + ", ".join(f"{scan[k]['name']} 기술 {sc:+.0f}" for k, sc in against[p["id"]])
+            i = next((i for i, h in enumerate(hits) if h[0] == "논리 점검"), None)
+            if i is None:
+                hits.append(("논리 점검", sig_txt + " · 반증 조건 확인", 0.0, [f"반증 조건: {p.get('invalidation') or '(엑셀에 미기재)'}"]))
+            else:   # 추세 기준 논리 점검이 이미 있으면 한 줄로 합침(중복 표시 방지)
+                hits[i] = (hits[i][0], hits[i][1] + " · " + sig_txt, hits[i][2], hits[i][3])
             k0, sc0 = against[p["id"]][0]
-            plain["논리 점검"] = ("반증 조건에 해당하는지 확인 → 해당하면 절반 줄이기",
-                               f"{PLAIN_NAME.get(k0, scan[k0]['name'])} {_flow(k0, sc0)}인데, 우리는 {'오를' if sc0 < 0 else '내릴'} 때 버는 쪽")
-            if hits[0][0] == "유지":
-                hits = hits[1:]
+            plain.setdefault("논리 점검", ("반증 조건에 해당하는지 확인 → 해당하면 절반 줄이기",
+                                        f"{PLAIN_NAME.get(k0, scan[k0]['name'])} {_flow(k0, sc0)}인데, 우리는 {'오를' if sc0 < 0 else '내릴'} 때 버는 쪽"))
+            hits = [h for h in hits if h[0] != "유지"] or hits
+        hits.sort(key=lambda h: -ACTIONS[h[0]][1])     # 시장 신호까지 붙인 뒤 정렬 — 우선순위 높은 규칙이 할 일
         act, head, frac, extra = hits[0]
         tone, prio = ACTIONS[act]
         do, why = plain.get(act, (head, ""))
@@ -398,12 +406,14 @@ def _ideas(q: dict | None, doc: dict, ev: dict) -> list[dict]:
         held = expo.get(s["key"], [])
         same = [h for h in held if h["dir"] == d]
         against = [h for h in held if h["dir"] == -d]
-        if d > 0:
-            act = "롱 검토" if not same else "보유 중 — 유지·확대 검토"
-        else:
-            act = ("선물 숏 검토" if s["key"] in SHORTABLE else "편입 보류") if not against else "보유와 반대 신호 — 해당 포지션 점검"
-        if against and d > 0:
+        if against:
             act = "보유와 반대 신호 — 해당 포지션 점검"
+        elif same:
+            act = "보유 중 — 유지·확대 검토"          # 이미 같은 방향(숏 포함)으로 보유 — 아래 '그대로 유지' 설명과 맞춤
+        elif d > 0:
+            act = "롱 검토"
+        else:
+            act = "선물 숏 검토" if s["key"] in SHORTABLE else "편입 보류"
         akey = {"주식": "equity", "채권": "bond", "환": "fx"}.get(asset)
         cap = None
         if asset in room:
@@ -445,10 +455,19 @@ def _portfolio(acts: list[dict], q: dict | None, ev: dict, doc: dict) -> dict:
     names = {a["id"]: a["name"] for a in acts}
     top = (pf.get("risk_contrib") or [])[:3]
     scale = (vol.get("scale_for_breach") or {}).get("20")
+    room = pf.get("room_bn", pf.get("limit_bn") or 0)       # 남은 한도 = 한도 + 현재 손익(예전 quant.json 은 한도 그대로)
+    over = pf.get("room_bn") is not None and room <= 0      # 이미 한도 초과 — scale_for_breach 는 0, 줄일 비율로 낮출 수 없음
+    red = (f" · 축소 단계(한도 {pf.get('reduce_pct', 75):g}%) 도달 변동성 기준 {vol['p_reduce']}% · 국면 기준 {an.get('p_reduce', '-')}%"
+           if vol.get("p_reduce") is not None else "")
     lines = []
     if vol.get("p_breach") is not None:
-        lines.append(f"6개월 안에 손실한도 {_f(pf.get('limit_bn') or 0)}억을 넘을 확률: 변동성 기준 {vol['p_breach']}% · 국면 기준 {an.get('p_breach', '-')}%")
-        if scale and scale < 1 and vol["p_breach"] > 20:
+        head = (f"손실한도 이미 초과 — 남은 한도 없음(한도 {_f(pf.get('limit_bn') or 0)}억, 현재 손익 {_sg(pf.get('pnl_now_bn') or 0, 0)}억, "
+                f"초과 {_f(abs(room))}억). 6개월 안에 한도를 넘어 있을 확률: " if over else
+                f"6개월 안에 남은 손실한도 {_f(room)}억(한도 {_f(pf.get('limit_bn') or 0)}억, 현재 손익 {_sg(pf.get('pnl_now_bn') or 0, 0)}억)을 넘을 확률: ")
+        lines.append(head + f"변동성 기준 {vol['p_breach']}% · 국면 기준 {an.get('p_breach', '-')}%" + red)
+        if over:
+            lines.append("이미 한도를 넘어 노출 비율 조정으로는 20%까지 낮출 수 없음 — 추가 위험 금지, 위험 기여 상위부터 줄여 한도 안으로")
+        elif scale and scale < 1 and vol["p_breach"] > 20:
             lines.append(f"변동성 기준 20%로 낮추려면 전체 노출을 지금의 {scale * 100:.0f}% 로 — 위험 기여 상위부터 줄이는 것이 효율적")
     if top:
         lines.append("위험 기여 상위: " + " · ".join(f"{t['id']} {names.get(t['id'], '')} {t['pct']}%" for t in top)
@@ -472,9 +491,11 @@ def _portfolio(acts: list[dict], q: dict | None, ev: dict, doc: dict) -> dict:
     tiles = []
     pb = vol.get("p_breach")
     if pb is not None:
-        tiles.append({"label": f"6개월 안에 손실한도({_f(pf.get('limit_bn') or 0)}억)를 넘을 가능성",
-                      "value": "높음" if pb >= 40 else ("보통" if pb >= 20 else "낮음"), "tone": "bad" if pb >= 40 else ("warn" if pb >= 20 else "good"),
-                      "sub": f"최근 흔들림 기준 {pb:g}% · 과거 비슷한 시기 기준 {an.get('p_breach', '-')}%"})
+        tiles.append({"label": f"손실한도 이미 초과({_f(abs(room))}억 넘음)" if over else f"6개월 안에 남은 손실한도({_f(room)}억)를 넘을 가능성",
+                      "value": "초과" if over else ("높음" if pb >= 40 else ("보통" if pb >= 20 else "낮음")),
+                      "tone": "bad" if over or pb >= 40 else ("warn" if pb >= 20 else "good"),
+                      "sub": f"최근 흔들림 기준 {pb:g}% · 과거 비슷한 시기 기준 {an.get('p_breach', '-')}%"
+                             + (f" · 축소 단계 도달 {vol['p_reduce']:g}%" if vol.get("p_reduce") is not None else "")})
     if top:
         tiles.append({"label": "상위 3개 포지션에 몰린 위험", "value": f"{sum(t['pct'] for t in top):.0f}%",
                       "tone": "bad" if sum(t["pct"] for t in top) >= 60 else "", "sub": " · ".join(names.get(t["id"], t["id"]) for t in top)})
@@ -491,27 +512,56 @@ def _portfolio(acts: list[dict], q: dict | None, ev: dict, doc: dict) -> dict:
     sub = ""
     if top and sum(t["pct"] for t in top) >= 60:
         sub = (f"위험의 {sum(t['pct'] for t in top):.0f}%가 {'·'.join(names.get(t['id'], t['id']) for t in top)}에 몰려 있어 이 셋부터 줄이는 게 가장 효과적입니다.")
-    if scale and scale < 1 and (pb or 0) > 20:
+    if over:
+        sub += " 이미 손실한도를 넘었습니다 — 새 위험은 더하지 말고, 위험 기여 상위부터 줄여 한도 안으로 되돌려야 합니다."
+    elif scale and scale < 1 and (pb or 0) > 20:
         sub += f" 한도를 넘을 가능성을 '보통'(20%)으로 낮추려면 전체 규모를 지금의 {scale * 100:.0f}% 정도로 줄여야 합니다."
     return {"tone": tone, "lead": lead, "sub": sub.strip(), "tiles": tiles,
             "lines": lines, "p_breach_vol": vol.get("p_breach"), "p_breach_analog": an.get("p_breach"),
+            "p_reduce_vol": vol.get("p_reduce"), "p_reduce_analog": an.get("p_reduce"), "room_bn": pf.get("room_bn"),
             "worst": {"name": worst["name"], "loss_bn": worst["loss_total_bn"], "util_pct": worst.get("post_util_total_pct")} if worst else None,
             "scale_for_20": scale, "risk_top": [{**t, "name": names.get(t["id"], "")} for t in top],
             "stop_budget": budget, "concentration": _concentration(doc)}
 
 
+def _quant_fresh(meta: dict) -> tuple[dict | None, str | None, str | None]:
+    """(쓸 quant 결과, 뺐다면 그 계산 시각, 사유). 오래됐거나(QUANT_MAX_AGE_H) 다른 포지션 구성으로 계산된 결과는 규칙에 쓰지 않는다.
+    구성 비교는 양쪽에 positions_key(book.write_positions 의 구성 지문)가 있으면 그것으로, 없으면 포지션 기준일(as_of)로."""
+    import quant
+    q = quant.load()
+    if not q:
+        return None, None, None
+    at = q.get("generated_at") or ""
+    try:
+        age_h = (datetime.datetime.now() - datetime.datetime.fromisoformat(at)).total_seconds() / 3600
+    except ValueError:
+        age_h = float("inf")
+    if age_h > QUANT_MAX_AGE_H:
+        return None, at, f"정량 결과({at[:16]})가 {QUANT_MAX_AGE_H}시간보다 오래돼"
+    if q.get("positions_key") and meta.get("positions_key"):      # 구성 지문 — 시가 재평가(as_of 만 바뀜)로는 달라지지 않음
+        if q["positions_key"] != meta["positions_key"]:
+            return None, at, "정량 결과가 지금과 다른 포지션 구성으로 계산돼"
+    elif q.get("positions_as_of") != meta.get("as_of"):              # 지문이 없는 예전 파일은 기준일로 비교
+        return None, at, f"정량 결과의 포지션 기준일({q.get('positions_as_of')})이 지금 포지션({meta.get('as_of')})과 달라"
+    return q, None, None
+
+
 def build(save: bool = True) -> dict:
+    import quant
     doc = limits.load_positions()
+    meta = doc.get("meta", {})
     ev = limits.evaluate(positions_doc=doc, limits=limits.load_limits())
-    q = load_json(config.DATA_DIR / "quant.json")
+    q, stale_at, stale_why = _quant_fresh(meta)
     pf = load_json(config.DATA_DIR / "portfolio.json") or {}
     acts = _position_rows(doc, ev, q)
     port = _portfolio(acts, q, ev, doc)
+    if stale_why:
+        port["lines"].insert(0, f"{stale_why} 흐름 점수·확률 규칙(논리 점검·확대 검토·규모 조정·한도 초과 확률·새 기회)은 뺐음 — "
+                             "전략 탭 '다시 계산'(전략 재계산)을 누르면 다시 들어감(또는 python quant.py)")
     cnt: dict[str, int] = {}
     for a in acts:
         cnt[a["action"]] = cnt.get(a["action"], 0) + 1
     todo = [a for a in acts if a["action"] != "유지"]
-    meta = doc.get("meta", {})
     groups = []
     for g in GROUPS:
         xs = [a for a in acts if a["action"] in g["actions"]]
@@ -527,7 +577,8 @@ def build(save: bool = True) -> dict:
     d = {
         "generated_at": datetime.datetime.now().isoformat(timespec="seconds"),
         "positions_as_of": meta.get("as_of"), "quant_at": (q or {}).get("generated_at"),
-        "is_trial": "가상 시험 포트" in (meta.get("note") or ""),
+        "quant_stale_at": stale_at, "quant_stale_reason": stale_why,
+        "is_trial": quant.is_trial(meta), "is_sample": limits.is_sample("positions"),
         "summary": {"todo": len(todo), "counts": [{"action": k, "n": v, "tone": ACTIONS[k][0]}
                                                   for k, v in sorted(cnt.items(), key=lambda kv: -ACTIONS[kv[0]][1])],
                     "headline": (f"오늘 할 일 {len(todo)}건 — 먼저 {todo[0]['name']}: {todo[0]['action']}" if todo else "오늘은 원칙대로 유지")},
@@ -556,7 +607,8 @@ def build(save: bool = True) -> dict:
 
 def to_markdown(d: dict) -> str:
     """에이전트 컨텍스트용 요약(숫자는 CODE 계산)."""
-    L = [f"## 전략 보드 (CODE · {d['generated_at'][:16]}{' · 가상 시험 포트' if d.get('is_trial') else ''})",
+    tag = " · 가상 시험 포트" if d.get("is_trial") else (" · 샘플(계획치)" if d.get("is_sample") else "")
+    L = [f"## 전략 보드 (CODE · {d['generated_at'][:16]}{tag})",
          d["summary"]["headline"], ""]
     L += [f"- {x}" for x in d["portfolio"]["lines"] + d["portfolio"]["concentration"]]
     L += ["", "| 포지션 | 할 일 | 이유 | 영향(억) |", "|---|---|---|---|"]

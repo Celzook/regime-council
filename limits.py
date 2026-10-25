@@ -8,6 +8,9 @@
 손실 정의: YTD 평가손익 기준, 환헤지 비용 차감 후. 레벨 내 순손익 상계. 소진율 = max(0, -순손익)/한도.
 - 환 한도: 환오픈분(익스포저 × (1-헤지비율))의 환 손익(pnl_fx_ytd_bn)에만 적용.
   asset=fx 포지션(환 오버레이: 달러·엔 선물 등)은 현금 다리 없이 명목(fx_exposure_bn)이 그대로 환오픈이 된다.
+  fx_exposure_bn 은 다리 그로스 합(손절금액·한도 기준). fx_net_bn(부호 있는 순노출)이 있으면 스트레스 환 충격만
+  그 크기·방향으로 잡는다(음수 = 외화 순숏·원화 롱 → 원화 강세에 이익). 없으면 예전대로 fx_exposure_bn·롱(+1).
+  스트레스 환 충격은 USD/KRW(usdkrw_pct) 하나 — USD 아닌 통화는 대용임을 경고로 남긴다.
 - rate_pnl_in_scope=false(ALM 보유분): 금리 평가손익을 한도 대상에서 제외 — `pnl_rate_ytd_bn` 이 있으면 손익에서 빼고,
   없으면 전액 포함하되 데이터 경고를 남긴다. 스트레스에서도 금리 충격을 제외한다(스프레드 충격은 포함).
 - 위탁 혼합 포트(mixed)는 look_through 비율로 주식/채권 다리(leg)로 나눠 집계. 손익 분리 보고(pnl_split)가 없으면 비중 추정(경고).
@@ -54,19 +57,28 @@ def load_positions() -> dict:
     return doc
 
 
+def _limits_ok(lim) -> bool:
+    return bool(lim) and all(k in lim for k in REQUIRED_LIMIT_KEYS)
+
+
 def load_limits() -> dict:
     lim = load_json(config.DATA_DIR / "limits.json")
-    if lim and all(k in lim for k in REQUIRED_LIMIT_KEYS):
+    if _limits_ok(lim):
         return lim
     sample = load_json(config.DATA_DIR / "limits.sample.json")
     if lim:
         sample = dict(sample); sample.setdefault("meta", {})["load_warning"] = \
             f"limits.json 에 필수 키 누락({[k for k in REQUIRED_LIMIT_KEYS if k not in lim]}) — 가안(limits.sample.json) 사용"
+    elif lim is None and (config.DATA_DIR / "limits.json").exists():
+        sample = dict(sample); sample.setdefault("meta", {})["load_warning"] = \
+            "limits.json 읽기 실패(JSON 오류) — 가안(limits.sample.json) 사용"
     return sample
 
 
 def is_sample(name: str) -> bool:
-    return not (config.DATA_DIR / f"{name}.json").exists()
+    """실제로 가안/예시로 대체되면 True — load_limits·load_positions 의 폴백 조건과 같다(파일이 있어도 깨졌으면 True)."""
+    d = load_json(config.DATA_DIR / f"{name}.json")
+    return not (_limits_ok(d) if name == "limits" else d)
 
 
 def _eff_pnl(p: dict, warns: list[str]) -> float:
@@ -114,9 +126,11 @@ def expand_legs(positions: list[dict], warns: list[str] | None = None) -> list[d
         if p.get("currency") and p.get("currency") != "KRW":
             exposure = _f(p.get("fx_exposure_bn"), mv)
             hedge = _f(p.get("hedge_pct"), 100)
+            net = _f(p.get("fx_net_bn"), exposure)   # 스트레스 전용 순노출(없으면 그로스·롱)
             legs.append({"pos_id": p["id"], "name": p["name"] + " [환오픈분]", "asset": "fx",
                          "mv_bn": exposure * (1 - hedge / 100), "exposure_bn": exposure, "hedge_pct": hedge,
-                         "pnl_bn": _f(p.get("pnl_fx_ytd_bn")), "estimated": False})
+                         "stress_bn": abs(net) * (1 - hedge / 100), "sign": -1 if net < 0 else 1,
+                         "currency": p.get("currency"), "pnl_bn": _f(p.get("pnl_fx_ytd_bn")), "estimated": False})
     return legs
 
 
@@ -161,7 +175,8 @@ def leg_stress_loss(leg: dict, sc: dict) -> float:
     if leg["asset"] == "equity":
         return -leg.get("beta", 1.0) * sc.get("equity_pct", 0) / 100 * mv
     if leg["asset"] == "fx":
-        return -sc.get("usdkrw_pct", 0) / 100 * mv  # 원화 강세(음수) → 미헤지 USD 손실
+        # 원화 강세(음수) → 외화 롱 손실, 외화 숏(sign -1·원화 롱)은 이익
+        return -leg.get("sign", 1) * sc.get("usdkrw_pct", 0) / 100 * leg.get("stress_bn", mv)
     return 0.0
 
 
@@ -197,6 +212,7 @@ def evaluate(positions_doc: dict | None = None, limits: dict | None = None,
         positions.append(np_)
 
     legs = expand_legs(positions, warnings)
+    est_ids = {l["pos_id"] for l in legs if l.get("estimated")}
     total_mv = sum(_f(p.get("mv_bn")) for p in positions)
     asset_limits = {a: _f(limits["asset_limits_bn"].get(a)) for a in ASSETS}
     total_limit = _f(limits["total_limit_bn"])
@@ -241,6 +257,10 @@ def evaluate(positions_doc: dict | None = None, limits: dict | None = None,
                 pass
         if stale:
             warnings.append(f"{p['name']} 손익 기준일 {p['pnl_as_of']}({age}일 경과) — 포함했으나 확정치 아님")
+        unpriced = p.get("unpriced_legs") or []
+        if unpriced:
+            stale = True
+            warnings.append(f"{p['name']} 가격 미수신({', '.join(unpriced)}) — 진입가로 평가(손익 과소 가능), 확정치 아님")
         pos_rows.append({
             "id": p["id"], "name": p.get("short_name") or p["name"], "full_name": p["name"],
             "asset": p.get("asset"), "type": p.get("type", "bucket"),
@@ -249,11 +269,11 @@ def evaluate(positions_doc: dict | None = None, limits: dict | None = None,
             "stop_loss_pct": sl, "stop_amount_bn": round(stop_amt, 1), "stop_ratio_pct": round(ratio, 1),
             "approach_ratio_pct": round(approach * 100), "stage_asset": stage_asset,
             "stage": _max_stage(stage_asset, fx["stage"] if fx else "NORMAL"), "reason": " · ".join(reasons),
-            "fx": fx, "pnl_as_of": p.get("pnl_as_of"), "stale": stale,
+            "fx": fx, "pnl_as_of": p.get("pnl_as_of"), "stale": stale, "unpriced_legs": unpriced,
             "duration": p.get("duration"), "beta": p.get("beta"),
             "hedge_pct": p.get("hedge_pct"), "currency": p.get("currency", "KRW"),
             "rate_pnl_in_scope": bool(p.get("rate_pnl_in_scope", True)), "is_new": p["id"] == "NEW",
-            "pnl_split_estimated": p.get("asset") == "mixed" and not (p.get("pnl_split") or {}).get("equity"),
+            "pnl_split_estimated": p["id"] in est_ids,
         })
 
     def pos_stage_max(asset: str) -> str:
@@ -285,6 +305,9 @@ def evaluate(positions_doc: dict | None = None, limits: dict | None = None,
             warnings.append(f"{ASSET_KO[a]} 손절금액 합계 {stop_budget[a]:.0f}억 > {ASSET_KO[a]} 한도 {asset_limits[a]:.0f}억 (위탁 손절은 양쪽 자산에 전액 계상) — 손절선 또는 한도 재설정 필요")
 
     # ── 스트레스 (현재 순손익 상계) ──
+    proxied = sorted({l["currency"] for l in legs if l["asset"] == "fx" and l.get("currency") not in (None, "USD") and l["mv_bn"]})
+    if proxied:
+        warnings.append(f"스트레스 환 충격: {', '.join(proxied)} 환오픈분에 USD/KRW 충격(usdkrw_pct)을 대용 — 통화별 충격 미정")
     stress, sizing = [], None
     pnl_a = {a: by_asset[a]["pnl_bn"] for a in ASSETS}
     for sc in limits["stress_scenarios"]:

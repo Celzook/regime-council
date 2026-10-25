@@ -13,7 +13,7 @@ import config
 import history
 import limits
 import store
-from agent import Agent, build_shared_context, load_json, load_prompt
+from agent import Agent, build_shared_context, load_json, load_prompt, share_refinitiv, withheld
 from schemas import CheckReport, VerifierView
 
 TRIGGERS = {"NEW": "신규 투자", "REBAL_6M": "6개월 주기 비중 조절",
@@ -77,17 +77,27 @@ def compare_checks(p: dict | None, v: dict | None, code_floor: str = "NONE") -> 
         return {"verdict": "NOT_RUN", "rule": "자체검증 미실행 — 운용역 검토", "details": {}}
     pg, vg = _max_grade(code_floor, p["risk_grade"]), _max_grade(code_floor, v["risk_grade"])
     gdiff = abs(GRADE_ORDER[pg] - GRADE_ORDER[vg])
-    pa = {a["position_id"]: a for a in p.get("adjustments", [])}
-    va = {a["position_id"]: a for a in v.get("adjustments", [])}
+    # 같은 포지션에 조정안이 여러 건(축소+헤지 등)일 수 있다 — 전부 모아 방향 집합으로 비교(목록 순서와 무관)
+    pa, va = {}, {}
+    for a in p.get("adjustments", []):
+        pa.setdefault(a["position_id"], []).append(a)
+    for a in v.get("adjustments", []):
+        va.setdefault(a["position_id"], []).append(a)
     dir_mismatch, opposite, max_w = 0, 0, 0.0
     for pid in set(pa) & set(va):
-        d1, d2 = pa[pid]["direction"], va[pid]["direction"]
+        d1, d2 = {a["direction"] for a in pa[pid]}, {a["direction"] for a in va[pid]}
         if d1 != d2:
             dir_mismatch += 1
-            if (d1, d2) in OPPOSITE:
+            if any((x, y) in OPPOSITE for x in d1 for y in d2):
                 opposite += 1
-        if pa[pid].get("weight_proposed_pct") is not None and va[pid].get("weight_proposed_pct") is not None:
-            max_w = max(max_w, abs(pa[pid]["weight_proposed_pct"] - va[pid]["weight_proposed_pct"]))
+        # 비중 차는 같은 방향끼리만 비교 — 각 제안을 상대편 같은 방향 제안 중 가장 가까운 값과 짝짓는다
+        # (축소 4%·헤지 10% 를 서로 비교하면 똑같은 목록도 불일치가 된다)
+        for d in d1 & d2:
+            w1 = [a["weight_proposed_pct"] for a in pa[pid] if a["direction"] == d and a.get("weight_proposed_pct") is not None]
+            w2 = [a["weight_proposed_pct"] for a in va[pid] if a["direction"] == d and a.get("weight_proposed_pct") is not None]
+            if w1 and w2:
+                gap = max(max(min(abs(x - y) for y in w2) for x in w1), max(min(abs(x - y) for x in w1) for y in w2))
+                max_w = max(max_w, gap)
     only_one = len(set(pa) ^ set(va))
     if opposite:
         verdict = "DISAGREE"
@@ -136,7 +146,8 @@ def run_check(trigger: str, asset: str, inputs: dict | None = None, model: str |
     analog, analog_md = None, ""
     try:
         analog = history.find_analogs(asset)
-        analog_md = history.to_markdown(analog)
+        # 과거 유사 국면 수치는 Refinitiv 시계열 — 제한이면 에이전트 입력에서만 뺀다(로컬 보고서 CODE 절은 그대로)
+        analog_md = history.to_markdown(analog) if share_refinitiv() else withheld("### 과거 유사 국면")
     except Exception as e:  # noqa: BLE001
         analog_md = f"### 과거 유사 국면\n(계산 불가: {e})"
 

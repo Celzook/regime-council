@@ -8,6 +8,7 @@
 """
 import datetime
 import os
+import re
 import sys
 import threading
 import traceback
@@ -115,12 +116,17 @@ def _lan_allowed(addr: str) -> bool:
     return any(ip in ipaddress.ip_network(n, strict=False) for n in config.LAN_ALLOW)
 
 
+def _lan_get_ok(path: str) -> bool:
+    """사내 공유 보기의 GET 허용 목록(config.LAN_GET_ALLOW) — '*' 로 끝나는 항목은 앞부분 일치, 나머지는 같은 주소만."""
+    return any(path.startswith(x[:-1]) if x.endswith("*") else path == x for x in config.LAN_GET_ALLOW)
+
+
 @app.before_request
 def _csrf_guard():
     if request.host not in ALLOWED_HOSTS:
         return jsonify({"error": "허용되지 않은 호스트"}), 403
     if not _is_local():
-        # 사내 공유 보기: 허용 대역 · 접속 키 · 읽기 전용(허용된 계산 하나만)
+        # 사내 공유 보기: 허용 대역 · 접속 키 · 읽기 전용(허용된 계산 하나만) · 조회는 화면이 쓰는 주소만
         if not config.LAN_SHARE or not _lan_allowed(request.remote_addr):
             return jsonify({"error": "허용되지 않은 접속"}), 403
         if not _key_ok():
@@ -129,6 +135,8 @@ def _csrf_guard():
             return jsonify({"error": "사내 공유 보기에서는 볼 수 없는 화면입니다."}), 403
         if request.method == "POST" and request.path not in config.LAN_POST_ALLOW:
             return jsonify({"error": "사내 공유 보기는 읽기 전용입니다 — 갱신·점검·AI 기능은 운영 PC 에서만 됩니다."}), 403
+        if request.method != "POST" and not _lan_get_ok(request.path):
+            return jsonify({"error": "사내 공유 보기에서는 볼 수 없는 화면입니다."}), 403
         if request.method == "GET" and "key" in request.args:
             # 키를 쿠키로 옮기고 주소창·방문 기록·프록시 로그에서 지운다
             from flask import redirect
@@ -200,6 +208,27 @@ def index():
 
 
 # ── 홈/개요 ───────────────────────────────────────────────────
+_QUOTED_PATH = re.compile(r"'((?:[A-Za-z]:|\\\\|/)[^'\n]*)'")   # OSError 문장 속 '경로' (공백 포함)
+
+
+def _warnings(problems=()) -> list:
+    """data_warnings — 원격(사내 공유) 응답에는 OSError 문장 속 이 PC 폴더 경로 대신 파일 이름만."""
+    w = [f"{n}: {e}" for n, e in LOAD_ERRORS.items()] + list(problems)
+    if _is_local():
+        return w
+    return [_QUOTED_PATH.sub(lambda m: "'" + re.split(r"[\\/]+", m.group(1))[-1] + "'", x) for x in w]
+
+
+def _hide_paths(latest_daily):
+    """원격(사내 공유) 응답에는 일일 점검 기록의 보유·한도 파일 경로 대신 파일 이름만 — 원본(캐시)은 건드리지 않는다."""
+    bk = (latest_daily or {}).get("book") if isinstance(latest_daily, dict) else None
+    if _is_local() or not isinstance(bk, dict):
+        return latest_daily
+    from pathlib import PureWindowsPath
+    bk = {k: PureWindowsPath(str(v)).name if k in ("positions_path", "limits_path") and v else v for k, v in bk.items()}
+    return {**latest_daily, "book": bk}
+
+
 @app.get("/api/overview")
 def api_overview():
     lim = limits.load_limits()
@@ -216,9 +245,9 @@ def api_overview():
         problems.append(f"경고 레지스트리 손상: {e} — data/log/alerts.json.bak 으로 복구 필요")
         alerts = []
     if ev is None:
-        return jsonify({"limits": None, "gaps": [], "alerts_open": alerts, "latest_daily": store.latest_daily(), "mps": {},
+        return jsonify({"limits": None, "gaps": [], "alerts_open": alerts, "latest_daily": _hide_paths(store.latest_daily()), "mps": {},
                         "pending_checks": store.list_checks()[:10], "api_key_set": api_key_set(), "model": config.MODEL,
-                        "data_warnings": [f"{n}: {e}" for n, e in LOAD_ERRORS.items()] + problems,
+                        "data_warnings": _warnings(problems),
                         "log_chain": store.verify_log_chain()})
     gaps = []
     mps = {}
@@ -232,14 +261,14 @@ def api_overview():
         if adopted:
             gaps += limits.gap_analysis(ev, {asset: adopted}, band_pp=lim.get("mp_band_pp", 2.0))
     gaps.sort(key=lambda r: -abs(r["gap_pp"] or 0))
-    latest_daily = store.latest_daily()
+    latest_daily = _hide_paths(store.latest_daily())
     pending = [c for c in store.list_checks() if (c.get("decision") or {}).get("status") == "PENDING"]
     market = load_json(config.DATA_DIR / "market.json") or load_json(config.DATA_DIR / "market.sample.json")
     return jsonify({
         "limits": ev, "limits_config": {k: lim.get(k) for k in ("total_limit_bn", "asset_limits_bn", "stages", "meta")},
         "gaps": gaps, "alerts_open": alerts, "latest_daily": latest_daily, "mps": mps, "pending_checks": pending,
         "api_key_set": api_key_set(), "model": config.MODEL,
-        "data_warnings": [f"{n}: {e}" for n, e in LOAD_ERRORS.items()] + problems,
+        "data_warnings": _warnings(problems),
         "market_as_of": (market or {}).get("meta", {}).get("generated_at"),
         "log_chain": store.verify_log_chain(),
         "data_feed": _data_feed(),
@@ -356,7 +385,11 @@ def api_room_action():
         trig = b.get("trigger") or "LIMIT_APPROACH"
         if trig not in checks.TRIGGERS or asset not in config.AGENTS:
             return _err("trigger/asset 오류")
-        return jsonify({"job_id": start_job("check", checks.run_check, trig, asset, b.get("inputs") or {}, None, b.get("note") or "에이전트 제안으로 실행")})
+        note = b.get("note") or "에이전트 제안으로 실행"
+        from agent import share_refinitiv
+        if trig == "SHOCK" and not share_refinitiv():
+            note = "에이전트 제안으로 실행"   # 급변 메모엔 Refinitiv 수치가 들 수 있다 — 화면이 보낸 메모는 믿지 않는다
+        return jsonify({"job_id": start_job("check", checks.run_check, trig, asset, b.get("inputs") or {}, None, note)})
     if typ == "mp":
         if not api_key_set():
             return _err("MP 산출은 API 키가 필요합니다", 503)
@@ -577,9 +610,10 @@ def api_book():
     scoring = [s for s in ev["stress"] if not s["sizing"] and not s["reference"]]
     worst = max(scoring, key=lambda s: s["loss_total_bn"]) if scoring else None
     meta = doc.get("meta", {})
+    import quant   # is_trial 판정 한 곳(quant.is_trial)
     return jsonify({
         "meta": {k: meta.get(k) for k in ("as_of", "source", "note", "price_dates", "proxies")},
-        "is_sample": limits.is_sample("positions"), "is_trial": "가상 시험 포트" in (meta.get("note") or ""),
+        "is_sample": limits.is_sample("positions"), "is_trial": quant.is_trial(meta),
         "target": {"size_bn": active.get("size_bn")},
         "totals": {"mv_bn": round(sum(o["mv_bn"] for o in out if not o["is_fx"]), 1),
                    "fx_notional_bn": round(sum(o["mv_bn"] for o in out if o["is_fx"]), 1),
@@ -679,7 +713,10 @@ def api_equity_fund_refresh():
 @app.get("/api/backtest/catalog")
 def api_bt_catalog():
     import backtest
-    d = backtest.catalog()
+    try:
+        d = backtest.catalog()
+    except ValueError as e:   # 가격 파일이 아직 없음 — 받는 방법을 안내(데이터 준비 전이라 503)
+        return _err(str(e), 503)
     d["summary"] = backtest.load_summary()
     return jsonify(d)
 
@@ -733,6 +770,10 @@ def api_macro():
     doc["refreshing"] = refreshing
     doc["bridge_exists"] = infomax_bridge.BRIDGE.exists()
     doc["bridge_path"] = str(infomax_bridge.BRIDGE) if _is_local() else ""
+    meta = doc.get("meta")
+    if not _is_local() and isinstance(meta, dict) and meta.get("workbook"):   # 원격에는 이 PC 폴더 경로 대신 파일 이름만
+        from pathlib import PureWindowsPath
+        meta["workbook"] = PureWindowsPath(str(meta["workbook"])).name
     doc["share_vendor"] = config.SHARE_VENDOR_DATA
     doc["refresh_min"] = config.INFOMAX_REFRESH_MIN
     return jsonify(doc)
@@ -759,8 +800,14 @@ def api_book_mark():
     import book
     if not book.DEFAULT_BOOK.exists():
         return _err("보유 엑셀(data/시험포트.xlsx)이 없습니다.", 404)
+    def _mark():   # 미연결·가격 0건이면 쓰지 않고 skipped — 작업을 실패로 끝내 화면이 '완료'로 오해하지 않게
+        r = book.sync(quiet=True)
+        if r.get("skipped"):
+            raise RuntimeError(r.get("error") or "시가 평가를 건너뜀 — 기존 positions.json 유지")
+        return r
+
     try:
-        return jsonify({"job_id": start_job("book", book.sync, quiet=True)})
+        return jsonify({"job_id": start_job("book", _mark)})
     except RuntimeError as e:
         return _err(str(e), 409)
 
@@ -774,7 +821,7 @@ def api_state():
     return jsonify({"market": market, "reports": reports, "api_key_set": api_key_set(), "model": config.MODEL,
                     "discuss": {"status": disc["status"] if disc else "idle", "report": os.path.basename(disc["result"]) if disc and disc["status"] == "done" else None,
                                 "error": disc["error"] if disc else None},
-                    "data_warnings": [f"{n}: {e}" for n, e in LOAD_ERRORS.items()]})
+                    "data_warnings": _warnings()})
 
 
 @app.post("/api/ask")

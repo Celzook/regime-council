@@ -3,7 +3,8 @@
 
 숫자는 모두 코드(CODE)가 계산한다. 데이터는 주식 대시보드가 받아 둔 일별 가격(data/history/equity_daily.csv)과 단기금리.
 - 지수 총수익: S&P500 = SPY, KOSPI200 = KODEX 200(배당 재투자 반영), 나스닥100·닛케이·유로스톡스 = 지수 + 배당수익률 가정
-- 현금(단기금리): 미국 = 3개월 국채 수익률(열 이름 ^IRX, Refinitiv US3MT=RR), 한국 = CD 91일(KOFIA 최종호가 KRCD=KQ, 없는 구간만 국고 3년 − 0.3%p)
+- 현금(단기금리): 미국 = 3개월 국채 수익률(열 이름 ^IRX, Refinitiv US3MT=RR), 한국 = CD 91일(KOFIA 최종호가 KRCD=KQ, 없는 구간만 국고 3년 − 0.3%p),
+  일본·유럽 = 이력이 없어 0% 가정(QIS 의 닛케이·유로스톡스 선물 초과수익에만 쓰임)
 - 선물 = 지수 총수익 − 현금(완전 담보 가정) · 롤 비용 연 0.3%p(노출 비례) · 노출이 바뀔 때 거래비용 0.05%
 - 옵션 = 블랙숄즈 추정 + 거래비용(건당 명목 0.02% + 프리미엄 3%). 내재변동성: S&P500 = VIX, 나스닥100 = VXN, KOSPI200 = VKOSPI(2009-04~).
   KOSPI200 옵션·ELB 의 행사가·정산은 가격지수 .KS200(배당 미포함), 보유분 수익은 KODEX 200 총수익.
@@ -126,7 +127,14 @@ UNAVAILABLE = {"EQ-FUT-04": "이벤트 일정(FOMC·CPI·실적 발표일) 데�
 _C: dict = {}
 
 
+def _need(path, how: str) -> None:
+    """데이터 파일이 없으면 FileNotFoundError(화면엔 500) 대신 고칠 방법을 담은 ValueError — 웹 경로가 그대로 안내한다."""
+    if not path.exists():
+        raise ValueError(f"{path.name} 이 없습니다 — {how}")
+
+
 def _px() -> pd.DataFrame:
+    _need(HIST, "주식 탭에서 '다시 받기'를 먼저 눌러주세요.")
     mt = HIST.stat().st_mtime
     if _C.get("mt") != mt:
         df = pd.read_csv(HIST, index_col=0, parse_dates=True)
@@ -162,16 +170,25 @@ def _align(r: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:
     return out.fillna(0)
 
 
+def _win(x, start, end):
+    """화면 기간 (start, end] — 수익(ret)과 부가 지표가 같은 창을 쓴다."""
+    return x[(x.index > start) & (x.index <= end)]
+
+
 def cash(ccy: str, idx: pd.DatetimeIndex) -> pd.Series:
-    """일별 현금 수익률. 한국 = CD 91일(KOFIA 최종호가 KRCD=KQ), 미국 = 3개월 국채(US3MT=RR).
+    """일별 현금 수익률. 한국 = CD 91일(KOFIA 최종호가 KRCD=KQ), 미국 = 3개월 국채(US3MT=RR), 일본·유럽 = 0% 가정(이력 없음).
     CD 가 받아진 첫날 이전만 국고 3년 − 0.3%p 로 메운다. 그 뒤 빈 날(휴일·CD 수집 실패)은 직전 CD 값을 잇는다."""
     if ccy == "KRW":
+        _need(KOFIA, "한국 현금 금리(CD 91일) 이력 — refresh_all.py(과거 시계열) 또는 fetch_history.py 로 먼저 받아 주세요.")
         k = pd.read_csv(KOFIA, index_col=0, parse_dates=True)
         cd = k["cd_91d"].dropna() if "cd_91d" in k else pd.Series(dtype=float)
         fb = (k["ktb_3y"] - 0.3).dropna()
         if len(cd):
             fb = fb[fb.index < cd.index[0]]
         y = pd.concat([cd, fb]).sort_index() / 100
+    elif ccy in ("JPY", "EUR"):
+        # 일본·유럽 단기금리 이력이 없어 0% 로 가정한다(근사 — 2016~2022 은 0 부근, 2023~24 유로 캐리는 과소). QIS 만 쓴다.
+        return pd.Series(0.0, index=idx)
     else:
         y = _s("^IRX") / 100
     return y.reindex(idx.union(y.index)).ffill().reindex(idx) / 252
@@ -220,14 +237,14 @@ def _year_starts(idx: pd.DatetimeIndex) -> list:
 
 
 # ── 전략 ────────────────────────────────────────────────────────
-def s_tactical(p, start):
+def s_tactical(p, start, end):
     k = p["under"]; r = tr_ret(k)
     nav = (1 + r).cumprod(); ma = nav.rolling(int(p["ma"])).mean()
     down = {"cash": 0.0, "half": -0.5, "short": -1.0}[p["down"]]
     E = pd.Series(np.where(nav > ma, 1.0, down), r.index).where(ma.notna()).shift(1).dropna()
     r = r.reindex(E.index); c = cash(UNDER[k][4], E.index)
     ret = E * r + (1 - E) * c - E.abs() * ROLL / 252 - E.diff().abs().fillna(0) * COST
-    return ret, r, {"평균 노출": f"{E.loc[start:].mean() * 100:.0f}%", "노출 변경 횟수": f"{int((E.loc[start:].diff().abs() > 0).sum())}회"}
+    return ret, r, {"평균 노출": f"{_win(E, start, end).mean() * 100:.0f}%", "노출 변경 횟수": f"{int((_win(E, start, end).diff().abs() > 0).sum())}회"}
 
 
 def _tr_index(keys) -> pd.DataFrame:
@@ -235,7 +252,7 @@ def _tr_index(keys) -> pd.DataFrame:
     return df
 
 
-def s_pair(p, start):
+def s_pair(p, start, end):
     a, b = p["a"], p["b"]
     if a == b:
         raise ValueError("지수 A 와 B 를 다르게 골라주세요.")
@@ -250,24 +267,24 @@ def s_pair(p, start):
         w = sig.where([d in ms for d in idx.index]).ffill().shift(1).reindex(spread.index).dropna()
         spread = spread.reindex(w.index)
     ret = w * spread - w.diff().abs().fillna(0) * 2 * COST
-    return ret, None, {"A 롱 비중": f"{(w.loc[start:] > 0).mean() * 100:.0f}%의 기간"}
+    return ret, None, {"A 롱 비중": f"{(_win(w, start, end) > 0).mean() * 100:.0f}%의 기간"}
 
 
-def s_voltarget(p, start):
+def s_voltarget(p, start, end):
     k = p["under"]; r = tr_ret(k)
     rv = r.rolling(60).std() * math.sqrt(252)
     E = (p["target"] / 100 / rv).clip(upper=float(p["cap"])).shift(1).dropna()
     r = r.reindex(E.index); c = cash(UNDER[k][4], E.index)
     ret = E * r + (1 - E) * c - E * ROLL / 252 - E.diff().abs().fillna(0) * COST
-    return ret, r, {"평균 노출": f"{E.loc[start:].mean() * 100:.0f}%", "최저 노출": f"{E.loc[start:].min() * 100:.0f}%"}
+    return ret, r, {"평균 노출": f"{_win(E, start, end).mean() * 100:.0f}%", "최저 노출": f"{_win(E, start, end).min() * 100:.0f}%"}
 
 
-def s_index_trs(p, start):
+def s_index_trs(p, start, end):
     r = tr_ret(p["under"])
     return r - float(p["spread"]) / 100 / 252, r, {}
 
 
-def s_factor_trs(p, start):
+def s_factor_trs(p, start, end):
     keys = {"defensive": ["f_minvol", "f_quality", "f_div"], "value_mom": ["f_value", "f_mom"], "all": list(FACTORS)}[p["basket"]]
     df = pd.concat({k: _s(FACTORS[k][1]) for k in keys}, axis=1).dropna().pct_change().dropna()
     ret = df.mean(axis=1) - float(p["spread"]) / 100 / 252          # 매일 같은 비중(월 재조정의 근사)
@@ -275,21 +292,24 @@ def s_factor_trs(p, start):
     return ret, bench, {"바스켓": " · ".join(FACTORS[k][0] for k in keys), "데이터 시작": df.index[0].date().isoformat()}
 
 
-def s_qis(p, start):
+def s_qis(p, start, end):
     keys = ["sp500", "kospi200", "nikkei", "sx5e"]
     idx = _tr_index(keys); r = idx.pct_change().dropna()
     look = {6: 126, 12: 252}[int(p["look"])]
     sig = np.sign(idx.pct_change(look)) / len(keys)
     ms = set(_month_starts(idx.index))
     W = sig.where(pd.Series([d in ms for d in idx.index], idx.index), axis=0).ffill().shift(1).reindex(r.index).dropna()
-    r = r.reindex(W.index)
+    # 선물 초과수익 = 지수 총수익 − 현지 현금(한국 CD 91일, 미국 3개월 국채, 일본·유럽 0% 가정). 담보 현금은 미국 금리.
+    # 현지 현금이 빈 날은 뺀다(sum 이 NaN 을 0 으로 넘기면 그 다리의 캐리가 조용히 사라진다).
+    C = pd.concat({k: cash(UNDER[k][4], W.index) for k in keys}, axis=1).dropna()
+    W, r = W.reindex(C.index), r.reindex(C.index)
     c = cash("USD", W.index)
-    ret = c + (W * r.sub(c, axis=0)).sum(axis=1) - float(p["fee"]) / 100 / 252 - W.diff().abs().sum(axis=1).fillna(0) * COST
+    ret = c + (W * (r - C)).sum(axis=1) - float(p["fee"]) / 100 / 252 - W.diff().abs().sum(axis=1).fillna(0) * COST
     bench = _align(tr_ret("sp500"), ret.index)
-    return ret, bench, {"평균 순노출": f"{W.loc[start:].sum(axis=1).mean() * 100:+.0f}%"}
+    return ret, bench, {"평균 순노출": f"{_win(W, start, end).sum(axis=1).mean() * 100:+.0f}%"}
 
 
-def _option_run(key, legs, stock: bool, start):
+def _option_run(key, legs, stock: bool, start, end):
     """legs: [(call?, 행사가 %, 수량 +1 매수 / −1 매도)] — 매월 첫 거래일에 1개월 옵션을 새로 잡는다."""
     S = _s(UNDER[key][2]); TR = (1 + tr_ret(key)).cumprod(); IV = _iv(key)
     idx = S.index.intersection(TR.index).intersection(IV.index)
@@ -315,29 +335,30 @@ def _option_run(key, legs, stock: bool, start):
         legp = [(n, bs(S0, K, T0, r0, q, _skew(float(IV[t0]), K / S0), call)) for call, K, n in strikes]
         price0 = sum(n * v for n, v in legp)
         tcost = sum(OPT_COST[0] * S0 + OPT_COST[1] * v for _, v in legp)
-        prem_paid.append((price0 + tcost) / S0)
+        prem_paid.append((t0, t1, (price0 + tcost) / S0))
         cash0 = (0.0 if stock else nav) - units * (price0 + tcost)
         prev = nav
         for t in days:
             tau = max((exp - t).days, 0) / 365
             St = float(S[t]); rt = float(c[t]) * 252
             opt = sum(n * bs(St, K, tau, rt, q, _skew(float(IV[t]), K / St), call) for call, K, n in strikes)
-            grow = math.exp(rt * (t - t0).days / 365)
+            grow = math.exp(r0 * (t - t0).days / 365)    # 현금은 롤 때 금리(r0)로 1개월 예치 — 그날 금리로 지난 이자를 다시 매기지 않는다
             v = (nav * float(TR[t] / TR[t0]) if stock else 0.0) + units * opt + cash0 * grow
             out[t] = v / prev - 1
             prev = v
         nav = prev
     ret = pd.Series(out).sort_index()
     bench = _align(tr_ret(key), ret.index)
-    avg = np.mean(prem_paid) * 100 if prem_paid else 0
+    pp = [v for a, b, v in prem_paid if b > start and a < end]     # 화면 기간과 겹치는 롤만
+    avg = np.mean(pp) * 100 if pp else 0
     return ret, bench, {"월평균 옵션 순비용": f"{avg:+.2f}% (+ 는 지불, − 는 수취)", "변동성": {"sp500": "VIX", "ndx": "VXN", "kospi200": "VKOSPI"}.get(key, "실제 변동성 × (VIX÷S&P 실제 변동성) 근사")}
 
 
 def s_opt(legs_fn, stock):
-    return lambda p, start: _option_run(p["under"], legs_fn(p), stock, start)
+    return lambda p, start, end: _option_run(p["under"], legs_fn(p), stock, start, end)
 
 
-def s_elb(p, start):
+def s_elb(p, start, end):
     key = p["under"]; S = _s(UNDER[key][2]); IV = _iv(key)
     idx = S.index.intersection(IV.index)
     c = cash(UNDER[key][4], idx).dropna(); idx = idx.intersection(c.index)
@@ -355,28 +376,29 @@ def s_elb(p, start):
         budget = 1 - math.exp(-r0 * T0) - fee * T0
         call0 = bs(S0, S0, T0, r0, q, float(IV[t0]), True) / S0
         part = max(0.0, budget / call0) if call0 > 0 else 0.0
-        parts.append(part)
+        v0_unit = math.exp(-r0 * T0) + part * call0    # 실제로 산 채권 + 콜 — 참여율이 0으로 잘리면 1 − v0_unit < 발행 비용
+        parts.append((t0, t1, part))
         prev = nav
         for t in idx[(idx > t0) & (idx <= t1)]:
             tau = max((exp - t).days, 0) / 365; rt = float(c[t]) * 252
             v_unit = math.exp(-rt * tau) + part * bs(float(S[t]), S0, tau, rt, q, float(IV[t]), True) / S0
-            v0_unit = math.exp(-r0 * T0) + part * call0
-            v = nav * v_unit / v0_unit
+            v = nav * (v_unit + (1 - v0_unit) * tau / T0)   # 실제로 뗀 비용만 만기까지 고르게 상각 — 발행일 가치 = 원금, 만기 가치 = 원금 + 참여율 × 상승분
             out[t] = v / prev - 1
             prev = v
         nav = prev
     ret = pd.Series(out).sort_index()
-    return ret, _align(tr_ret(key), ret.index), {"평균 참여율": f"{np.mean(parts) * 100:.0f}% (지수 상승분 중 받는 비율)" if parts else "-",
+    pts = [x for a, b, x in parts if b > start and a < end]       # 화면 기간과 겹치는 발행분만
+    return ret, _align(tr_ret(key), ret.index), {"평균 참여율": f"{np.mean(pts) * 100:.0f}% (지수 상승분 중 받는 비율)" if pts else "-",
                                                            "주의": "발행사 신용위험·중도 환매 손실은 반영 안 함"}
 
 
-def s_cppi(p, start):
+def s_cppi(p, start, end):
     k = p["under"]; r = tr_ret(k)
     c = cash(UNDER[k][4], r.index).dropna(); r = r.reindex(c.index)
     r = r[r.index >= pd.Timestamp(start) - pd.Timedelta(days=5)]
     c = c.reindex(r.index)
     ys = set(_year_starts(r.index) if p["reset"] == "year" else _month_starts(r.index))
-    nav, floor, E, out, expo = 1.0, None, 0.0, {}, []
+    nav, floor, E, out, expo = 1.0, None, 0.0, {}, {}
     for t in r.index:
         if floor is None or t in ys:
             floor = nav * float(p["floor"]) / 100
@@ -386,9 +408,9 @@ def s_cppi(p, start):
         nav *= 1 - abs(newE - E) * COST           # 재조정 비용도 노출·하한을 정하는 NAV 에서 뺀다
         out[t] = nav / prev - 1
         E = newE
-        expo.append(E)
-    ret = pd.Series(out)
-    return ret, _align(tr_ret(k), ret.index), {"평균 주식 비중": f"{np.mean(expo) * 100:.0f}%", "최저 주식 비중": f"{min(expo) * 100:.0f}%"}
+        expo[t] = E
+    ret = pd.Series(out); ex = _win(pd.Series(expo), start, end)
+    return ret, _align(tr_ret(k), ret.index), {"평균 주식 비중": f"{ex.mean() * 100:.0f}%", "최저 주식 비중": f"{ex.min() * 100:.0f}%"}
 
 
 RUNNERS = {
@@ -516,6 +538,7 @@ def _episodes(s: pd.Series, name: str, tag: str, min_depth: float, n_dd: int, n_
 
 def scenarios() -> dict[str, dict]:
     """과거 국면 전체(키 → 항목). 가격 파일이 바뀔 때만 다시 계산."""
+    _px()                                                   # 가격 파일이 없으면 안내 문구로 멈춘다
     key = (HIST.stat().st_mtime, REGIMES.stat().st_mtime)
     if _C.get("sc_key") != key:
         items = json.loads(REGIMES.read_text(encoding="utf-8"))["items"]
@@ -563,12 +586,12 @@ def run(sid: str, params: dict | None = None, period: str = "10y", start: str | 
         raise ValueError(f"알 수 없는 전략: {sid}")
     p = _coerce(sid, params)
     want, e, pkey, plabel = resolve_period(period, start, end)
-    ret, bench, extra = RUNNERS[sid](p, want)
+    ret, bench, extra = RUNNERS[sid](p, want, e)
     ret = ret.dropna()
     if ret.empty:   # 기초 데이터(가격·변동성·현금)가 없으면 빈 결과 — 비교 연산 전에 알기 쉬운 말로 멈춘다
         raise ValueError("이 전략을 계산할 데이터가 없습니다 — 주식 탭에서 '다시 받기'로 가격·변동성을 먼저 받아 주세요.")
     first = ret.index[0].date()
-    ret = ret[(ret.index > want) & (ret.index <= e)]
+    ret = _win(ret, want, e)
     if len(ret) < MIN_DAYS:
         raise ValueError(f"이 기간에는 계산할 수 있는 날이 {len(ret)}일뿐입니다(최소 {MIN_DAYS}일). "
                          + f"이 전략은 {first}부터 계산할 수 있습니다"
@@ -602,7 +625,7 @@ def run(sid: str, params: dict | None = None, period: str = "10y", start: str | 
                   "bench": [round(float(v) * 100, 2) for v in (bnav.reindex(wk.index) if daily else _resample(bnav, "W-FRI").last().reindex(wk.index)).ffill().values] if bnav is not None else None,
                   "dd": [round(float(v) * 100, 2) for v in (dd if daily else _resample(dd, "W-FRI").min().reindex(wk.index)).values]},
         "assumptions": ["과거 데이터로 본 점검 자료 — 매매 지시 아님", "선물 = 지수 총수익 − 현금(완전 담보), 롤 비용 연 0.3%p, 노출 변경 거래비용 0.05%",
-                        "현금: 미국 3개월 국채, 한국 CD 91일(KOFIA 최종호가, 없는 구간만 국고 3년 − 0.3%p)",
+                        "현금: 미국 3개월 국채, 한국 CD 91일(KOFIA 최종호가, 없는 구간만 국고 3년 − 0.3%p), 일본·유럽은 금리 이력이 없어 0% 가정(QIS 선물 초과수익에만 쓰임)",
                         "옵션: 블랙숄즈 추정·스큐 근사 — 실제 호가와 다를 수 있음",
                         "샤프: 현금(위 금리) 초과수익 ÷ 변동성 — 지역 상대 뷰는 그 자체가 초과수익. 현금 금리가 없는 날은 샤프 계산에서만 뺀다"],
         "generated_at": datetime.datetime.now().isoformat(timespec="seconds"),

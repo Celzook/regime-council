@@ -64,6 +64,8 @@ def _book():
     if not book.DEFAULT_BOOK.exists():
         return "건너뜀(보유 엑셀 없음)"
     r = book.sync(quiet=True)
+    if r.get("skipped"):
+        return f"건너뜀({r.get('error')})"
     return f"손익 {r.get('pnl_bn')}억"
 
 

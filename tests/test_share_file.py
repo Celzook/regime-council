@@ -44,3 +44,49 @@ def test_file_html_org_flag():
 def test_scrub_keeps_only_file_names_of_local_paths():
     d = {"wb": r"\\wsl.localhost\Ubuntu\home\me\Stock_Dashboard\data\b.xlsx", "t": ["저장 /home/me/a/c.md 끝", r"C:\Users\me\x.txt"], "n": "3/4 정상"}
     assert S.scrub(d) == {"wb": "b.xlsx", "t": ["저장 c.md 끝", "x.txt"], "n": "3/4 정상"}
+
+
+def test_scrub_paths_with_spaces_and_other_drives_but_not_urls():
+    """공백 있는 폴더·C:\\Users 밖 드라이브·/mnt·네트워크 경로도 파일 이름만 — https:// 주소와 '3/4' 같은 글은 그대로."""
+    d = [r"D:\work\my proj\data\positions.json", "열기 실패: " + repr(r"C:\Program Files\x\a b.xlsx"),
+         "/mnt/c/Users/me/My Documents/r.md 저장", r"\\fileserver\share\팀 폴더\a.xlsx",
+         "https://example.com/home/x · http://h/mnt/y", "3/4 정상"]
+    assert S.scrub(d) == ["positions.json", "열기 실패: 'a b.xlsx'", "r.md 저장", "a.xlsx",
+                          "https://example.com/home/x · http://h/mnt/y", "3/4 정상"]
+
+
+def test_build_docs_scrubs_local_paths(monkeypatch, tmp_path):
+    """공개 페이지(docs/)에도 이 PC 폴더 경로가 남지 않는다 — 한 파일본(build_file)과 같게."""
+    snap = {"at": "2026-10-25 09:00", "get": {"/api/book": {"positions_path": r"C:\Users\me\proj\data\positions.json"}}, "monthly": {}}
+    monkeypatch.setattr(S, "collect", lambda: (snap, {"run": {"k|1y": {"note": "/home/me/proj/reports/a.md"}}, "all": {}}))
+    monkeypatch.setattr(S, "OUT", tmp_path)
+    monkeypatch.setattr(S, "write_html", lambda at: None)
+    monkeypatch.setattr(S.shutil, "copytree", lambda *a, **k: None)
+    S.build()
+    out = (tmp_path / "snap.json").read_text(encoding="utf-8") + (tmp_path / "bt.json").read_text(encoding="utf-8")
+    assert "Users" not in out and "/home/" not in out
+    assert "positions.json" in out and "a.md" in out
+
+
+def test_collect_skips_lan_hidden_paths(monkeypatch, tmp_path):
+    """사내 공유 보기에서 숨기는 화면(config.LAN_HIDE)은 공유본에도 담지 않는다(서버에 묻지도 않는다)."""
+    calls = []
+
+    def fake_get(path):
+        calls.append(path)
+        if path == "/api/backtest/catalog":
+            return {"presets": [{"value": k, "start": None, "end": None} for k in S.PRESETS], "strategies": []}
+        return {}
+
+    monkeypatch.setattr(S.config, "LAN_HIDE", ["/api/universe/spark"])
+    monkeypatch.setattr(S, "ROOT", tmp_path)   # /api/monthly 보고서 되돌리기가 저장소 파일을 건드리지 않게
+    monkeypatch.setattr(S, "get", fake_get)
+    monkeypatch.setattr(S, "post", lambda path, body: {})
+    snap, _ = S.collect()
+    assert "/api/universe/spark" not in calls and "/api/universe/spark" not in snap["get"]
+    assert "/api/overview" in snap["get"]
+
+
+def test_gitignore_keeps_reports_mp_venv_local():
+    lines = {x.strip() for x in (Path(__file__).resolve().parents[1] / ".gitignore").read_text(encoding="utf-8").splitlines()}
+    assert {"reports/", "data/mp/", ".venv/"} <= lines

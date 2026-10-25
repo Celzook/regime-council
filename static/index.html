@@ -1353,7 +1353,7 @@ function renderLimits(){
   let h = '<table><tr><th>범위</th><th class="num">한도(억)</th><th class="num">YTD 손익</th><th class="num">손실 사용</th><th class="num">여유</th><th class="num">소진율</th><th>단계</th><th>포지션 손절</th><th class="num">손절예산 사용/여유</th></tr>';
   h += row('전체', L.total) + ['bond','equity','fx'].map(a => row(KO[a], L.by_asset[a])).join('') + '</table>';
   h += '<div class="section-label">포지션별 손절선</div><table><tr><th>포지션</th><th>자산</th><th class="num">평가액</th><th class="num">비중</th><th class="num">YTD 손익</th><th class="num">손익률</th><th class="num">손절선</th><th class="num">접근률</th><th class="num">환오픈</th><th>상태</th><th>기준일</th></tr>';
-  h += L.positions.map(p => `<tr><td title="${esc(p.full_name||p.name)}">${esc(p.name)}${p.pnl_split_estimated?' <span class="kv">추정분할</span>':''}</td><td>${KO[p.asset]||esc(p.asset)}</td><td class="num">${num(p.mv_bn,0)}</td><td class="num">${num(p.weight_pct,1)}%</td><td class="num">${num(p.pnl_ytd_bn)}</td><td class="num">${num(p.pnl_pct,2)}%</td><td class="num">${p.stop_loss_pct}%</td><td class="num">${num(p.stop_ratio_pct,0)}%</td><td class="num">${p.fx ? num(p.fx.stop_ratio_pct,0)+'%' : '-'}</td><td>${chip(p.stage)}${p.reason?' <span class="kv">'+esc(p.reason)+'</span>':''}</td><td class="${p.stale?'masof stale':'masof'}">${esc(p.pnl_as_of||'')}${p.stale?' 경과':''}</td></tr>`).join('') + '</table>';
+  h += L.positions.map(p => `<tr><td title="${esc(p.full_name||p.name)}">${esc(p.name)}${p.pnl_split_estimated?' <span class="kv">추정분할</span>':''}</td><td>${KO[p.asset]||esc(p.asset)}</td><td class="num">${num(p.mv_bn,0)}</td><td class="num">${num(p.weight_pct,1)}%</td><td class="num">${num(p.pnl_ytd_bn)}</td><td class="num">${num(p.pnl_pct,2)}%</td><td class="num">${p.stop_loss_pct}%</td><td class="num">${num(p.stop_ratio_pct,0)}%</td><td class="num">${p.fx ? num(p.fx.stop_ratio_pct,0)+'%' : '-'}</td><td>${chip(p.stage)}${p.reason?' <span class="kv">'+esc(p.reason)+'</span>':''}</td><td class="${p.stale?'masof stale':'masof'}">${esc(p.pnl_as_of||'')}${(p.unpriced_legs||[]).length ? ' 가격 미수신('+esc(p.unpriced_legs.join(', '))+')' : p.stale ? (p.pnl_as_of ? ' 경과' : '가격 미수신') : ''}</td></tr>`).join('') + '</table>';
   if(L.suggested_cut_bn && Object.keys(L.suggested_cut_bn).length) h += '<div class="kv" style="margin-top:8px">축소 필요 규모(S0 기준): ' + Object.entries(L.suggested_cut_bn).map(([a,v])=>KO[a]+' 약 '+num(v,0)+'억').join(', ') + '</div>';
   $('limitTree').innerHTML = h;
   $('stressFull').innerHTML = '<table><tr><th>시나리오</th><th class="num">채권</th><th class="num">주식</th><th class="num">환</th><th class="num">합계</th><th class="num">후 소진율</th><th></th></tr>' +
@@ -1575,8 +1575,8 @@ function togglePos(id){
 }
 function renderStrategy(){
   const d = STRAT, pf = d.portfolio;
-  $('stratBadge').textContent = d.is_trial ? '시험 포트' : ''; $('stratBadge').style.display = d.is_trial ? '' : 'none';
-  $('stratMeta').textContent = `${d.generated_at.replace('T', ' ').slice(5, 16)} 기준 · 포지션 ${d.positions_as_of || '-'}`; $('stratMeta').title = $('stratMeta').textContent;
+  $('stratBadge').textContent = d.is_trial ? '시험 포트' : d.is_sample ? '샘플' : ''; $('stratBadge').style.display = d.is_trial || d.is_sample ? '' : 'none';
+  $('stratMeta').textContent = `${d.generated_at.replace('T', ' ').slice(5, 16)} 기준 · 포지션 ${d.positions_as_of || '-'}${d.quant_stale_reason ? ` · ${d.quant_stale_reason} 흐름·확률 규칙 제외` : ''}`; $('stratMeta').title = $('stratMeta').textContent;
   // 1) 결론
   $('stratVerdict').innerHTML = `<div class="vd-head"><span class="vd-dot ${pf.tone}"></span><div>${esc(d.verdict)}</div></div>
     ${pf.sub ? `<div class="vd-sub">${esc(pf.sub)}</div>` : ''}
@@ -2477,27 +2477,29 @@ function scoreBar(t){
   return `<span class="tscore" data-tip="${esc(`기술 점수 ${t.score} (${t.label})\n추세 ${t.trend} · 6개월 모멘텀 ${t.mom6} · 1개월 ${t.mom1} · RSI ${t.rsi}\n수익률 1M ${t.ret_1m}% · 3M ${t.ret_3m}% · 6M ${t.ret_6m}%\n변동성 ${t.vol_ann}% · 1년 고점 대비 ${t.dd_1y}%`)}"><span class="tb"><i class="${s >= 0 ? 'up' : 'down'}" style="${s >= 0 ? 'left:50%' : 'right:50%'};width:${w}%"></i></span><b>${sg(t.score, 0)}</b><span class="kv">${esc(t.label)}</span></span>`;
 }
 function renderQuant(){
-  const d = QUANT, pf = d.portfolio || {}, lim = pf.limit_bn;
-  $('quantMeta').textContent = `계산 ${d.generated_at.replace('T', ' ').slice(0, 16)} · 가격 기준 ${d.price_last} · 포지션 ${d.positions_as_of}${d.is_trial ? ' · 가상 시험 포트' : ''}`; $('quantMeta').title = $('quantMeta').textContent;
-  $('quantPortSub').textContent = `전체 손실한도 ${num(lim, 0)}억 대비 · 포트 손익 이력 ${pf.history_from}~`;
+  const d = QUANT, pf = d.portfolio || {}, lim = pf.limit_bn, room = pf.room_bn ?? lim;
+  $('quantMeta').textContent = `계산 ${d.generated_at.replace('T', ' ').slice(0, 16)} · 가격 기준 ${d.price_last} · 포지션 ${d.positions_as_of}${d.is_trial ? ' · 가상 시험 포트' : d.is_sample ? ' · 샘플(계획치)' : ''}`; $('quantMeta').title = $('quantMeta').textContent;
+  const over = room <= 0;   // 이미 한도 초과 — 남은 한도 점선·'−N억' 표기를 쓰지 않는다
+  $('quantPortSub').textContent = `${over ? `손실한도 이미 초과 ${num(Math.abs(room), 0)}억(한도 ${num(lim, 0)} + 현재 손익 ${sg(pf.pnl_now_bn || 0, 0)}) — 추가 위험 금지` : `남은 손실한도 ${num(room, 0)}억(한도 ${num(lim, 0)} + 현재 손익 ${sg(pf.pnl_now_bn || 0, 0)}) 대비`} · 포트 손익 이력 ${pf.history_from || '-'}~`;
   const rows = [['① 변동성 기준', pf.vol, `최근 변동성(EWMA) 그대로, 추세 없음 · 일 표준편차 ${num((pf.vol || {}).sigma_daily_bn, 1)}억`],
                 ['② 국면 기준', pf.analog, `시장 국면이 비슷했던 과거 ${(pf.analog || {}).n || 0}개 날짜의 실제 이후 6개월${((pf.analog || {}).flags || []).length ? ' · ' + pf.analog.flags.join(',') : ''}`]];
-  const all = rows.flatMap(r => (r[1] && r[1].q_bn) || []).concat([-lim * 1.1]);
+  const all = rows.flatMap(r => (r[1] && r[1].q_bn) || []).concat(over ? [] : [-room * 1.1]);
   const lo = Math.min(...all), hi = Math.max(...all, 0) * 1.05 || 1;
-  $('quantPort').innerHTML = rows.map(([lab, v, sub]) => v && v.q_bn ? `<div class="qport" data-tip="${esc(`${lab}\n5% ${num(v.q_bn[0], 0)}억 · 25% ${num(v.q_bn[1], 0)} · 중앙 ${num(v.q_bn[2], 0)} · 75% ${num(v.q_bn[3], 0)} · 95% ${num(v.q_bn[4], 0)}억\n기간 중 손실이 한도(${num(lim, 0)}억)를 넘을 확률 ${v.p_breach}%`)}">
+  $('quantPort').innerHTML = rows.map(([lab, v, sub]) => v && v.q_bn ? `<div class="qport" data-tip="${esc(`${lab}\n5% ${num(v.q_bn[0], 0)}억 · 25% ${num(v.q_bn[1], 0)} · 중앙 ${num(v.q_bn[2], 0)} · 75% ${num(v.q_bn[3], 0)} · 95% ${num(v.q_bn[4], 0)}억\n기간 중 손실이 남은 한도(${num(room, 0)}억 = 한도 ${num(lim, 0)} + 현재 손익 ${sg(pf.pnl_now_bn || 0, 0)})를 넘을 확률 ${v.p_breach}%${v.p_reduce != null ? `\n축소 단계(한도 ${pf.reduce_pct}%) 도달 확률 ${v.p_reduce}%` : ''}`)}">
       <div><div class="ql">${lab}</div><div class="kv">${esc(sub)}</div></div>
-      <div>${distBar(v.q_bn, lo, hi, {w: 420, h: 22, limit: -lim})}</div>
+      <div>${distBar(v.q_bn, lo, hi, {w: 420, h: 22, limit: over ? undefined : -room})}</div>
       <div class="qv"><b>${sg(v.q_bn[2], 0)}억</b><span>중앙</span><b>${num(v.q_bn[0], 0)}억</b><span>5% 최악</span><b class="${v.p_breach >= 20 ? 'bad' : ''}">${v.p_breach}%</b><span>한도 초과</span></div></div>` : '').join('')
-    + `<div class="kv" style="margin-top:8px">상자 = 25~75%, 가는 선 = 5~95%, 0 왼쪽 빨강 = 손실 · 오른쪽 초록 = 이익, 검은 눈금 = 중앙, 점선 = 손실한도(−${num(lim, 0)}억). 위험 기여 상위: ${(pf.risk_contrib || []).slice(0, 4).map(x => `${esc(x.id)} ${x.pct}%`).join(' · ')}</div>`;
+    + `<div class="kv" style="margin-top:8px">상자 = 25~75%, 가는 선 = 5~95%, 0 왼쪽 빨강 = 손실 · 오른쪽 초록 = 이익, 검은 눈금 = 중앙, ${over ? `손실한도는 이미 초과(${num(Math.abs(room), 0)}억 넘음 — 추가 위험 금지)` : `점선 = 남은 손실한도(−${num(room, 0)}억)`}. 위험 기여 상위: ${(pf.risk_contrib || []).slice(0, 4).map(x => `${esc(x.id)} ${x.pct}%`).join(' · ')}</div>`;
   const ps = d.positions || [], vals = ps.flatMap(p => [...((p.vol['6M'] || {}).q_bn || []), ...((p.analog['6M'] || {}).q_bn || [])]).filter(v => v !== null && v !== undefined);
   const plo = Math.min(...vals, 0), phi = Math.max(...vals, 0);
   let h = `<table class="btable qtable"><tr><th>포지션</th><th>기술적 매력도</th><th>6개월 예상손익 ①변동성 / ②국면</th><th class="num">손절 먼저<br>① / ②</th><th class="num">목표 먼저<br>① / ②</th><th class="num">②표본</th></tr>`;
   for(const p of ps){
     const v = p.vol['6M'] || {}, a = p.analog['6M'] || {}, b = p.base_bn;
-    const stop = p.stop_pct !== null && p.stop_pct !== undefined ? b * p.stop_pct / 100 : null, tgt = p.target_pct ? b * p.target_pct / 100 : null;
+    const sp = p.stop_from_now_pct ?? p.stop_pct, tp = p.target_from_now_pct ?? p.target_pct;   // 오늘 기준 장벽(진입 기준에서 이미 난 손익만큼 이동)
+    const stop = sp !== null && sp !== undefined ? b * sp / 100 : null, tgt = tp ? b * tp / 100 : null;
     h += `<tr class="prow" onclick="toggleQ('${p.id}')"><td>${esc(p.name)}<span class="strat">${esc(p.strategy || '')} · 기준 ${num(b, 0)}억</span></td>
       <td>${scoreBar(p.tech)}</td>
-      <td data-tip="${esc(`${p.name} 6개월 (억)\n① 5% ${(v.q_bn || [])[0]} · 중앙 ${(v.q_bn || [])[2]} · 95% ${(v.q_bn || [])[4]}\n② 5% ${(a.q_bn || [])[0]} · 중앙 ${(a.q_bn || [])[2]} · 95% ${(a.q_bn || [])[4]}\n빨강 = 손절선 ${stop === null ? '-' : num(stop, 0) + '억'}, 초록 = 목표 ${tgt === null ? '-' : '+' + num(tgt, 0) + '억'}`)}">${distBar(v.q_bn, plo, phi, {stop, target: tgt})}${distBar(a.q_bn, plo, phi, {stop, target: tgt})}</td>
+      <td data-tip="${esc(`${p.name} 6개월 (억)\n① 5% ${(v.q_bn || [])[0]} · 중앙 ${(v.q_bn || [])[2]} · 95% ${(v.q_bn || [])[4]}\n② 5% ${(a.q_bn || [])[0]} · 중앙 ${(a.q_bn || [])[2]} · 95% ${(a.q_bn || [])[4]}\n빨강 = 손절선 ${stop === null ? '-' : num(stop, 0) + '억'}, 초록 = 목표 ${tgt === null ? '-' : sg(tgt, 0) + '억'}`)}">${distBar(v.q_bn, plo, phi, {stop, target: tgt})}${distBar(a.q_bn, plo, phi, {stop, target: tgt})}</td>
       <td class="num">${v.p_stop ?? '-'}% / ${a.p_stop ?? '-'}%</td><td class="num">${v.p_target ?? '-'}% / ${a.p_target ?? '-'}%</td>
       <td class="num">${a.n || 0}${(a.flags || []).length ? '<span class="strat">' + esc(a.flags.join(',')) + '</span>' : ''}</td></tr>
       <tr class="legs" id="q-${p.id}" style="display:none"><td colspan="6">${quantDetail(p)}</td></tr>`;
@@ -2729,7 +2731,7 @@ function currentScreen(){
   const page = document.querySelector('.page.on'); if(!page) return null;
   let raw = page.innerText;
   // 인포맥스 데이터는 외부 전송 허용(config.SHARE_VENDOR_DATA) 전에는 화면 공유에서 뺀다
-  if(!VENDOR.share) page.querySelectorAll('[data-vendor]').forEach(el => { const t = el.innerText; if(t) raw = raw.replace(t, '[인포맥스 데이터 — 외부 전송 제외]'); });
+  if(!VENDOR.share) page.querySelectorAll('[data-vendor]').forEach(el => { const t = el.innerText; if(t) raw = raw.split(t).join('[인포맥스 데이터 — 외부 전송 제외]'); });   // 같은 텍스트가 여러 번 나와도 전부
   const text = raw.replace(/[ \t]+/g, ' ').replace(/\n{2,}/g, '\n').trim().slice(0, 6000);
   return {tab: currentTab(), label: TAB_LABEL(currentTab()), text};
 }

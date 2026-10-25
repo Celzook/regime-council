@@ -11,6 +11,7 @@ docs/index.html = static/index.html + 응답 가로채기(서버 대신 snap.jso
        python share_site.py --html  → 화면(index.html)만 다시 만든다(숫자는 그대로, 서버 불필요)
        python share_site.py --file [--out 경로] [--no-org]  → 사내 전달용 HTML 한 파일(더블클릭으로 열림, 서버·인터넷 불필요).
            docs/ 는 건드리지 않는다. 기본 저장 위치 data/share/(git 제외). 회사 이름 표시는 남긴다(--no-org 로 뺌).
+공유본(docs/·한 파일)은 둘 다 이 PC 폴더 경로를 파일 이름만 남기고(scrub), 사내 공유 보기에서 숨기는 화면(config.LAN_HIDE)은 담지 않는다.
 """
 import base64
 import datetime
@@ -23,6 +24,8 @@ import urllib.parse
 from pathlib import Path
 
 import requests
+
+import config
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "docs"
@@ -107,6 +110,8 @@ def collect():
     snap = {}
 
     def take(path):
+        if any(path.startswith(x) for x in config.LAN_HIDE):   # 사내 공유 보기에서 숨기는 화면은 공유본에도 넣지 않는다
+            return None
         try:
             snap[path] = get(path)
         except Exception as e:  # noqa: BLE001 — 한 주소 실패가 전체를 막지 않게
@@ -171,6 +176,7 @@ def dump(o) -> str:
 
 def build():
     snap, bt = collect()
+    snap, bt = scrub(snap), scrub(bt)   # 공개 페이지에도 이 PC 폴더 경로가 남지 않게(build_file 과 같게)
     at, runs = snap["at"], bt["run"]
     OUT.mkdir(exist_ok=True)
     (OUT / "snap.json").write_text(dump(snap), encoding="utf-8")
@@ -213,7 +219,9 @@ def file_html(snap: dict, bt: dict, keep_org: bool = True) -> str:
     return html
 
 
-LOCAL_PATH = re.compile(r"(\\\\wsl[^\s\"'<>|]*|[A-Za-z]:\\Users[^\s\"'<>|]*|/home/[^\s\"'<>|]*)")
+# 드라이브 경로(C:\, D:/ …)·\\wsl 등 네트워크 경로·/home/·/mnt/ — 앞이 글자·':'·'/' 면 주소(https://…)의 일부라 건너뛴다.
+# 중간 폴더 이름의 공백은 다음 구분자까지 허용(따옴표·줄바꿈 전까지), 마지막 이름은 공백 전까지.
+LOCAL_PATH = re.compile(r"""(?<![\w:/.\\])(?:[A-Za-z]:[\\/]|\\\\|/home/|/mnt/)(?:[^\\/\n"'<>|]*[\\/])*[^\s\\/"'<>|]*""")
 
 
 def scrub(x):

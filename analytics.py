@@ -228,7 +228,7 @@ def stats(col: str, df: pd.DataFrame | None = None) -> dict | None:
         "chg_3m": chg(base(pd.DateOffset(months=3))), "chg_ytd": chg(float(ytd.iloc[-1]) if len(ytd) else None),
         "chg_1y": chg(base(pd.DateOffset(years=1))),
         "lo_52w": _round(float(w52.min()) * vs, unit), "hi_52w": _round(float(w52.max()) * vs, unit),
-        "pctile": round(float((win <= v).mean() * 100)) if len(win) > 60 else None,
+        "pctile": round(float(((win < v).mean() + 0.5 * (win == v).mean()) * 100)) if len(win) > 60 else None,   # mid-rank(valhist.position 과 같은 정의)
         "pctile_window": (f"{win.index[0].date()}~" if short else f"{PCT_YEARS}년"),
         "z_1y": round((v - float(w52.mean())) / sd, 2) if sd > 0 else None,
         "today": d0.date() == datetime.date.today(),
@@ -258,8 +258,9 @@ def manual_inputs() -> dict:
     """data/manual_inputs.json 만 사용 — sample 의 예시값은 사실로 쓰지 않는다.
     인포맥스 브리지에 스왑포인트가 있고 외부 전송이 허용(config.SHARE_VENDOR_DATA)됐으면 그 실측값을 우선한다
     (이 함수 결과는 에이전트 컨텍스트로 나가므로 허용 전에는 쓰지 않는다)."""
+    from agent import share_vendor  # 플래그가 없으면 '보내지 않음'(fail-closed) — 게이트를 한 곳에서
     mi = dict(load_json(config.DATA_DIR / "manual_inputs.json") or {})
-    if config.SHARE_VENDOR_DATA:
+    if share_vendor():
         live = load_json(config.DATA_DIR / "macro_live.json") or {}
         sw = next((s for s in live.get("series", []) if s.get("key") == "swap_3m" and s.get("status") == "OK"), None)
         if sw:

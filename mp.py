@@ -13,7 +13,7 @@ import config
 import history
 import limits
 import store
-from agent import Agent, build_shared_context, load_prompt
+from agent import Agent, build_shared_context, load_prompt, share_refinitiv, withheld
 from schemas import ModelPortfolio
 
 ASSET_KO = {"bond": "채권", "equity": "주식", "fx": "환"}
@@ -44,7 +44,8 @@ def build_context(asset: str, ev: dict | None = None) -> tuple[str, dict]:
     analog = None
     try:
         analog = history.find_analogs(asset)
-        parts.append(history.to_markdown(analog))
+        # 과거 유사 국면 수치는 Refinitiv 시계열 — 제한이면 빼고, analog_flags 는 그대로 남긴다
+        parts.append(history.to_markdown(analog) if share_refinitiv() else withheld("### 과거 유사 국면"))
     except Exception as e:  # noqa: BLE001 — 과거 데이터 없으면 그 사실만 전달
         parts.append(f"### 과거 유사 국면\n(계산 불가: {e} — fetch_history.py 실행 필요)")
     current = store.load_mp(asset)

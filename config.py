@@ -38,6 +38,9 @@ SHARE_VENDOR_DATA = False
 # Refinitiv(LSEG) 값을 외부 AI(Anthropic)로 보내도 되는지. 값은 로컬 전용(저장소·공유본 제외)이고,
 # 준법 확인 결과 막아야 하면 False 로 — 에이전트 컨텍스트에서 Refinitiv 원천 수치를 뺀다.
 SHARE_REFINITIV_DATA = True
+# 인포맥스(data-vendor) 카드가 있는 화면(static/index.html page-ref) — SHARE_VENDOR_DATA=False 면 대화 '화면 공유' 본문을 서버에서 뺀다.
+# SHARE_REFINITIV_DATA=False 면 화면 공유 본문은 탭과 관계없이 전부 뺀다(voice.screen_block).
+VENDOR_SCREEN_TABS = {"ref"}
 # Refinitiv App Key 파일 후보(환경변수 EIKON_APP_KEY 가 우선). Windows 파이썬에서 WSL 홈을 읽는 경로 포함.
 REFINITIV_APPKEY_FILES = [
     "~/.claude/reference/refinitiv-workspace/.appkey",
@@ -51,8 +54,19 @@ LAN_ALLOW = ["220.86.116.0/24"]          # 같은 서브넷 — 필요하면 동
 LAN_KEY_FILE = DATA_DIR / ".lan_key"     # 접속 키(처음 켤 때 무작위 생성, 저장소 제외)
 # 사내 공유 보기에서 허용하는 POST — 화면을 바꾸지 않는 계산만(백테스트 한 건)
 LAN_POST_ALLOW = {"/api/backtest/run"}
-# 사내 공유 보기에서 숨기는 화면(경로 앞부분) — 무엇을 보일지는 업무 판단으로 정한다
-LAN_HIDE: list[str] = ["/api/universe/spark"]   # 점수판 차트용 1년 일별 원시 시계열(Refinitiv) — 운영 PC 에서만
+# 사내 공유 보기에서 숨기는 화면(경로 앞부분) — 무엇을 보일지는 업무 판단으로 정한다. 공유본(share_site)에도 넣지 않는다.
+LAN_HIDE: list[str] = ["/api/universe/spark",   # 점수판 차트용 1년 일별 원시 시계열(Refinitiv) — 운영 PC 에서만
+                       "/api/jobs"]             # 작업 상태·원시 오류(원격은 작업을 시작할 수 없다)
+# 사내 공유 보기에서 허용하는 GET(허용 목록) — 화면(static/index.html) 탭이 부르는 조회 API 만. '*' 로 끝나면 그 앞부분으로 시작하는 주소.
+# 여기 없는 주소(예: /api/positions 포지션·한도 원본)는 원격에서 막는다. 화면에 조회 API 를 새로 붙이면 여기에도 넣는다(tests/test_lan.py 가 확인).
+LAN_GET_ALLOW: list[str] = [
+    "/", "/static/*",
+    "/api/overview", "/api/state", "/api/alerts", "/api/log", "/api/room", "/api/book",
+    "/api/checks", "/api/checks/*", "/api/mp", "/api/mp/*", "/api/analog",
+    "/api/discussions", "/api/discussions/*", "/api/report/*",
+    "/api/quant", "/api/strategy", "/api/equity", "/api/equity/fund", "/api/equity/valhist",
+    "/api/backtest/catalog", "/api/macro",
+]
 # 매크로 화면을 보고 있을 때 인포맥스 값을 다시 받는 주기(분) — 한 번에 숨김 엑셀이 약 10초 떴다 닫힌다.
 INFOMAX_REFRESH_MIN = 5
 

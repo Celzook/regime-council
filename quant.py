@@ -9,7 +9,9 @@
   ② 국면 기준 — 포지션 상태(3·6개월 수익률·1개월 변동성·1년 고점 대비)와 시장 위험선호(VIX)가 지금과 비슷한
      과거 날짜를 robust z 거리로 골라(인접 21영업일 중복 제거), 그 날 이후 실제 경로를 그대로 재현.
   둘 다 손익 분위수(5·25·50·75·95%)와 손절·목표 중 먼저 닿을 확률을 낸다.
-- 포트 전체: 같은 날짜의 경로를 함께 써 상관을 반영 → 기간 중 손실이 손실한도를 넘을 확률.
+  손절·목표는 진입 기준(편입일 이후 손익률)이라, 오늘 0 에서 출발하는 경로에는 이미 난 손익만큼 옮긴 '오늘 기준' 장벽을 쓴다.
+- 포트 전체: 같은 날짜의 경로를 함께 써 상관을 반영 → 기간 중 손실이 남은 손실한도(한도 + 현재 손익)를 넘을 확률,
+  축소 단계(한도의 75%) 도달 확률.
 - 기회 스캐너: 시장 지표(지수·환율·원자재·금리 가격 환산)의 기술적 매력도와 국면 기준 6개월 중앙값.
 
 가격: data/history/legs_daily.csv (Refinitiv 전체 이력, 증분 갱신). 대용 — KOSPI200 선물=KODEX 200, 10년 국채선물=국고10y×듀레이션,
@@ -28,6 +30,7 @@ import numpy as np
 import pandas as pd
 
 import config
+import limits
 from agent import load_json
 
 LEG_HIST = config.DATA_DIR / "history" / "legs_daily.csv"
@@ -86,7 +89,10 @@ def position_returns(pos: dict, px: pd.DataFrame) -> pd.Series | None:
         w = (-1 if l.get("side") == "숏" else 1) * float(l.get("mv_bn") or 0) / base
         parts.append((w * r).rename(sym + l.get("side", "")))
     df = pd.concat(parts, axis=1, sort=True)
-    start = max(s.first_valid_index() for _, s in df.items())
+    starts = [s.first_valid_index() for _, s in df.items()]
+    if not starts or any(x is None for x in starts):   # 값이 하나도 없는 다리 → 이력 없음
+        return None
+    start = max(starts)
     df = df[df.index >= start].fillna(0.0)          # 휴장일 불일치는 0 수익률
     r = df.sum(axis=1)
     return r[r.index.dayofweek < 5]
@@ -123,11 +129,13 @@ def tech_score(r: pd.Series) -> dict | None:
 
 # ── 예상손익 ────────────────────────────────────────────────────
 def _barrier_stats(paths: np.ndarray, stop: float | None, target: float | None) -> dict:
-    """paths: (n, h) 누적수익률. 손절·목표 중 먼저 닿은 비율과 기말 분위수."""
+    """paths: (n, h) 누적수익률. 손절·목표 중 먼저 닿은 비율과 기말 분위수.
+    장벽 판정은 오늘(0) 시점을 포함 — 이미 넘어선 장벽(손절 ≥ 0 · 목표 ≤ 0)은 첫날 닿은 것으로 센다."""
     n, h = paths.shape
     big = h + 1
-    t_stop = np.where((paths <= stop).any(1), (paths <= stop).argmax(1), big) if stop is not None else np.full(n, big)
-    t_tgt = np.where((paths >= target).any(1), (paths >= target).argmax(1), big) if target is not None else np.full(n, big)
+    b = np.hstack([np.zeros((n, 1)), paths])
+    t_stop = np.where((b <= stop).any(1), (b <= stop).argmax(1), big) if stop is not None else np.full(n, big)
+    t_tgt = np.where((b >= target).any(1), (b >= target).argmax(1), big) if target is not None else np.full(n, big)
     term = paths[:, -1]
     q = np.percentile(term, [5, 25, 50, 75, 95])
     return {"q_pct": [round(float(x) * 100, 2) for x in q], "mean_pct": round(float(term.mean()) * 100, 2),
@@ -182,21 +190,42 @@ def analog_paths(r: pd.Series, h: int, vix: pd.Series | None) -> tuple[np.ndarra
     return paths, [d.date().isoformat() for d in sorted(picked)], flags
 
 
+def _barriers_now(pos: dict, base_now: float) -> tuple[float | None, float | None]:
+    """진입 기준 손절·목표(%) → 오늘 노출 기준 수익률. x_now = (x × 진입 기준액 − 편입 이후 손익) / 오늘 노출.
+    주식·채권은 자산 손익만(가격 경로가 환 제외 현지가격이라 limits 손절 소진율과 같은 기준), 환 오버레이는 환 손익·명목 기준."""
+    if not base_now:
+        return None, None
+    is_fx = pos.get("asset") == "fx"
+    stop = pos.get("fx_stop_pct") if is_fx else pos.get("stop_loss_pct")
+    tgt = pos.get("target_pct")
+    if is_fx:
+        pnl, ref = limits._f(pos.get("pnl_fx_ytd_bn")), base_now
+    else:
+        mv = limits._f(pos.get("mv_bn"))
+        pnl = limits._eff_pnl(pos, [])
+        ref = limits._f(pos.get("base_bn"), mv - pnl) or mv          # limits 손절 금액과 같은 기준액
+    now = lambda x: (x / 100 * ref - pnl) / base_now if x is not None else None   # noqa: E731
+    return now(stop), now(tgt)
+
+
 def analyze_position(pos: dict, px: pd.DataFrame, vix: pd.Series | None) -> dict:
     r = position_returns(pos, px)
     is_fx = pos.get("asset") == "fx"
     base = float(pos.get("fx_exposure_bn") if is_fx else (pos.get("mv_bn") or 0)) or 0.0
     stop = (pos.get("fx_stop_pct") if is_fx else pos.get("stop_loss_pct"))
     tgt = pos.get("target_pct")
+    s, t = _barriers_now(pos, base)
     out = {"id": pos["id"], "name": pos.get("short_name") or pos["name"], "group": pos.get("group"),
            "strategy": pos.get("strategy"), "base_bn": round(base, 1),
-           "stop_pct": stop, "target_pct": tgt, "tech": None, "vol": {}, "analog": {}}
+           "stop_pct": stop, "target_pct": tgt,
+           "stop_from_now_pct": round(s * 100, 2) if s is not None else None,
+           "target_from_now_pct": round(t * 100, 2) if t is not None else None,
+           "tech": None, "vol": {}, "analog": {}}
     if r is None or len(r.dropna()) < 260:
         out["note"] = "가격 이력 부족"
         return out
     out["history_from"] = r.index[0].date().isoformat()
     out["tech"] = tech_score(r)
-    s, t = (stop / 100 if stop is not None else None), (tgt / 100 if tgt is not None else None)
     for hk, h in HORIZONS.items():
         vp, sig = vol_paths(r, h)
         v = _barrier_stats(vp, s, t); v["sigma_ann_pct"] = round(sig * math.sqrt(252) * 100, 1)
@@ -218,24 +247,38 @@ def _market_features(panel: pd.DataFrame) -> pd.DataFrame:
                          "ktb3m": p["ktb_3y"].diff(63), "krw3m": p["usdkrw"].pct_change(63, fill_method=None)}).dropna()
 
 
-def analyze_portfolio(results: list[dict], series: dict[str, pd.Series], limit_bn: float, panel: pd.DataFrame) -> dict:
-    """포지션별 '기준 × 수익률'(억)을 같은 날짜로 합친 포트 손익 — 같은 날의 경로를 써서 상관 반영."""
+def analyze_portfolio(results: list[dict], series: dict[str, pd.Series], limit_bn: float, panel: pd.DataFrame,
+                      pnl_now_bn: float = 0.0, reduce_pct: float = 75.0) -> dict:
+    """포지션별 '기준 × 수익률'(억)을 같은 날짜로 합친 포트 손익 — 같은 날의 경로를 써서 상관 반영.
+    한도 소진은 편입 이후 순손익 기준이라, 이미 난 손익(pnl_now_bn)만큼 남은 한도가 달라진다:
+    남은 한도 = 한도 + 현재 손익(limits 스트레스 후 소진율과 같은 상계), 축소 단계는 한도 × reduce_pct + 현재 손익."""
+    room = limit_bn + pnl_now_bn
+    room_reduce = limit_bn * reduce_pct / 100 + pnl_now_bn
     cols = {res["id"]: series[res["id"]] * res["base_bn"] for res in results if res["id"] in series and res["base_bn"]}
+    cols = {k: v for k, v in cols.items() if v.first_valid_index() is not None}
+    out = {"limit_bn": limit_bn, "pnl_now_bn": round(pnl_now_bn, 1), "room_bn": round(room, 1),
+           "reduce_pct": reduce_pct, "room_reduce_bn": round(room_reduce, 1)}
+    h = HORIZONS["6M"]
+    empty = {**out, "n_positions": 0, "vol": {}, "analog": {"n": 0, "flags": ["NO_DATA"]}, "risk_contrib": []}
+    if not cols:
+        return empty
     df = pd.DataFrame(cols).dropna(how="all")
     start = max(s.first_valid_index() for s in cols.values())
     df = df[df.index >= start].fillna(0.0)
     pnl = df.sum(axis=1)
-    h = HORIZONS["6M"]
-    out = {"limit_bn": limit_bn, "history_from": pnl.index[0].date().isoformat(), "n_positions": len(cols)}
+    if len(pnl) < h + 2:
+        return empty
+    p_hit = lambda mins, r: round(float((mins <= -r).mean()) * 100, 1) if r > 0 else 100.0   # noqa: E731
+    out.update({"history_from": pnl.index[0].date().isoformat(), "n_positions": len(cols)})
     # ① 변동성 기준 — 포트 일손익의 EWMA 표준편차, 정규 경로(억 단위 합산)
     sig = float(np.sqrt((pnl.tail(500) ** 2).ewm(alpha=0.06).mean().iloc[-1]))
     rng = np.random.default_rng(11)
     paths = np.cumsum(rng.normal(0, sig, size=(N_PATHS, h)), axis=1)
-    out["vol"] = {"sigma_daily_bn": round(sig, 1), "q_bn": [round(float(x), 1) for x in np.percentile(paths[:, -1], [5, 25, 50, 75, 95])],
-                  "p_breach": round(float((paths.min(1) <= -limit_bn).mean()) * 100, 1), "n": N_PATHS}
-    # 전체 노출을 k 배로 줄이면 경로도 k 배 → 초과 확률을 p% 로 낮추는 k = 한도 / |기간 중 최저 손익의 p 분위|
     mins = paths.min(1)
-    out["vol"]["scale_for_breach"] = {str(p): round(min(1.0, limit_bn / abs(float(np.percentile(mins, p)))), 3)
+    out["vol"] = {"sigma_daily_bn": round(sig, 1), "q_bn": [round(float(x), 1) for x in np.percentile(paths[:, -1], [5, 25, 50, 75, 95])],
+                  "p_breach": p_hit(mins, room), "p_reduce": p_hit(mins, room_reduce), "n": N_PATHS}
+    # 전체 노출을 k 배로 줄이면 앞으로의 경로만 k 배(이미 난 손익은 그대로) → 초과 확률을 p% 로 낮추는 k = 남은 한도 / |기간 중 최저 손익의 p 분위|
+    out["vol"]["scale_for_breach"] = {str(p): (round(min(1.0, room / abs(float(np.percentile(mins, p)))), 3) if room > 0 else 0.0)
                                       for p in (10, 20, 30)}
     # ② 국면 기준 — 시장 국면(KOSPI 3개월·VIX·국고3y 3개월 변화·원달러 3개월)이 비슷한 날의 이후 6개월 실제 포트 경로
     mf = _market_features(panel)
@@ -255,7 +298,7 @@ def analyze_portfolio(results: list[dict], series: dict[str, pd.Series], limit_b
         pv = pnl.values
         ap = np.array([np.cumsum(pv[idx[d] + 1: idx[d] + 1 + h]) for d in picked])
         out["analog"] = {"q_bn": [round(float(x), 1) for x in np.percentile(ap[:, -1], [5, 25, 50, 75, 95])],
-                         "p_breach": round(float((ap.min(1) <= -limit_bn).mean()) * 100, 1), "n": len(picked),
+                         "p_breach": p_hit(ap.min(1), room), "p_reduce": p_hit(ap.min(1), room_reduce), "n": len(picked),
                          "dates": [d.date().isoformat() for d in sorted(picked)],
                          "flags": (["LOW_SAMPLE"] if len(picked) < 12 else []) + (["SHORT_HISTORY"] if (pnl.index[-1] - pnl.index[0]).days < 365 * 6 else [])}
     else:
@@ -301,9 +344,13 @@ def scan(panel: pd.DataFrame) -> list[dict]:
 
 
 # ── 실행 ────────────────────────────────────────────────────────
+def is_trial(meta: dict) -> bool:
+    """가상 시험 포트 여부 — 명시 플래그(meta.is_trial) 우선, 예전 파일은 비고 문구로. 샘플 여부는 limits.is_sample('positions')."""
+    return bool(meta.get("is_trial")) or "가상 시험 포트" in (meta.get("note") or "")
+
+
 def run(save: bool = True, full: bool = False) -> dict:
     import analytics
-    import limits
     doc = limits.load_positions()
     positions = doc.get("positions", [])
     syms = {leg_source(l)[1] for p in positions for l in (p.get("legs") or []) if leg_source(l)[0] == "yf"}
@@ -318,15 +365,22 @@ def run(save: bool = True, full: bool = False) -> dict:
         if r is not None:
             series[p["id"]] = r
     lim = limits.load_limits()
+    pnl_now = limits.evaluate(positions_doc=doc, limits=lim)["total"]["pnl_bn"]   # 한도 소진율과 같은 편입 이후 순손익
     out = {"generated_at": datetime.datetime.now().isoformat(timespec="seconds"),
-           "positions_as_of": doc.get("meta", {}).get("as_of"), "is_trial": "가상 시험 포트" in (doc.get("meta", {}).get("note") or ""),
+           "positions_as_of": doc.get("meta", {}).get("as_of"), "positions_key": doc.get("meta", {}).get("positions_key"),
+           "is_trial": is_trial(doc.get("meta", {})),
+           "is_sample": limits.is_sample("positions"),
            "price_last": px.index[-1].date().isoformat() if len(px) else None,
            "horizons": HORIZONS, "positions": results,
-           "portfolio": analyze_portfolio(results, series, float(lim.get("total_limit_bn") or 0), panel),
+           "portfolio": analyze_portfolio(results, series, float(lim.get("total_limit_bn") or 0), panel, pnl_now_bn=float(pnl_now),
+                                          reduce_pct=float((lim.get("stages") or {}).get("reduce_pct") or 75)),
            "scanner": scan(panel),
            "method": {"tech": "추세(MA200 대비)·6개월/1개월 모멘텀(변동성 대비)·RSI14 역방향 가중합, −100~+100. 관례적 휴리스틱.",
                       "vol": f"EWMA(λ=0.94) 일변동성·추세 없음·{N_PATHS:,}개 경로", "analog": f"포지션 상태+VIX 가 비슷한 과거 {K_ANALOG}개 날짜의 실제 이후 경로(21영업일 중복 제거)",
-                      "portfolio": "포지션 손익(억)을 같은 날짜로 합산 — 상관 반영. 국면 기준은 KOSPI 3개월·VIX·국고3y 3개월 변화·원달러 3개월",
+                      "barrier": "손절·목표는 진입 기준 → 편입 이후 손익(pnl_ytd_bn)만큼 옮긴 오늘 기준 장벽으로 판정. 손익이 편입 이후가 아니라 연초 이후면 장벽이 어긋남.",
+                      "portfolio": "포지션 손익(억)을 같은 날짜로 합산 — 상관 반영. 국면 기준은 KOSPI 3개월·VIX·국고3y 3개월 변화·원달러 3개월. "
+                                   "한도 초과 = 기간 중 손실이 남은 한도(한도 + 현재 순손익)를 넘음, 축소 도달 = 한도 × 축소 기준 + 현재 순손익. "
+                                   "6개월 안에 연초가 끼면 한도 재설정은 반영하지 않음(보수적).",
                       "proxy": "KOSPI200 선물=KODEX 200, 10년 국채선물=국고10y×듀레이션, 달러·엔선물=현물환. 헤지 자산은 환 제외 현지가격."}}
     if save:
         tmp = OUT.with_suffix(".json.tmp")
@@ -351,7 +405,8 @@ def to_markdown(d: dict | None = None) -> str:
     d = d or load()
     if not d:
         return "## 정량 분석\n(아직 계산 전 — python quant.py)"
-    L = [f"## 정량 분석 (CODE, quant.py · 계산 {d['generated_at'][:16]} · 가격 {d['price_last']})", "",
+    tag = " · 가상 시험 포트" if d.get("is_trial") else (" · 샘플(계획치)" if d.get("is_sample") else "")
+    L = [f"## 정량 분석 (CODE, quant.py · 계산 {d['generated_at'][:16]} · 가격 {d['price_last']}{tag})", "",
          "예상손익은 ① 변동성 기준(EWMA·추세 없음) ② 국면 기준(비슷한 과거 날짜의 실제 이후 경로). 분위수는 5/50/95%. 매매 신호 아님.", "",
          "| 포지션 | 기술 점수 | 6M ①중앙(5%~95%) 억 | ①손절 먼저 | 6M ②중앙(5%~95%) 억 | ②손절 먼저 | ②표본·플래그 |", "|---|---|---|---|---|---|---|"]
     for p in d["positions"]:
@@ -360,9 +415,16 @@ def to_markdown(d: dict | None = None) -> str:
         L.append(f"| {p['name']} | {t.get('score', '-')} {t.get('label', '')} | {qv[2]} ({qv[0]}~{qv[4]}) | {v.get('p_stop', '-')}% | "
                  f"{qa[2]} ({qa[0]}~{qa[4]}) | {a.get('p_stop', '-')}% | {a.get('n', 0)} {','.join(a.get('flags') or [])} |")
     pf = d["portfolio"]
-    L += ["", f"**포트 6개월 (손실한도 {pf['limit_bn']:.0f}억)**: ① 중앙 {pf['vol']['q_bn'][2]}억, 5% {pf['vol']['q_bn'][0]}억, 기간 중 한도 초과 확률 {pf['vol']['p_breach']}% · "
-          f"② 중앙 {(pf['analog'].get('q_bn') or [None]*5)[2]}억, 5% {(pf['analog'].get('q_bn') or [None]*5)[0]}억, 한도 초과 {pf['analog'].get('p_breach', '-')}% (표본 {pf['analog'].get('n', 0)})",
-          "위험 기여 상위: " + ", ".join(f"{x['id']} {x['pct']}%" for x in pf.get("risk_contrib", [])[:5]), "",
+    v, a = pf.get("vol") or {}, pf.get("analog") or {}
+    if v.get("q_bn"):
+        room = pf.get("room_bn", pf["limit_bn"])
+        L += ["", f"**포트 6개월 (남은 손실한도 {room:.0f}억 = 한도 {pf['limit_bn']:.0f}억 + 현재 손익 {pf.get('pnl_now_bn', 0):+.0f}억)**: "
+                  f"① 중앙 {v['q_bn'][2]}억, 5% {v['q_bn'][0]}억, 기간 중 남은 한도 초과 확률 {v['p_breach']}% · 축소 단계 도달 {v.get('p_reduce', '-')}% · "
+                  f"② 중앙 {(a.get('q_bn') or [None]*5)[2]}억, 5% {(a.get('q_bn') or [None]*5)[0]}억, 남은 한도 초과 {a.get('p_breach', '-')}% · "
+                  f"축소 도달 {a.get('p_reduce', '-')}% (표본 {a.get('n', 0)})"]
+    else:
+        L += ["", "**포트 6개월**: 가격 이력 없음"]
+    L += ["위험 기여 상위: " + ", ".join(f"{x['id']} {x['pct']}%" for x in pf.get("risk_contrib", [])[:5]), "",
           "**기회 스캐너 (기술 점수 순)**: " + "; ".join(f"{s['name']} {s['score']}({s['label']})" for s in d["scanner"][:8])]
     return "\n".join(L)
 

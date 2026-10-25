@@ -35,30 +35,57 @@ def load_json(path) -> dict | None:
         return None
 
 
+# ── 외부 AI(Anthropic) 전송 게이트 — 플래그가 없으면 '보내지 않음'(fail-closed) ──
+def share_refinitiv() -> bool:
+    """Refinitiv(LSEG) 원천·파생 수치를 외부 AI 로 보내도 되는지 (config.SHARE_REFINITIV_DATA)."""
+    return bool(getattr(config, "SHARE_REFINITIV_DATA", False))
+
+
+def share_vendor() -> bool:
+    """인포맥스(유료 단말) 값을 외부 AI 로 보내도 되는지 (config.SHARE_VENDOR_DATA)."""
+    return bool(getattr(config, "SHARE_VENDOR_DATA", False))
+
+
+WITHHELD = ("(Refinitiv 데이터 외부 전송 제한 — config.SHARE_REFINITIV_DATA=False. "
+            "시장 수치는 인용하지 말고 '데이터 없음'으로 처리)")
+
+
+def withheld(title: str) -> str:
+    """전송 제한으로 뺀 절 — 모든 컨텍스트가 같은 문구를 쓰게 한다."""
+    return f"{title}\n{WITHHELD}"
+
+
+def alert_msg(a: dict) -> str:
+    """경고 문구. 시장 급변(SHOCK) 경고는 Refinitiv 지표 수치를 담으므로 제한 시 수치를 뺀다."""
+    if a.get("code") == "SHOCK" and not share_refinitiv():
+        return "시장 급변 트리거 발생 (수치는 외부 전송 제한)"
+    return a["message"]
+
+
 def build_shared_context() -> str:
     """공통 프롬프트 + 데이터 스냅샷을 하나의 텍스트 블록으로."""
     parts = [load_prompt("common")]
 
-    market = load_json(config.DATA_DIR / "market.json") or load_json(
-        config.DATA_DIR / "market.sample.json"
-    )
+    mk = load_json(config.DATA_DIR / "market.json")
+    market = mk or load_json(config.DATA_DIR / "market.sample.json")
     if market is None:
         raise RuntimeError(
             "data/market.json 을 읽을 수 없습니다. fetch_market.py 를 실행하거나 "
             "market.sample.json 을 복사해 수정하세요. (UTF-8·JSON 문법 확인)"
         )
     # Refinitiv 원천 수치를 외부 AI 로 보내지 않기로 하면(config.SHARE_REFINITIV_DATA=False) 시장 스냅샷과
-    # 그 값에서 계산한 절(시장 지표·정량·주식·밸류에이션)을 통째로 뺀다 — 포트·한도·전략 보드만 남는다.
-    share_mkt = getattr(config, "SHARE_REFINITIV_DATA", True)
+    # 그 값에서 계산한 절(시장 지표·정량·주식·밸류에이션)을 통째로 뺀다 — 포트·한도와 전략 보드의 '할 일' 표만 남는다.
+    share_mkt = share_refinitiv()
     if share_mkt:
         parts.append(
-            "\n# 시장 스냅샷 (아래 수치만 인용 가능)\n```json\n"
+            "\n# 시장 스냅샷 "
+            + ("(아래 수치만 인용 가능)" if mk else "(예시 파일 market.sample.json — 실제 시세 아님 · 인용 금지)")
+            + "\n```json\n"
             + json.dumps(market, ensure_ascii=False, indent=1)
             + "\n```"
         )
     else:
-        parts.append("\n# 시장 스냅샷\n(Refinitiv 데이터 외부 전송 제한 — config.SHARE_REFINITIV_DATA=False. "
-                     "시장 수치는 인용하지 말고 '데이터 없음'으로 처리)")
+        parts.append(withheld("\n# 시장 스냅샷"))
 
     portfolio = load_json(config.DATA_DIR / "portfolio.json") or load_json(
         config.DATA_DIR / "portfolio.sample.json"
@@ -73,7 +100,7 @@ def build_shared_context() -> str:
         parts.append("\n# 포트폴리오 스냅샷\n(미제공 — 시장 국면만 논의)")
 
     if not share_mkt:
-        parts.append(_strategy_md())
+        parts.append(_strategy_md(restricted=True))
         return "\n".join(parts)
     try:
         import analytics  # 지연 import — analytics 가 이 모듈의 load_json 을 쓴다
@@ -105,11 +132,22 @@ def build_shared_context() -> str:
     return "\n".join(parts)
 
 
-def _strategy_md() -> str:
+def _strategy_md(restricted: bool = False) -> str:
     try:
         import strategy  # 규칙 기반 '지금 할 일' — 에이전트는 이 판단을 설명·반론만 한다
         d = strategy.load(max_age_hours=36)
-        return "\n" + strategy.to_markdown(d) if d else ""
+        if not d:
+            return ""
+        if restricted:
+            # Refinitiv 제한 — 할 일 표시(손절·축소·익절)와 규칙만. 변동성·확률·스캐너 점수가 든
+            # 포트 줄·집중도·이유/영향 열·새 기회는 시장 가격에서 계산한 값이라 뺀다.
+            tag = " · 가상 시험 포트" if d.get("is_trial") else (" · 샘플(계획치)" if d.get("is_sample") else "")  # strategy.to_markdown 과 같은 표시
+            L = [f"\n## 전략 보드 (CODE · {d['generated_at'][:16]}{tag})",
+                 d["summary"]["headline"], "", "| 포지션 | 할 일 |", "|---|---|"]
+            L += [f"| {a['id']} {a['name']} | {a['action']} |" for a in d["actions"]]
+            L += ["규칙: " + " · ".join(d["rules"][:7]), WITHHELD]
+            return "\n".join(L)
+        return "\n" + strategy.to_markdown(d)
     except Exception as e:  # noqa: BLE001
         return f"\n## 전략 보드\n(불러오기 실패: {type(e).__name__}: {e})"
 

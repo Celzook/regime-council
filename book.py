@@ -17,6 +17,7 @@
 """
 import argparse
 import datetime
+import hashlib
 import json
 import os
 import sys
@@ -155,7 +156,6 @@ def mark(legs: list[dict], pos: dict, prices: dict, ga: dict) -> tuple[list[dict
                      "sign": sign, "entry_bn": round(entry_val, 2), "now_bn": round(now_val, 2),
                      "pnl_asset_bn": round(pnl_asset, 2), "pnl_fx_bn": round(pnl_fx, 2)})
 
-    today = datetime.date.today().isoformat()
     out = []
     for pid, p in pos.items():
         lr = [r for r in rows if r["pos"] == pid]
@@ -167,6 +167,9 @@ def mark(legs: list[dict], pos: dict, prices: dict, ga: dict) -> tuple[list[dict
         pnl = sum(r["pnl_asset_bn"] for r in lr)
         pnl_fx = sum(r["pnl_fx_bn"] for r in lr)
         dates = [r["px_date"] for r in lr if r["px_date"] != "진입가 유지"]
+        # 가격 못 받은 다리(하나라도) — USD 다리는 KRW=X 미수신도 포함. 하류는 이 필드로 stale 판정(문자열 '진입가 유지'는 여기서만)
+        unpriced = sorted({r["src"] for r in lr if r["px_date"] == "진입가 유지"}
+                          | ({"KRW=X"} if "KRW=X" not in prices and any(r["ccy"] == "USD" for r in lr) else set()))
         net_beta = sum(r["sign"] * r["now_bn"] * float(r["beta"] or 0) for r in lr) / mv if mv else 0.0
         net_dur = sum(r["sign"] * r["now_bn"] * float(r["dur"] or 0) for r in lr) / mv if mv else 0.0
         stop_pct = round(float(p["stop"]) * 100, 2) if p["stop"] is not None else None
@@ -177,7 +180,7 @@ def mark(legs: list[dict], pos: dict, prices: dict, ga: dict) -> tuple[list[dict
         rec = {
             "id": pid, "name": p["name"], "short_name": p["name"].split(" (")[0][:24], "type": "bucket",
             "asset": p["engine"], "group": p["asset_ko"], "sub": p["strategy"], "strategy": p["strategy"], "management": p["how"],
-            "pnl_as_of": min(dates) if dates else today, "rate_pnl_in_scope": True,
+            "pnl_as_of": min(dates) if dates else None, "unpriced_legs": unpriced, "rate_pnl_in_scope": True,
             "stop_loss_pct": stop_pct,
             "target_pct": round(float(p["target"]) * 100, 2) if p["target"] is not None else None,
             "currency": p["ccy"] or "KRW",
@@ -189,10 +192,13 @@ def mark(legs: list[dict], pos: dict, prices: dict, ga: dict) -> tuple[list[dict
                       "mv_bn": r["now_bn"], "pnl_bn": round(r["pnl_asset_bn"] + r["pnl_fx_bn"], 2)} for r in lr],
         }
         if p["engine"] == "fx":
-            notional = sum(r["now_bn"] for r in lr)
+            # 명목(fx_exposure_bn)은 다리 그로스 합 — 손절금액·한도 사용량·quant/strategy/web 기준액.
+            # 방향·순노출은 따로: fx_net_bn(부호 있음, 스트레스용), fx_sign(-1 = 외화 순숏·원화 롱)
+            net = sum(r["sign"] * r["now_bn"] for r in lr)
             rec.update({"base_bn": 0.0, "mv_bn": 0.0, "pnl_ytd_bn": 0.0, "hedge_pct": 0,
-                        "fx_exposure_bn": round(notional, 1), "pnl_fx_ytd_bn": round(pnl_fx, 2),
-                        "fx_stop_pct": stop_pct})
+                        "fx_exposure_bn": round(sum(r["now_bn"] for r in lr), 1),
+                        "fx_sign": -1 if net < 0 else 1, "fx_net_bn": round(net, 1),
+                        "pnl_fx_ytd_bn": round(pnl_fx, 2), "fx_stop_pct": stop_pct})
         else:
             rec.update({"base_bn": round(base, 1), "mv_bn": round(mv, 1), "pnl_ytd_bn": round(pnl, 2)})
             if rec["currency"] != "KRW":
@@ -215,6 +221,12 @@ def mark(legs: list[dict], pos: dict, prices: dict, ga: dict) -> tuple[list[dict
     return out, rows
 
 
+def positions_key(recs: list[dict]) -> str:
+    """구성 지문(sha1 앞 12자) — 포지션 id·엔진·다리(코드·방향·수량)만 본다. 가격만 다시 평가하면 그대로, 구성이 바뀌면 달라진다."""
+    comp = sorted([r["id"], r["asset"], sorted([l["code"], l["side"], l["qty"]] for l in r["legs"])] for r in recs)
+    return hashlib.sha1(json.dumps(comp, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()[:12]
+
+
 def write_positions(recs: list[dict], book: Path, prices: dict) -> Path:
     as_of = datetime.date.today().isoformat()
     doc = {
@@ -226,10 +238,16 @@ def write_positions(recs: list[dict], book: Path, prices: dict) -> Path:
                     "실제 보유로 바꿀 때는 외부 API 전송을 고려해 버킷(집계) 단위로 넣는다.",
             "price_dates": sorted({d for _, d in prices.values() if d}),
             "proxies": "KOSPI200 선물=지수 현물, 달러·엔선물=현물환, 10년 국채선물=국고10y 이론가(베이시스 무시). 전환사채(B5) 손익 분할은 델타 가정 추정.",
+            "is_trial": True,   # 명시 플래그 — 하류(quant 등)는 note 문구 대신 이것을 본다
+            "positions_key": positions_key(recs),
         },
         "positions": recs,
     }
-    path = config.DATA_DIR / "positions.json"
+    return _write_atomic(config.DATA_DIR / "positions.json", doc)
+
+
+def _write_atomic(path: Path, doc: dict) -> Path:
+    """임시 파일에 쓴 뒤 교체 — 쓰는 도중 실패해도 기존 파일은 온전하다(반쯤 쓴 파일을 읽는 사고 방지)."""
     tmp = path.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
     os.replace(tmp, path)
@@ -255,16 +273,33 @@ def write_limits(ga: dict) -> Path | None:
     base["asset_limits_bn"] = {"bond": lim["채권"], "equity": lim["주식"], "fx": lim["환"]}
     base["unallocated_bn"] = lim["전체"] - lim["채권"] - lim["주식"] - lim["환"]
     base["stop_loss"]["default_pct"]["mixed"] = -3.0
-    path = config.DATA_DIR / "limits.json"
-    path.write_text(json.dumps(base, ensure_ascii=False, indent=1), encoding="utf-8")
-    return path
+    return _write_atomic(config.DATA_DIR / "limits.json", base)
 
 
 def sync(book: Path = DEFAULT_BOOK, with_limits: bool = False, dry_run: bool = False, quiet: bool = False) -> dict:
-    """대시보드 '일일 점검'·CLI 공통 진입점."""
+    """대시보드 '일일 점검'·CLI 공통 진입점.
+    Refinitiv 미연결이거나 가격을 한 건도 못 받으면(KTB10 은 로컬 이력이라 제외) 쓰지 않고 skipped 로 돌려준다
+    — 진입가 대체로 손익 0 이 기록돼 경고가 자동 종결되는 사고 방지.
+    단 --limits(엑셀 '한도' 시트 → limits.json)는 가격이 필요 없으므로 오프라인이어도 쓴다(positions.json 은 그대로)."""
+    import refinitiv_src
+
+    if not refinitiv_src.available(force=True):
+        msg = f"Refinitiv 미연결 — 기존 positions.json 유지: {refinitiv_src.status()['error']}"
+        if not quiet:
+            print(f"  {msg}")
+        res = {"book": book.name, "skipped": True, "error": msg}
+        if with_limits and not dry_run:
+            lp = write_limits(read_book(book)[2])
+            res["limits_path"] = str(lp) if lp else None
+        return res
     legs, pos, ga = read_book(book)
     symbols = {price_source(l) for l in legs} | {"KRW=X"}
     prices = fetch_prices(symbols)
+    if not (set(prices) - {"KTB10"}):
+        msg = "가격을 한 건도 받지 못함 — 기존 positions.json 유지"
+        if not quiet:
+            print(f"  {msg}")
+        return {"book": book.name, "skipped": True, "error": msg, "missing_prices": sorted(symbols)}
     recs, rows = mark(legs, pos, prices, ga)
     res = {"book": book.name, "positions": len(recs), "legs": len(rows),
            "pnl_bn": round(sum(r["pnl_ytd_bn"] + r.get("pnl_fx_ytd_bn", 0) for r in recs), 2),
@@ -272,7 +307,7 @@ def sync(book: Path = DEFAULT_BOOK, with_limits: bool = False, dry_run: bool = F
     if not quiet:
         for r in recs:
             tot = r["pnl_ytd_bn"] + r.get("pnl_fx_ytd_bn", 0)
-            print(f"  {r['id']:<3} {r['short_name']:<24} 시가 {r.get('mv_bn', 0):>8.1f}억  손익 {tot:+8.2f}억  ({r['pnl_as_of']})")
+            print(f"  {r['id']:<3} {r['short_name']:<24} 시가 {r.get('mv_bn', 0):>8.1f}억  손익 {tot:+8.2f}억  ({r['pnl_as_of'] or '가격 미수신'})")
         print(f"  합계 손익 {res['pnl_bn']:+.2f}억 · 가격 못 받은 종목 {res['missing_prices'] or '없음'}")
     if not dry_run:
         res["positions_path"] = str(write_positions(recs, book, prices))

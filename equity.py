@@ -36,6 +36,8 @@ def refresh_prices(tickers, full: bool = False) -> pd.DataFrame:
 
 def _clean(s: pd.Series) -> pd.Series:
     s = s.dropna()
+    if not isinstance(s.index, pd.DatetimeIndex):      # 빈 이력(RangeIndex)이면 요일 필터 없이 그대로
+        return s
     return s[s.index.dayofweek < 5]
 
 
@@ -73,7 +75,7 @@ def level_stats(s: pd.Series) -> dict | None:
         return None
     y = s.tail(252)
     last = float(s.iloc[-1])
-    return {"last": round(last, 2), "as_of": s.index[-1].date().isoformat(), "pct_1y": round(float((y < last).mean()) * 100),
+    return {"last": round(last, 2), "as_of": s.index[-1].date().isoformat(), "pct_1y": round(float(((y < last).mean() + 0.5 * (y == last).mean()) * 100)),   # mid-rank(valhist.position)
             "median_5y": round(float(s.tail(1260).median()), 1), "chg_1m": round(last - float(s.iloc[-22]), 2)}
 
 
