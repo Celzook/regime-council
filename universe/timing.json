@@ -1,0 +1,327 @@
+{
+ "meta": {
+  "title": "마켓타이밍 시그널 카탈로그",
+  "version": "2026-10-26",
+  "note": "timing.py 가 읽는다. 임계값·방향·등급은 여기서만 고친다(코드에 숫자 없음). 상태 = 위험회피 조건(모두 만족)을 먼저 보고, 아니면 위험선호 조건(모두 만족), 둘 다 아니면 중립. 조건 지표: value(현재값)·pct_1y·pct_5y(mid-rank 백분위 %)·z_1y·chg_20d(20거래일 변화). 방향(direction): high_risk_off = 값이 클수록 위험회피, high_risk_on = 값이 클수록 위험선호 — 각 규칙의 첫 조건이 판정 기준 지표다. 근거 등급: A 학술 다수, B 학술 일부·실무, C 실무 관행(research.txt 1-a~1-j). 합성 점수는 동일가중(최적화 없음): 위험선호 +1·중립 0·위험회피 −1 을 같은 group 끼리 평균한 뒤 group 들을 다시 평균한다(추세 3줄·크레딧 2줄이 한 신호로 세어지게 — research 1-j 핵심 신호 단위). VIX 와 VIX 기간구조는 같은 미국 변동성 정보라 한 group(미국 변동성)으로 묶는다 — 변동성이 묶음의 절반을 차지하지 않게. status '구현·데이터 대기' 신호는 합성 분모에서 빼고 waiting 으로만 나열한다. 백분위 창 = 관측치 개수(1년 = 최근 252개, 5년 = 최근 1260개 — spikes.py·equity.level_stats 와 같음), z_1y 도 최근 252개. 판정은 화면에 보이는 반올림 값으로 한다(29.996 → 30.0 → 30 이상).",
+  "sources_note": "1차는 저장소에 이미 있는 데이터만: analytics.load_panel()(data/history/{kofia,yf,fred}_daily.csv + market.json), data/history/equity_daily.csv(.KSVKOSPI·^VIX)·timing_daily.csv(spikes.py — .KSVKOSPI·^VIX·^VIX3M), data/equity_valhist.json(valhist.py). VIX·VIX3M 은 Refinitiv 권한이 없어 yfinance(사용자 결정 2026-10-23 예외, refinitiv_src.YF_ONLY)."
+ },
+ "composite": {
+  "risk_on": 0.33,
+  "risk_off": -0.33,
+  "score": {"위험선호": 1, "중립": 0, "위험회피": -1},
+  "stale_bdays": 5,
+  "stale_days_monthly": 45,
+  "note": "동일가중, 표본 밖 검증 전 가중치 최적화 금지(Goyal-Welch 2008 교훈). 배경·참고 신호(in_composite=false)는 빼고 센다. 경계는 엄격 부등호이고 표시값(소수 둘째 자리 반올림)으로 판정: 점수 > 0.33 위험선호, < −0.33 위험회피 — 정확히 1/3(예: 세 묶음 중 하나만 위험선호, 0.33)은 중립. 신선도: 신호 기준일이 신호들 중 가장 최근 기준일보다 stale_bdays 영업일 넘게 늦으면(월말 밸류에이션 행은 stale_days_monthly 달력일) 지연(stale)으로 표시만 하고 합성에서 뺀다."
+ },
+ "signals": [
+  {
+   "key": "vkospi",
+   "name": "VKOSPI",
+   "group": "VKOSPI",
+   "status": "구현",
+   "input": ["vkospi"],
+   "transform": {"kind": "level"},
+   "unit": "pt",
+   "source": "Refinitiv .KSVKOSPI(종가)",
+   "character": "역발상",
+   "direction": "high_risk_off",
+   "rule": {
+    "risk_off": [{"m": "value", "gte": 40}, {"m": "pct_1y", "gte": 90}],
+    "risk_on": [{"m": "value", "lt": 20}, {"m": "pct_1y", "lte": 25}]
+   },
+   "threshold_note": "위험회피 = 40 이상 AND 1년 백분위 90% 이상(사용자 결정 2026-10-26 — 2026년처럼 구조적으로 높은 국면에서 40 만으로는 계속 켜짐). 위험선호 = 20 미만 AND 1년 하위 25%.",
+   "contrarian": {"when": [{"m": "value", "gte": 40}, {"m": "pct_1y", "gte": 90}],
+                  "note": "역발상 참고: 급등 매수 기준(≥40 AND 1년 90%) 충족 — 과거엔 이후 수개월 반등이 잦았지만 표본이 작다(급등 매수 탭 참고)."},
+   "grade": "B",
+   "grade_note": "레벨 극단은 실무 역발상 근거가 많지만 학술 타이밍 근거는 약하다(기간구조 Johnson 2017 은 지수 수익 예측 아님).",
+   "in_composite": true
+  },
+  {
+   "key": "vix",
+   "name": "VIX",
+   "group": "미국 변동성",
+   "status": "구현",
+   "input": ["vix"],
+   "transform": {"kind": "level"},
+   "unit": "pt",
+   "source": "yfinance ^VIX(Refinitiv 권한 없음 — 예외 원천)",
+   "character": "역발상",
+   "direction": "high_risk_off",
+   "rule": {
+    "risk_off": [{"m": "value", "gte": 30}],
+    "risk_on": [{"m": "value", "lt": 15}]
+   },
+   "threshold_note": "30 이상 위험회피(급등 매수 기준), 15 미만 위험선호(equity.py 의 '낮음' 구간).",
+   "contrarian": {"when": [{"m": "value", "gte": 30}],
+                  "note": "역발상 참고: VIX≥30 이벤트(중복 제거) 뒤 나스닥100 12개월 승률 71~77%, 90% 도달은 약 36개월(research 2-b)."},
+   "grade": "B",
+   "grade_note": "이벤트를 묶으면 '1년 승률 90%' 통설보다 약하다(직접 계산 n≈40, 12M 71~77%).",
+   "in_composite": true
+  },
+  {
+   "key": "vix_term",
+   "name": "VIX 기간구조(VIX ÷ VIX3M)",
+   "group": "미국 변동성",
+   "status": "구현",
+   "input": ["vix", "vix3m"],
+   "transform": {"kind": "ratio"},
+   "unit": "배",
+   "source": "yfinance ^VIX·^VIX3M(예외 원천 — ^VIX3M 은 spikes.py 의 timing_daily.csv, 없으면 계산 못 함)",
+   "character": "동행",
+   "direction": "high_risk_off",
+   "rule": {
+    "risk_off": [{"m": "value", "gte": 1.0}],
+    "risk_on": [{"m": "value", "lte": 0.85}]
+   },
+   "threshold_note": "1 이상(백워데이션) = 급성 스트레스, 0.85 이하 = 가파른 콘탱고(평온). VIX 와 같은 묶음(미국 변동성)으로 합성에 한 번만 센다.",
+   "grade": "B",
+   "grade_note": "Johnson(2017, JFQA) — 기울기가 변동성 상품 초과수익을 예측, 지수 자체 예측 근거는 약함.",
+   "in_composite": true
+  },
+  {
+   "key": "trend_200d",
+   "name": "KOSPI200 200일선 대비",
+   "group": "추세",
+   "status": "구현",
+   "input": ["kospi200", "kospi"],
+   "transform": {"kind": "ma_gap", "window": 200},
+   "unit": "%",
+   "source": "Refinitiv .KS200(없으면 KOSPI)",
+   "character": "추세",
+   "direction": "high_risk_on",
+   "rule": {
+    "risk_on": [{"m": "value", "gte": 1.0}],
+    "risk_off": [{"m": "value", "lte": -1.0}]
+   },
+   "threshold_note": "200일선 위 1% 이상 위험선호, 아래 1% 이상 위험회피, ±1% 안은 중립(잦은 뒤집힘 완충). flips_1m = 최근 21거래일 각 날이 전날과 선 위·아래가 바뀐 횟수(0~21).",
+   "grade": "A",
+   "grade_note": "Faber(2007) 10개월선 규칙 — 장기 표본에서 낙폭 축소, 횡보장 whipsaw 가 약점.",
+   "in_composite": true
+  },
+  {
+   "key": "mom_6m",
+   "name": "KOSPI200 6개월 모멘텀",
+   "group": "추세",
+   "status": "구현",
+   "input": ["kospi200", "kospi"],
+   "transform": {"kind": "ret", "lag": 126, "skip": 0},
+   "unit": "%",
+   "source": "Refinitiv .KS200(없으면 KOSPI)",
+   "character": "추세",
+   "direction": "high_risk_on",
+   "rule": {
+    "risk_on": [{"m": "value", "gte": 2.0}],
+    "risk_off": [{"m": "value", "lte": -2.0}]
+   },
+   "threshold_note": "126거래일 수익률 +2% 이상 위험선호, −2% 이하 위험회피(부호 판정 + 0 근처 완충).",
+   "grade": "A",
+   "grade_note": "시계열 모멘텀(Moskowitz-Ooi-Pedersen 2012) — 단일 지수에선 분산 포트폴리오보다 약하다.",
+   "in_composite": true
+  },
+  {
+   "key": "mom_12m",
+   "name": "KOSPI200 12-1개월 모멘텀",
+   "group": "추세",
+   "status": "구현",
+   "input": ["kospi200", "kospi"],
+   "transform": {"kind": "ret", "lag": 252, "skip": 21},
+   "unit": "%",
+   "source": "Refinitiv .KS200(없으면 KOSPI)",
+   "character": "추세",
+   "direction": "high_risk_on",
+   "rule": {
+    "risk_on": [{"m": "value", "gte": 2.0}],
+    "risk_off": [{"m": "value", "lte": -2.0}]
+   },
+   "threshold_note": "12개월 전 → 1개월 전 수익률(최근 1개월 단기 반전 제외), ±2% 완충.",
+   "grade": "A",
+   "grade_note": "MOP(2012, JFE) — 58개 선물 모두 12개월 TSMOM 양(+), 효과 약 1년 지속.",
+   "in_composite": true
+  },
+  {
+   "key": "credit_aa",
+   "name": "회사채 AA− 스프레드(3년, 국고 3년 대비)",
+   "group": "크레딧",
+   "status": "구현",
+   "input": ["spread_aa"],
+   "transform": {"kind": "level", "scale": 100},
+   "unit": "bp",
+   "source": "Refinitiv KOFIA 최종호가(회사채 AA− 3년 − 국고 3년)",
+   "character": "동행",
+   "direction": "high_risk_off",
+   "rule": {
+    "risk_off": [{"m": "z_1y", "gte": 2.0}, {"m": "chg_20d", "gt": 0}],
+    "risk_on": [{"m": "z_1y", "lte": -1.0}]
+   },
+   "threshold_note": "1년 z ≥ +2 이면서 20거래일 확대 중 = 위험회피, z ≤ −1(좁은 편) = 위험선호. 민평은 계단식·지연 반응.",
+   "grade": "A",
+   "grade_note": "Gilchrist-Zakrajšek(2012, AER) — 신용스프레드(초과채권프리미엄) 충격 뒤 경기·자산가격 하락.",
+   "in_composite": true
+  },
+  {
+   "key": "credit_bbb",
+   "name": "회사채 BBB− 스프레드(3년, 국고 3년 대비)",
+   "group": "크레딧",
+   "status": "구현",
+   "input": ["spread_bbb"],
+   "transform": {"kind": "level", "scale": 100},
+   "unit": "bp",
+   "source": "Refinitiv KOFIA 최종호가(회사채 BBB− 3년 − 국고 3년)",
+   "character": "동행",
+   "direction": "high_risk_off",
+   "rule": {
+    "risk_off": [{"m": "z_1y", "gte": 2.0}, {"m": "chg_20d", "gt": 0}],
+    "risk_on": [{"m": "z_1y", "lte": -1.0}]
+   },
+   "threshold_note": "AA− 와 같은 규칙. 하이일드 쪽이라 신용 경계가 먼저 나타나는 편.",
+   "grade": "A",
+   "grade_note": "Gilchrist-Zakrajšek(2012) — 한국 BBB− 민평은 유동성이 낮아 지연·계단식.",
+   "in_composite": true
+  },
+  {
+   "key": "usdkrw",
+   "name": "USD/KRW 20일 변화",
+   "group": "환율",
+   "status": "구현",
+   "input": ["usdkrw"],
+   "transform": {"kind": "chg_pct", "lag": 20},
+   "unit": "%",
+   "source": "Refinitiv KRW=KFTC(서울외환중개, KOSPI 와 같은 시각 마감)",
+   "character": "동행",
+   "direction": "high_risk_off",
+   "rule": {
+    "risk_off": [{"m": "z_1y", "gte": 2.0}],
+    "risk_on": [{"m": "z_1y", "lte": -2.0}]
+   },
+   "threshold_note": "20거래일 변화율의 1년 z ≥ +2(원화 급락) 위험회피, ≤ −2(원화 급등) 위험선호. 달러 전반 강세(DXY 동반)면 한국 고유 신호 아님.",
+   "grade": "C",
+   "grade_note": "원화 약세 = 외국인 매도 동행은 실무 통설, KOSPI 수익 예측 학술 근거는 찾지 못함.",
+   "in_composite": true
+  },
+  {
+   "key": "valuation_pe",
+   "name": "KOSPI200 PER 자기 과거 위치",
+   "group": "밸류에이션",
+   "status": "구현",
+   "input": ["valhist:kospi200", "valhist:kospi"],
+   "transform": {"kind": "valhist", "metric": "pe"},
+   "unit": "배",
+   "source": "Refinitiv 월말 TR.PE(valhist.py — 구성 상위 90% 묶음)",
+   "character": "배경",
+   "direction": "high_risk_off",
+   "rule": {
+    "risk_off": [{"m": "pct_5y", "gte": 80}],
+    "risk_on": [{"m": "pct_5y", "lte": 20}]
+   },
+   "threshold_note": "자기 5년 월말 범위 상위 20% 비쌈, 하위 20% 쌈. 방향 신호가 아니라 다른 역발상 신호의 배경 조건.",
+   "grade": "B",
+   "grade_note": "CAPE·PER 은 10년 수익 변동 약 1/3 설명(Campbell-Shiller), 단기 타이밍은 약함(Goyal-Welch 2008).",
+   "in_composite": false
+  },
+  {
+   "key": "valuation_pb",
+   "name": "KOSPI200 PBR 자기 과거 위치",
+   "group": "밸류에이션",
+   "status": "구현",
+   "input": ["valhist:kospi200", "valhist:kospi"],
+   "transform": {"kind": "valhist", "metric": "pb"},
+   "unit": "배",
+   "source": "Refinitiv 월말 TR.PriceToBVPerShare(valhist.py)",
+   "character": "배경",
+   "direction": "high_risk_off",
+   "rule": {
+    "risk_off": [{"m": "pct_5y", "gte": 80}],
+    "risk_on": [{"m": "pct_5y", "lte": 20}]
+   },
+   "threshold_note": "PER 과 같은 규칙. 이익 바닥에서 PER 이 높게 나오는 왜곡을 PBR 로 보완.",
+   "grade": "B",
+   "grade_note": "PER 과 같은 근거, 반도체 이익 사이클에 덜 흔들림.",
+   "in_composite": false
+  },
+  {
+   "key": "ks200_basis",
+   "name": "KOSPI200 선물 베이시스",
+   "group": "베이시스",
+   "status": "구현",
+   "input": ["ks200_basis"],
+   "transform": {"kind": "level"},
+   "unit": "%",
+   "source": "Refinitiv KSc1 ÷ .KS200 − 1(analytics 파생)",
+   "character": "참고",
+   "direction": "high_risk_on",
+   "rule": {
+    "risk_on": [{"m": "z_1y", "gte": 2.0}],
+    "risk_off": [{"m": "z_1y", "lte": -2.0}]
+   },
+   "threshold_note": "원 베이시스 z — 만기 톱니·배당락 미보정(v2: 이론 베이시스 차감). 1년 z ≥ +2(콘탱고 확대 — 매수차익 유입) 위험선호, ≤ −2(백워데이션 — 매도차익 압박) 위험회피. 선물이 하루 늦게 붙는 날 주의.",
+   "grade": "C",
+   "grade_note": "프로그램 매물 해석은 실무 관행, 학술 타이밍 근거는 찾지 못함 — 참고(수급) 등급.",
+   "in_composite": false
+  },
+  {
+   "key": "foreign_futures",
+   "name": "외국인 KOSPI200 선물 순매수·미결제약정",
+   "group": "수급",
+   "status": "원천 미확정",
+   "character": "동행",
+   "direction": "high_risk_on",
+   "definition": "외국인 선물 순매수 계약수 5·20일 누적의 1년 z(±1.5~2)와 미결제약정 20일 변화의 4분면(순매수↑·OI↑ = 신규 매수 강세).",
+   "candidates": ["인포맥스 엑셀 브리지(infomax_bridge.py — 항목 미연결)", "KRX 정보데이터시스템 '투자자별 거래실적(파생)'(웹·CSV)", "Refinitiv 에서 확인 안 됨(probe 대상)"],
+   "grade": "B",
+   "grade_note": "Ryu(2015, JFM)·Kang & Ryu(2010) — 외국인 선물 정보력 최상, 다만 근거는 일중·수일 단위.",
+   "in_composite": false
+  },
+  {
+   "key": "credit_balance",
+   "name": "신용융자 잔고(시가총액 대비)",
+   "group": "수급",
+   "status": "원천 미확정",
+   "character": "역발상",
+   "direction": "high_risk_off",
+   "definition": "신용거래융자 잔고 ÷ 시가총액의 1년 백분위(≥90% 과열)와 20일 급감(반대매매 국면 = 바닥 근처) 역발상.",
+   "candidates": ["금융투자협회 FreeSIS '증시자금추이'(웹 — 공식 API 미확인, 컴플라이언스 확인 필요)", "인포맥스 엑셀 브리지", "data.go.kr 'KOFIA 종합통계' API 존재 여부 확인"],
+   "grade": "C",
+   "grade_note": "수준값은 지수를 따라가는 후행 성격, 국내 학술 실증 미발견.",
+   "in_composite": false
+  },
+  {
+   "key": "customer_deposits",
+   "name": "투자자 예탁금",
+   "group": "수급",
+   "status": "원천 미확정",
+   "character": "동행",
+   "direction": "high_risk_on",
+   "definition": "투자자예탁금 20일 증가율(대기자금 유입, 순응 방향).",
+   "candidates": ["금융투자협회 FreeSIS '증시자금추이'(웹)", "인포맥스 엑셀 브리지"],
+   "grade": "C",
+   "grade_note": "실무 관행, 학술 근거 미발견.",
+   "in_composite": false
+  },
+  {
+   "key": "put_call",
+   "name": "KOSPI200 옵션 풋/콜 비율",
+   "group": "수급",
+   "status": "원천 미확정",
+   "character": "역발상",
+   "direction": "high_risk_off",
+   "definition": "풋 거래대금 ÷ 콜 거래대금 5일 평균의 1년 백분위 극단(≥95% 역발상 매수 참고). 위클리·미니 포함 여부를 정해야 함.",
+   "candidates": ["KRX OPEN API 파생(drv) 옵션 일별매매정보로 직접 계산(키 신청 필요)", "Refinitiv 옵션 체인 합산(체인 RIC 미확인)"],
+   "grade": "C",
+   "grade_note": "Kim & Park(2012) — 국내 지수옵션 비율은 예측력 없음, Pan-Poteshman(2006)은 개별주식 한정.",
+   "in_composite": false
+  },
+  {
+   "key": "arbitrage_balance",
+   "name": "프로그램 차익잔고",
+   "group": "수급",
+   "status": "원천 미확정",
+   "character": "참고",
+   "direction": "high_risk_off",
+   "definition": "매수차익잔고 − 매도차익잔고(나중에 청산되며 현물로 나올 물량). 베이시스와 함께 참고.",
+   "candidates": ["KRX 정보데이터시스템 '프로그램매매'(웹·CSV)", "인포맥스 엑셀 브리지"],
+   "grade": "C",
+   "grade_note": "2003~07 실무 관행 기록뿐, 학술 근거 미발견 — 차익거래 비중 축소로 신호 가치 낮음(추정).",
+   "in_composite": false
+  }
+ ]
+}

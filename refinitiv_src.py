@@ -45,7 +45,7 @@ US_RIC = {
 }
 # Refinitiv 에서 어느 경로로도 값이 안 나오는 것 → yfinance 유지(사용자 결정 2026-10-23).
 # .SPX·.VXN·.N225 는 get_timeseries 권한은 없지만 get_data TR.PriceClose 일별로는 나온다(_close_series 폴백).
-YF_ONLY = {"^VIX"}
+YF_ONLY = {"^VIX", "^MOVE", "^VIX3M"}   # ^MOVE·^VIX3M: Refinitiv RIC 미확인(probe_refinitiv C2) — 확인되면 TICKER_RIC 로 옮긴다
 
 _LOCK = threading.Lock()
 _EK = None
@@ -356,6 +356,41 @@ def snapshot(rics: list[str], fields: list[str], params: dict | None = None):
     return df, err
 
 
+def panel(rics: list[str], start: datetime.date | str, end: datetime.date | str | None = None,
+          field: str = "TR.PriceClose", params: dict | None = None, batch: int = 50):
+    """여러 RIC 의 일별 값 하나를 넓은 표(날짜 × RIC)로. 종목·펀드 수백 개용 — refresh_frame(종목별 순차)을 대신한다.
+    get_data 한 번에 batch 개씩, 5년 구간으로 나눠 받는다(_chunks). 휴장일에 직전 값이 다시 오는 중복은 마지막 값만 남긴다.
+    배치 사이에 _LOCK 을 놓으므로(_call 단위) 긴 수집 중에도 available() 이 막히지 않는다. 값 없는 RIC 은 열이 없다."""
+    import pandas as pd
+
+    if isinstance(start, str):
+        start = datetime.date.fromisoformat(start)
+    if isinstance(end, str):
+        end = datetime.date.fromisoformat(end)
+    end = end or datetime.date.today()
+    ek = _ek()
+    q = {"Frq": "D", **(params or {})}
+    cols = {}
+    for i in range(0, len(rics), batch):
+        group = rics[i:i + batch]
+        for a, b in _chunks(start, end):
+            d, _ = _call(ek.get_data, group, [f"{field}.date", field], {**q, "SDate": a.isoformat(), "EDate": b.isoformat()})
+            if d is None or not len(d):
+                continue
+            d = d.copy()
+            d["_d"] = pd.to_datetime(d.iloc[:, 1], errors="coerce", utc=True).dt.tz_localize(None).dt.normalize()
+            d["_v"] = pd.to_numeric(d.iloc[:, 2], errors="coerce")
+            for ric, g in d.dropna(subset=["_d", "_v"]).groupby("Instrument"):
+                cols.setdefault(ric, []).append(pd.Series(g["_v"].values, index=g["_d"].values))
+    if not cols:
+        return pd.DataFrame(index=pd.DatetimeIndex([]))
+    out = {}
+    for ric, parts in cols.items():
+        s = pd.concat(parts)
+        out[ric] = _today_cut(s[~s.index.duplicated(keep="last")].sort_index(), ric)
+    return pd.DataFrame(out).sort_index()
+
+
 def last_close(ticker: str, days: int = 14):
     """(값, 날짜) — 최근 종가. 실패 시 예외."""
     s = history(ticker, datetime.date.today() - datetime.timedelta(days=days), adjusted=False)
@@ -380,7 +415,7 @@ def _yf_history(ticker: str, start: datetime.date | None):
     tk = yf.Ticker(ticker)
     h = (tk.history(start=start.isoformat(), auto_adjust=True) if start else tk.history(period="max", auto_adjust=True))["Close"]
     h.index = pd.to_datetime(h.index).tz_localize(None).normalize()
-    return h[h.notna()].rename(ticker)
+    return _today_cut(h[h.notna()], ticker).rename(ticker)   # 미국 장중에 받으면 당일 미완성 봉은 뺀다
 
 
 def splice(old, new):
@@ -419,13 +454,17 @@ def refresh_frame(path: Path, tickers, start: str, full: bool = False, recent_da
     import pandas as pd
 
     old = pd.read_csv(path, index_col=0, parse_dates=True) if path.exists() else pd.DataFrame()
-    if not available(force=True):
-        print(f"  Refinitiv 미연결 — 기존 이력 유지: {status()['error']}")
-        return old
+    online = available(force=True)
+    if not online:   # Refinitiv 열은 기존 이력 유지 — yfinance 열(YF_ONLY)은 연결과 무관하게 갱신한다
+        print(f"  Refinitiv 미연결 — Refinitiv 열은 기존 이력 유지: {status()['error']}")
+        if full or not any(t in YF_ONLY for t in tickers):
+            return old
     today = pd.Timestamp(datetime.date.today())
     s0 = datetime.date.fromisoformat(start)
     cols, changed = {}, False
     for t in sorted(set(tickers)):
+        if not online and t not in YF_ONLY:
+            continue
         have = (not full) and t in old.columns and old[t].notna().any()
         if have and old[t].last_valid_index() >= today - pd.Timedelta(days=1):
             continue
