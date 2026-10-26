@@ -2,7 +2,7 @@
 """급등 매수 이벤트 스터디 — '공포 지표가 튀었을 때 대표 자산을 사면, 몇 개월 보유부터 승률 90% 이상인가?'
 
 출처(일별 종가, 현지 통화):
-  트리거  VIX ^VIX(yfinance — 이 계정 Refinitiv 권한 없음), MOVE ^MOVE(yfinance — Refinitiv RIC 미확인),
+  트리거  VIX ^VIX(yfinance — 이 계정 Refinitiv 권한 없음), MOVE ^MOVE(Refinitiv .MOVE, 2002-11~),
           VKOSPI .KSVKOSPI(Refinitiv, 시작일은 probe 결과에 따라 다름 — 코드에 박지 않는다).
   대상    나스닥100 = QQQ, KOSPI200 = KODEX 200(069500.KS), 미국 장기국채 = TLT — 모두 Refinitiv 배당 재투자 가격
           (refinitiv_src.history adjusted = TR.TotalReturn 누적, equity_daily.csv·backtest.py 와 같은 관례).
@@ -80,7 +80,7 @@ EVERY_DAY = "중복 포함·과대평가"
 
 SOURCES = {
     "^VIX": "yfinance ^VIX (Refinitiv 권한 없음)",
-    "^MOVE": "yfinance ^MOVE (Refinitiv RIC 미확인)",
+    "^MOVE": "Refinitiv .MOVE",
     ".KSVKOSPI": "Refinitiv .KSVKOSPI",
     "QQQ": "Refinitiv QQQ 배당 재투자 가격(TR.TotalReturn 누적)",
     "TLT": "Refinitiv TLT 배당 재투자 가격(TR.TotalReturn 누적)",
@@ -412,7 +412,7 @@ def compute(series: dict, cost: float = COST, cost_sens: float = COST_SENS, tran
             "vkospi_pct": "1년 백분위 = 그날 포함 직전 252거래일 mid-rank",
         },
         "notes": ["매매 지시가 아니라 과거 데이터 점검 자료입니다. 표본(n)이 작아 통계적 확신은 제한적입니다.",
-                  "VIX·MOVE 는 yfinance, 그 밖은 Refinitiv(LSEG) — 로컬 전용(재배포 금지)."],
+                  "VIX 는 yfinance, 그 밖(MOVE 포함)은 Refinitiv(LSEG) — 사내 공유 한정 · 외부 재배포 금지."],
     }
     return _clean({"generated_at": datetime.datetime.now().isoformat(timespec="seconds"), "meta": meta,
                    "triggers": trig_out, "studies": studies, "missing": missing})

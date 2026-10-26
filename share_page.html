@@ -59,7 +59,7 @@
   <section class="eqs-card" id="valuation">
     <h2>유니버스 밸류에이션</h2>
     <p class="eqs-note">PER = 가격 ÷ 최근 1년 이익. 선행 PER·이익 증가 예상은 애널리스트의 앞으로 1년 예상이고, 지수·ETF 는 상위 10종목 묶음 기준입니다.
-      시장 대비는 국내 항목은 KOSPI200, 그 밖은 S&amp;P500 의 PER 과 비교합니다(±15% 안은 비슷). 행을 누르면 아래에 상위 10종목이 나옵니다.</p>
+      PER 5년 위치는 다른 시장과 비교하지 않고 자기 PER 의 최근 5년(월말) 범위 안에서 지금이 몇 % 지점인지입니다(30% 이하 낮은 편 · 70% 이상 높은 편). 행을 누르면 아래에 상위 10종목이 나옵니다.</p>
     <div id="val-tables" class="eqs-tablebox dash-skeleton"></div>
   </section>
 
@@ -133,7 +133,7 @@
   const box = document.getElementById('val-tables');
   const COLS = [
     ['name', '항목', ''], ['per', 'PER', 'n'], ['fper', '선행 PER', 'n'], ['growth', '이익 증가 예상', 'n'],
-    ['pbr', 'PBR', 'n'], ['div', '배당', 'n'], ['vs_market', '시장 대비', ''], ['basis', '기준', 'bs'],
+    ['pbr', 'PBR', 'n'], ['div', '배당', 'n'], ['per_pos', 'PER 5년 위치', ''], ['basis', '기준', 'bs'],
   ];
   const pick = (key) => { if (key) { dash.setParams({item: key}); dash.setLink('detail'); document.getElementById('detail').scrollIntoView({behavior: 'smooth', block: 'start'}); } };
   box.addEventListener('click', (e) => { const tr = e.target.closest('tr[data-key]'); if (tr) pick(tr.dataset.key); });
@@ -165,7 +165,8 @@
           el('td', {class: 'n'}, fx(r.pbr, 2, '배')),
           el('td', {class: 'n'}, fx(r.div, 2, '%')));
         const vs = el('td');
-        if (r.vs_market) vs.append(el('span', {class: 'eqs-tag ' + (r.vs_tone === '쌈' ? 'good' : r.vs_tone === '비쌈' ? 'warn' : '')}, r.vs_market));
+        if (r.per_pos !== null && r.per_pos !== undefined) vs.append(el('span', {class: 'eqs-tag ' + (r.per_pos <= 30 ? 'good' : r.per_pos >= 70 ? 'warn' : ''),
+          title: `자기 PER 의 최근 5년 범위 안 위치${r.per_pos_basis ? ' · ' + r.per_pos_basis : ''}`}, `${r.per_pos}% ${r.per_pos_word}`));
         tr.append(vs, el('td', {class: 'bs'}, r.basis));
         tbody.append(tr);
       });

@@ -3,7 +3,7 @@
 
 공개 데이터(yfinance·네이버 증권)에서 나온 숫자만 담는다. 넣지 않는 것: 내부 유니버스 문서의 전략 목록·문서 ID·메모,
 인포맥스 데이터(config.SHARE_VENDOR_DATA), 포트·한도, 회사 이름.
-입력: data/equity.json, data/equity_fund.json → 출력: data/share/*.json (market_summary · market_tiles · regions · valuation · holdings · sectors)
+입력: data/equity.json, data/equity_fund.json, data/equity_valhist.json(PER 자기 과거 5년 위치) → 출력: data/share/*.json (market_summary · market_tiles · regions · valuation · holdings · sectors)
 
 사용법: python share_export.py  (그다음 대시보드에 파일을 다시 올려 달라고 Claude 에게 요청)
 """
@@ -13,6 +13,7 @@ import sys
 import config
 import equity
 import fundamentals
+import valhist
 
 OUT = config.DATA_DIR / "share"
 
@@ -26,8 +27,13 @@ def _eps_d(ccy):
     return 0 if ccy in ("KRW", "JPY") else 2
 
 
+def _pos_word(p):
+    """화면 valWord 와 같은 구간 — 30% 이하 낮은 편, 70% 이상 높은 편."""
+    return "낮은 편" if p <= 30 else "높은 편" if p >= 70 else "중간"
+
+
 def build() -> dict:
-    eq, fd = equity.load(), fundamentals.load()
+    eq, fd, vh = equity.load(), fundamentals.load(), valhist.load() or {}
     if not eq or not fd:
         raise SystemExit("data/equity.json 또는 data/equity_fund.json 이 없습니다 — 주식 탭에서 먼저 받아 주세요.")
     dates = eq.get("price_dates") or []
@@ -50,13 +56,13 @@ def build() -> dict:
     group_name = {g["id"]: g["name"] for g in fd["groups"]}
     valuation, holdings, sectors = [], [], []
     for x in fd["items"]:
-        vs = x.get("vs") or {}
+        it = (vh.get("items") or {}).get(x["key"])
+        pos = valhist.position(it, "pe", 60)   # 다른 시장과 비교하지 않고 자기 PER 의 최근 5년 범위 안 위치
         valuation.append({"key": x["key"], "group": group_name.get(x["item_id"], ""), "name": x["name"],
                           "basis": x.get("memo") or x.get("per_src") or "", "per": _r(x.get("per"), 1), "fper": _r(x.get("fper"), 1),
                           "growth": _r(x.get("growth"), 0), "pbr": _r(x.get("pbr"), 2), "div": _r(x.get("div"), 2),
-                          "vs_market": ("비슷" if vs.get("word") == "비슷" else f"{abs(vs['diff'])}% {vs['word']}") if vs
-                          else ("배당으로 봄" if x.get("no_per") else ""), "vs_tone": vs.get("word") or "", "vs_diff": vs.get("diff"),
-                          "vs_ref": vs.get("ref_name") or "", "summary": x["say"], "source": x["src"],
+                          "per_pos": pos[1] if pos else None, "per_pos_word": _pos_word(pos[1]) if pos else "",
+                          "per_pos_basis": "구성 상위 90% 기준" if pos and (it.get("n") or 1) > 1 else "", "summary": x["say"], "source": x["src"],
                           "kind": "종목" if x["kind"] == "nv_stock" else "지수·ETF",
                           "eps": _r(x.get("eps"), _eps_d(x.get("ccy"))), "feps": _r(x.get("feps"), _eps_d(x.get("ccy"))), "ccy": x.get("ccy") or "",
                           "index_eps": _r(x.get("index_eps"), 0), "fee": _r(x.get("fee"), 2)})

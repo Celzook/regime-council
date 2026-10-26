@@ -649,7 +649,9 @@
   #sbPop .vhd { fill:var(--series-1); stroke:var(--surface); stroke-width:2; }
   @container main (max-width:600px){   /* 폰: 한 줄 4개 — 게이지·여백을 줄인다 */
     .sb-wrap { --tw:74px; gap:8px 14px; } .sb-tile { padding:5px 3px 4px; } .sb-tile svg { width:54px; height:31px; }
-    .sb-sc { gap:3px; letter-spacing:-.02em; } }
+    .sb-sc { gap:3px; letter-spacing:-.02em; }
+    .sb-nm { font-size:11px; line-height:1.2; text-align:center; white-space:normal; word-break:keep-all;   /* '미국 헬스케어' 같은 긴 이름 — 두 줄까지 */
+             display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; } }
   .pctl.sm { width:48px; height:6px; margin:0; } .pctl.sm i { top:-3px; height:12px; width:3px; margin-left:-1.5px; }
   /* 국내 금리·크레딧 한 줄 — 수준 + 1개월 변화(조이는 쪽 = 빨강, 푸는 쪽 = 초록, 베이시스는 중립) */
   .hm-rates { gap:4px 10px; font-size:12px; }   /* 1024 이상 한 줄에 들어가게 맞춘 폭 — 넘치면 항목 단위로 줄바꿈 */
@@ -713,6 +715,8 @@
   .tm-why { font-size:12px; color:color-mix(in oklab, var(--risk-warn) 62%, var(--ink)); margin-top:2px; }
   .tm-ctr { font-size:12px; color:var(--ink2); margin-top:2px; }
   .tm-n { display:none; font-style:normal; }
+  .tm-p2h { margin:14px 0 4px; font-size:12px; color:var(--muted); font-weight:650; }
+  .tm-p2 { margin:0; padding-left:18px; font-size:13px; } .tm-p2 li { margin:4px 0; } .tm-p2 .kv { font-size:12px; }
   @container main (max-width:640px){ table.tmt .c-opt { display:none; } .tm-n { display:inline; } }
   .spk { border-top:1px solid var(--hair); } .spk:first-child { border-top:none; }
   .spk > summary { list-style:none; display:grid; grid-template-columns:minmax(0,1fr) repeat(3,92px) 14px; gap:6px 10px; align-items:center; padding:9px 4px; cursor:pointer; color:var(--ink); font-size:13px; border-radius:8px; }
@@ -726,6 +730,22 @@
   .spk-body table tr.hit td { font-weight:700; }
   .spk-body .kv { margin-top:6px; } .spk-body details { margin-top:8px; } .spk-body h4 { margin:10px 0 4px; font-size:12px; color:var(--muted); }
   @container main (max-width:640px){ .spk > summary { grid-template-columns:repeat(3,minmax(0,1fr)) 14px; } .spk > summary .nm { grid-column:1 / -1; } }
+  /* ── 위탁운용사 — 펀드 표(누르면 아래 상세: 누적 차트·기간 표·보수·위험) ── */
+  table.fdt { font-size:12.5px; } table.fdt td, table.fdt th { padding-left:6px; padding-right:6px; }
+  table.fdt td.nm b { font-weight:650; } table.fdt td.nm > span { display:block; font-size:11px; color:var(--muted); }
+  table.fdt tr.fd-r { cursor:pointer; } table.fdt tr.fd-r:hover td { background:var(--brand-soft); }
+  table.fdt tr.fd-r.on td { background:var(--fill-1); } table.fdt tr.fd-r.on td.nm b { color:var(--brand); }
+  table.fdt tr.fd-r:focus-visible { outline:2px solid var(--brand); outline-offset:-2px; }
+  .fd-ex { font-size:11px; color:var(--muted); white-space:nowrap; } .fd-ex b { font-weight:600; color:var(--ink2); }
+  .fd-sub { font-size:11px; color:var(--muted); white-space:nowrap; }
+  .fd-n { display:none; font-style:normal; }
+  table.fdr th:first-child, table.fdr td:first-child { white-space:nowrap; }
+  .fd-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px 18px; margin-top:6px; }
+  .fd-grid h4 { margin:0 0 4px; font-size:12px; color:var(--muted); } .fd-grid .kv { line-height:1.6; }
+  .fd-grid .kv b { color:var(--ink); font-weight:600; }
+  @container main (max-width:900px){ table.fdt .c-mid { display:none; } .fd-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @container main (max-width:640px){ table.fdt .c-opt { display:none; } .fd-n { display:inline; } .fd-grid { grid-template-columns:1fr; }
+    table.fdr .c-opt { display:none; } }
   /* ── 백테스트 — macOS 설정 앱처럼: 왼쪽 전략 목록 · 오른쪽 상세(이름 → 설정 묶음 → 기간 묶음 → 실행) ── */
   .btlayout { display:grid; grid-template-columns:minmax(200px,236px) minmax(0,1fr); gap:var(--gap); align-items:start; } .btlayout > * { min-width:0; } .btlayout[hidden] { display:none; }
   .btlist { position:sticky; top:60px; padding:8px 6px; max-height:calc(100vh - 80px); overflow-y:auto; scrollbar-width:thin; }
@@ -918,6 +938,7 @@
     <div class="ngrp">내 담당</div>
     <div class="tab on" data-t="equity"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5l5.5-5.5 4 4 7.5-7.5"/><path d="M15 8.5h5.5V14"/></svg><span>주식</span></div>
     <div class="tab" data-t="timing"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12.5h4l2.5-6 4.5 11 2.5-5H21"/></svg><span>마켓타이밍</span></div>
+    <div class="tab" data-t="funds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h16v10.5H4z"/><path d="M9 8.5V6h6v2.5"/><path d="M4 13h16"/></svg><span>위탁운용사</span></div>
     <div class="tab" data-t="bt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 12.5a8 8 0 1 0 2.3-6.2"/><path d="M4 4.5v4.2h4.2"/><path d="M12 8v4.3l2.8 1.7"/></svg><span>백테스트</span></div>
     <div class="ngrp">오늘</div>
     <div class="tab" data-t="room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 4.6 4.6 1.9-4.6 1.9L12 16.5l-1.9-4.6L5.5 10l4.6-1.9z"/><path d="M18.5 15.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/></svg><span>에이전트</span></div>
@@ -1051,6 +1072,16 @@
     <div class="card"><h2>지금 상태 <span class="sub">공포 지표의 오늘 값 · 마지막 발생</span></h2><div id="spkNow"></div></div>
     <div class="card"><details class="rules"><summary>어떻게 계산했나요?</summary><ul id="spkRules"></ul></details></div>
   </div>
+</section>
+
+<!-- 위탁운용사 — 예시 공모펀드(funds.py — 금투협 전자공시). 자동 갱신(refresh_all)이 만든 파일을 읽기만 한다 -->
+<section class="page" id="page-funds">
+  <div class="bhead">
+    <div><div class="ptitle">위탁운용사</div><div class="kv" id="fdMeta"></div></div>
+  </div>
+  <div class="card"><h2>펀드별 <span class="sub">수정기준가(분배 반영) 수익률 · 아래 작은 글씨 = BM 대비 초과(%p) · 줄을 누르면 아래에 누적 차트</span></h2><div id="fdTable"><div class="empty">불러오는 중…</div></div></div>
+  <div class="card" id="fdDetail" hidden></div>
+  <div class="card"><details class="rules"><summary>어떻게 계산했나요?</summary><ul id="fdRules"></ul></details></div>
 </section>
 
 <!-- 백테스트 — 왼쪽 전략 목록 · 오른쪽 설정·기간·실행·결과 (macOS 설정 앱 모양) -->
@@ -1241,6 +1272,7 @@ function showTab(t){
   if(t === 'strategy') loadStrategy();
   if(t === 'equity') loadEquity();
   if(t === 'timing') loadTiming();
+  if(t === 'funds') loadFunds();
   if(t === 'bt') loadBt();
   if(t === 'home' && Date.now() - SB.qAt > 600000) loadScoreboard();
   if(!$('chatPanel').hidden) refreshChatContext();  // 대화창이 열려 있으면 '화면 공유' 대상도 바뀐다
@@ -1664,7 +1696,8 @@ async function loadScoreboard(){
   try { SB.q = await api('/api/quant'); SB.qErr = null; } catch(e){ SB.qErr = e.message; }
   renderScoreboard();
 }
-const sbTone = s => s >= 10 ? 'up' : s <= -10 ? 'down' : '';
+// 판정은 화면에 보이는 정수로(toFixed(0) — 0.5 는 0 에서 멀어지게, quant.tech_label 과 같음): −9.5 는 '−10' 으로 보이므로 약세 쪽
+const sbTone = s => { const r = +(+s).toFixed(0); return r >= 10 ? 'up' : r <= -10 ? 'down' : ''; };
 function sbGauge(score){   // 반원: 왼쪽 끝 −100, 꼭대기 0, 오른쪽 끝 +100. 0 에서 점수까지 호를 채우고 끝에 점
   const s = Math.max(-100, Math.min(100, +score || 0)), cx = 32, cy = 31, r = 25, f = a => (a * Math.PI) / 180;
   const a = 90 - s * 0.9, x = (cx + r * Math.cos(f(a))).toFixed(2), y = (cy - r * Math.sin(f(a))).toFixed(2);
@@ -1731,17 +1764,19 @@ function sbSparkData(it){
   return {...s, date: i => { const d = new Date(d0); d.setDate(d.getDate() + s.t[i]); return d; }};
 }
 const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-// 스캐너는 수익률 1일·1주·YTD 가 없어 1년 시계열에서 계산한다(달력 기준 — 주식 탭과 같은 정의)
+// 스캐너 기간 수익률은 모두 1년 시계열에서 달력 기준으로 계산한다(주식 탭 equity._ret 와 같은 정의 — 그 날짜 이전 마지막 값)
 function sbRetFrom(sp, back){
   const n = sp.v.length - 1, last = sp.date(n), lim = back(new Date(last));
   let j = -1; for(let i = n - 1; i >= 0; i--) if(sp.date(i) <= lim){ j = i; break; }
   return j < 0 ? null : (sp.v[n] / sp.v[j] - 1) * 100;
 }
+const mBack = n => d => { const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() - n);   // n 개월 전 같은 날(말일 넘으면 그달 말일 — pandas DateOffset 과 같음)
+  d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); return d; };
 function sbReturns(it, sp){
   if(it.src === 'eq'){ const r = it.row; return [['1일', r.r1d], ['1주', r.r1w], ['1개월', r.r1m], ['3개월', r.r3m], ['1년', r.r1y], ['YTD', r.ytd]]; }
-  const t = it.t, f = back => sp ? sbRetFrom(sp, back) : null;
+  const f = back => sp ? sbRetFrom(sp, back) : null;   // 기간 구성은 주식 타일과 같게(6개월 대신 1년 — 시계열이 1년 전 날짜 직전부터라 계산된다)
   return [['1일', sp ? (sp.v[sp.v.length - 1] / sp.v[sp.v.length - 2] - 1) * 100 : null], ['1주', f(d => (d.setDate(d.getDate() - 7), d))],
-          ['1개월', t.ret_1m], ['3개월', t.ret_3m], ['6개월', t.ret_6m], ['YTD', f(d => new Date(d.getFullYear() - 1, 11, 31))]];
+          ['1개월', f(mBack(1))], ['3개월', f(mBack(3))], ['1년', f(mBack(12))], ['YTD', f(d => new Date(d.getFullYear() - 1, 11, 31))]];
 }
 function sbSpark(it, sp){
   const W = 316, H = 66, P = 3;
@@ -1936,7 +1971,7 @@ function sbPopHtml(it){
     + `<div class="pp-h"><span>1년 흐름 <i class="lk px"></i>가격 <i class="lk ma"></i>200일선 <i class="lk dd"></i>고점 대비</span></div>`
     + `<div class="pp-read kv">${sp ? sbSparkRead(sp, sp.v.length - 1) : '&nbsp;'}</div>${sbSpark(it, sp)}`
     + `<div class="pp-cols"><div><div class="pp-h"><span>기간 수익률</span></div>${hbars(rets.map(([l, v]) => [l, v, sbNum(v, 1, '%')]), 140, 34, 42, dom)}</div>`
-    + `<div><div class="pp-h"><span>점수 구성</span><span class="kv">${hasT ? `합 ${sbNum(sc, 0)}` : ''}</span></div>${hasT ? sbComp(t) : '<div class="pp-empty">기술 점수 없음</div>'}</div></div>${bottom}`;
+    + `<div><div class="pp-h"><span>점수 구성</span><span class="kv" title="합 = 네 항목 원값 합의 반올림(항목별 반올림을 더하면 ±1 다를 수 있음)">${hasT ? `합 ${sbNum(sc, 0)}` : ''}</span></div>${hasT ? sbComp(t) : '<div class="pp-empty">기술 점수 없음</div>'}</div></div>${bottom}`;
 }
 async function sbLoadSpark(){
   if(SBP.sparkReq || (SBP.spark && Date.now() - SBP.sparkAt < 1800000)) return;
@@ -2169,8 +2204,11 @@ const TM_ST = {'위험선호': 'ron', '중립': 'rneu', '위험회피': 'roff'};
 const TM_NONE = '<div class="empty">아직 계산 결과가 없습니다 — 자동 갱신(평일 16:30)을 기다리거나 운영 PC 에서 직접 계산하세요.</div>';
 const tmVal = r => r.value === null || r.value === undefined ? '-' : r.unit === '%' ? sgf(r.value, 2) + '%' : r.unit === '배' ? num(r.value, 3) + '배' : num(r.value, 2) + ' ' + esc(r.unit || '');
 const tmPos = (v, from) => v === null || v === undefined ? '<span class="kv">-</span>' : `<span${from ? ` data-tip="${esc(`5년이 다 차지 않음 — ${from}부터 위치`)}"` : ''}>${num(v, 0)}%${from ? '*' : ''}</span>`;
+const tmAcc = r => r.status === '이력 축적 중' && !r.judged;   // 원천은 있으나 과거 이력이 없어 매일 쌓는 중(min_rows 전엔 판정 보류)
 function tmChip(r){
+  if(tmAcc(r)) return `<span class="chip WATCH" data-tip="${esc(`매일 한 줄씩 쌓는 중 — ${r.min_rows}일이 되면 판정 시작`)}"><span class="c-opt">이력 축적 중 </span>${r.history_rows || 0}/${r.min_rows}일</span>`;
   if(!r.ok) return '<span class="chip OFF">계산 못 함</span>';
+  if(r.reference) return '<span class="chip OFF" data-tip="방향 판정을 하지 않는 참고 지표 — 값과 위치만 봅니다">참고</span>';
   if(!r.judged) return '<span class="chip OFF">보류</span>';
   return `<span class="chip ${TM_ST[r.state] || 'OFF'}">${esc(r.state)}</span>`;
 }
@@ -2183,7 +2221,9 @@ function renderTmSig(){
   const tone = {'위험선호': 'good', '위험회피': 'bad'}[c.label] || '';
   const th = c.thresholds || {};
   const gtxt = Object.entries(c.groups || {}).map(([g, v]) => `${g} ${sg(v, 2)}`).join(' · ');
-  const left = [[c.stale, '기준일 지연'], [c.missing, '판정 못 함'], [c.waiting, '데이터 대기']].filter(([l]) => l && l.length).map(([l, t]) => `${t}: ${l.map(name).join(', ')}`);
+  const left = [[c.stale, '기준일 지연'], [c.missing, '판정 못 함'], [c.waiting, '이력 축적 중']].filter(([l]) => l && l.length).map(([l, t]) => `${t}: ${l.map(name).join(', ')}`);
+  const acc = (d.accumulating || []).filter(a => !a.judged);
+  const accTxt = acc.length ? `<div class="vd-note">이력 축적 중(판정 보류): ${acc.map(a => `${esc(a.name)} ${a.history_rows}/${a.min_rows}일${a.history_from ? ` (${esc(a.history_from)}부터)` : ''}`).join(' · ')} — 과거 이력이 없어 매일 쌓고 있습니다.</div>` : '';
   $('tmVerdict').innerHTML = c.score === null || c.score === undefined
     ? `<div class="vd-head"><span class="vd-dot"></span><div>종합 판단 보류 — 합성에 쓸 수 있는 신호가 없습니다</div></div>`
     : `<div class="vd-head"><span class="vd-dot ${tone}"></span><div>지금 시장 신호 종합: ${esc(c.label)} <span class="kv" style="font-size:14px">점수 ${sg(c.score, 2)}</span></div></div>
@@ -2193,21 +2233,22 @@ function renderTmSig(){
       <div class="vtile"><div class="l">중립</div><div class="v">${cnt('중립')}</div><div class="s">합성에 쓴 신호 중</div></div>
       <div class="vtile"><div class="l">위험회피</div><div class="v bad">${cnt('위험회피')}</div><div class="s">합성에 쓴 신호 중</div></div>
       <div class="vtile"><div class="l">합성 제외</div><div class="v">${rows.length - used.length}</div><div class="s">배경·참고 ${rows.filter(r => !r.in_composite).length} · 지연·보류 ${inC.length - used.length}</div></div>
-    </div>`;
+    </div>${accTxt}`;
   const groups = [...new Set(rows.map(r => r.group))];
   $('tmTable').innerHTML = `<table class="tmt"><tr><th>신호</th><th class="num">현재값</th><th class="num">1년 위치</th><th class="num c-opt">5년 위치</th><th>판정</th><th class="c-opt">근거</th><th class="c-opt">기준일</th></tr>${
     groups.map(g => { const gs = (c.groups || {})[g];
       return `<tr class="tm-g"><td colspan="7">${esc(g)}${gs !== undefined && gs !== null ? `<span class="kv">묶음 점수 ${sg(gs, 2)}</span>` : rows.some(r => r.group === g && r.in_composite) ? '' : '<span class="kv">합성 제외(배경·참고)</span>'}</td></tr>`
         + rows.filter(r => r.group === g).map(r => {
-          const why = !r.ok ? `계산 못 함 — ${r.reason || '입력 없음'}` : !r.judged ? `보류 — ${r.reason || '판정에 필요한 지표가 모자람'}` : r.stale ? `지연 — 기준일 ${r.as_of}이 다른 신호보다 늦어 합성에서 뺐습니다(값·판정은 그대로 표시)` : '';
+          const why = tmAcc(r) ? `이력 축적 중 — ${r.history_rows || 0}/${r.min_rows}일 쌓임${r.history_from ? `(${r.history_from}부터)` : ''}, ${r.min_rows}일이 되면 판정합니다`
+            : !r.ok ? `계산 못 함 — ${r.reason || '입력 없음'}` : r.reference ? '' : !r.judged ? `보류 — ${r.reason || '판정에 필요한 지표가 모자람'}` : r.stale ? `지연 — 기준일 ${r.as_of}이 다른 신호보다 늦어 합성에서 뺐습니다(값·판정은 그대로 표시)` : '';
           const tip = [r.threshold_note, r.source ? '출처: ' + r.source : '', r.history_from ? `이력 ${r.history_from}부터` : ''].filter(Boolean).join('\n');
-          return `<tr class="${why ? 'off' : ''}"><td class="nm" data-tip="${esc(tip)}"><b>${esc(r.name)}</b><span>${esc(r.character || '')}${r.in_composite ? '' : ' · 합성 제외'}<i class="tm-n"> · ${esc(r.as_of || '-')} · 근거 ${esc(r.grade || '-')}</i></span>${why ? `<div class="tm-why">${esc(why)}</div>` : ''}${r.contrarian_note ? `<div class="tm-ctr">${esc(r.contrarian_note)}</div>` : ''}</td>
+          return `<tr class="${why ? 'off' : ''}"><td class="nm" data-tip="${esc(tip)}"><b>${esc(r.name)}</b>${r.reference ? '<div class="tm-ctr">방향 판정 안 함 — 값·위치만 참고</div>' : ''}<span>${esc(r.character || '')}${r.in_composite ? '' : ' · 합성 제외'}<i class="tm-n"> · ${esc(r.as_of || '-')} · 근거 ${esc(r.grade || '-')}</i></span>${why ? `<div class="tm-why">${esc(why)}</div>` : ''}${r.contrarian_note ? `<div class="tm-ctr">${esc(r.contrarian_note)}</div>` : ''}</td>
             <td class="num">${tmVal(r)}</td><td class="num">${tmPos(r.pct_1y)}</td><td class="num c-opt">${tmPos(r.pct_5y, r.pct_5y_from)}</td><td>${tmChip(r)}</td>
             <td class="c-opt" data-tip="${esc(r.grade_note || '')}">${esc(r.grade || '-')}</td><td class="c-opt kv">${esc(r.as_of || '-')}</td></tr>`; }).join(''); }).join('')}</table>
     ${(d.meta && d.meta.errors || []).length ? `<div class="callout warn" style="margin-top:8px">입력 문제: ${d.meta.errors.map(esc).join(' / ')}</div>` : ''}
-    <div class="kv" style="margin-top:8px">근거 등급: A 학술 연구 다수 · B 학술 일부 · C 실무 관행 — 위치·판정은 과거 분포 안 위치일 뿐 수익 예측이 아닙니다.</div>`;
-  $('tmRules').innerHTML = [d.method, c.note, ...(d.notes || [])].filter(Boolean).map(t => `<li>${esc(t)}</li>`).join('')
-    + ((d.phase2 || []).length ? `<li>준비 중인 신호(원천 미확정): ${d.phase2.map(p => esc(p.name)).join(' · ')}</li>` : '');
+    <div class="kv" style="margin-top:8px">근거 등급: A 학술 연구 다수 · B 학술 일부 · C 실무 관행 — 위치·판정은 과거 분포 안 위치일 뿐 수익 예측이 아닙니다.</div>
+    ${(d.phase2 || []).length ? `<h4 class="tm-p2h">준비 중 — 원천 미확정 ${d.phase2.length}개</h4><ul class="tm-p2">${d.phase2.map(p => `<li><b>${esc(p.name)}</b> <span class="kv">근거 ${esc(p.grade || '-')}</span><div class="kv">${esc(p.definition || '')}</div><div class="kv">후보 원천: ${(p.candidates || []).map(esc).join(' · ')}</div></li>`).join('')}</ul>` : ''}`;
+  $('tmRules').innerHTML = [d.method, c.note, ...(d.notes || [])].filter(Boolean).map(t => `<li>${esc(t)}</li>`).join('');
 }
 const hKo = h => h ? String(h).replace('M', '개월') : '';
 function spkTable(tab, reach){
@@ -2249,6 +2290,61 @@ function renderTmSpk(){
     const stt = c.active ? (c.armed ? '<span class="chip WARN">조건 충족</span>' : '<span class="chip OFF">조건 충족 · 이미 센 구간</span>') : c.armed ? '<span class="chip OFF">대기</span>' : '<span class="chip OFF" data-tip="급등 뒤 아직 기준 아래로 내려오지 않아 새로 세지 않는 상태">재무장 대기</span>';
     return `<tr><td data-tip="${esc(t.rule || '')}"><b>${esc(t.name)}</b><div class="kv">${esc(t.source || '')}</div></td><td class="num">${num(c.value, 2)}<div class="kv">${esc(c.as_of || '')}</div></td><td>${stt}</td><td class="kv">${c.last_event ? `${esc(c.last_event)}<br>${c.days_since_last_event}거래일 전` : '-'}</td></tr>`; }).join('')}</table>`;
   $('spkRules').innerHTML = Object.values(m.definitions || {}).map(t => `<li>${esc(t)}</li>`).join('') + (cp.note ? `<li>${esc(cp.note)}</li>` : '');
+}
+// ── 위탁운용사 — 예시 공모펀드(funds.json). 숫자는 funds.py 가 금투협 전자공시에서 받아 계산하고 화면은 읽기만 한다
+let FD = {d: null, sel: null};
+const FD_P = [['1W', '1주', 'c-mid'], ['1M', '1개월', ''], ['3M', '3개월', 'c-mid'], ['YTD', 'YTD', 'c-opt'], ['1Y', '1년', '']];
+const fdBm = b => b ? `${b.name} — ${b.kind === 'yield_accrual' ? '금리를 날짜 수만큼 쌓은 지수' : '가격 지수(배당 제외)'} · 펀드 기준일 D 에 BM 은 ${b.lag}거래일 앞 값` : '';
+const fdEok = (v, d = 0) => v === null || v === undefined ? '-' : num(v, d) + '억';
+const fdChg = (pct, eok) => pct === null || pct === undefined ? '-' : `${sgf(pct, 1)}% (${sg(eok, 0)}억)`;
+async function loadFunds(){
+  try { FD.d = await api('/api/funds'); renderFunds(); } catch(e){ $('fdTable').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+function renderFunds(){
+  const d = FD.d || {}, fs = d.funds || [], m = d.meta || {};
+  $('fdMeta').textContent = d.generated_at ? `기준가 ${m.as_of || '-'} · 보수 공시 ${m.fee_as_of || '-'} · ${d.generated_at.replace('T', ' ').slice(5, 16)} 계산 · 출처 ${(m.sources || []).join(', ')} · 예시 펀드` : '아직 없음';
+  $('fdMeta').title = $('fdMeta').textContent;
+  $('fdRules').innerHTML = [d.method, ...(m.notes || []), m.hist_start ? `기준가 이력 ${m.hist_start}부터 받음(최대낙폭 '전체'는 이 시작 이후).` : ''].filter(Boolean).map(x => `<li>${esc(x)}</li>`).join('');
+  if(!d.generated_at || !fs.length){ $('fdTable').innerHTML = '<div class="empty">아직 계산 결과가 없습니다 — 자동 갱신(평일 16:30)을 기다리거나 운영 PC 에서 python funds.py 를 실행하세요.</div>'; $('fdDetail').hidden = true; return; }
+  if(!fs.some(f => f.code === FD.sel)) FD.sel = (fs.find(f => f.ok) || fs[0]).code;
+  const ret = (f, k) => { const ex = (f.excess || {})[k];
+    return `${pc((f.returns || {})[k], 2)}${ex === null || ex === undefined ? '' : `<div class="fd-ex">BM <b>${sgf(ex, 2)}</b>%p</div>`}`; };
+  $('fdTable').innerHTML = `<table class="fdt"><tr><th>펀드</th><th class="num c-opt">기준가</th>${FD_P.map(([, l, c]) => `<th class="num ${c}">${l}</th>`).join('')}<th class="num">순자산</th><th class="num c-opt">총보수</th><th class="num c-opt">1년 변동성</th><th class="num c-opt">1년 MDD</th></tr>${
+    fs.map(f => { const fl = f.flows || {}, rk = f.risk || {}, fe = f.fees || {};
+      if(!f.ok) return `<tr class="fd-r off" data-code="${esc(f.code)}" tabindex="0"><td class="nm"><b>${esc(f.name)}</b><span>${esc(f.manager || '')} · ${esc(f.type || '')}</span><div class="tm-why">기준가를 받지 못함 — 아래 받기 문제 참고</div></td><td colspan="10" class="kv">-</td></tr>`;
+      return `<tr class="fd-r${f.code === FD.sel ? ' on' : ''}" data-code="${esc(f.code)}" tabindex="0" aria-selected="${f.code === FD.sel}">
+        <td class="nm"><b>${esc(f.name)}</b><span>${esc(f.manager || '')} · ${esc(f.type || '')}<i class="fd-n"> · 총보수 ${fe.total === undefined || fe.total === null ? '-' : num(fe.total, 3) + '%'} · MDD ${rk.mdd_1y === undefined || rk.mdd_1y === null ? '-' : Number(rk.mdd_1y).toFixed(1) + '%'}</i></span></td>
+        <td class="num c-opt">${num(f.nav, 2)}<div class="fd-sub">${esc((f.nav_date || '').slice(5))}</div></td>
+        ${FD_P.map(([k, , c]) => `<td class="num ${c}">${ret(f, k)}</td>`).join('')}
+        <td class="num">${fdEok(f.aum_eok)}<div class="fd-sub" data-tip="${esc(`순자산 3개월 ${fdChg(fl.aum_chg_3m_pct, fl.aum_chg_3m_eok)} · 설정원본 1개월 ${fdChg(fl.units_chg_1m_pct, fl.units_chg_1m_eok)}`)}">1M ${fl.aum_chg_1m_pct === null || fl.aum_chg_1m_pct === undefined ? '-' : sgf(fl.aum_chg_1m_pct, 1) + '%'}<span class="c-mid"> · 3M ${fl.aum_chg_3m_pct === null || fl.aum_chg_3m_pct === undefined ? '-' : sgf(fl.aum_chg_3m_pct, 1) + '%'}</span></div></td>
+        <td class="num c-opt">${fe.total === undefined || fe.total === null ? '-' : num(fe.total, 3) + '%'}</td>
+        <td class="num c-opt">${rk.vol_1y === undefined || rk.vol_1y === null ? '-' : num(rk.vol_1y, 1) + '%'}<div class="fd-sub">BM ${rk.bm_vol_1y === undefined || rk.bm_vol_1y === null ? '-' : num(rk.bm_vol_1y, 1) + '%'}</div></td>
+        <td class="num c-opt">${rk.mdd_1y === undefined || rk.mdd_1y === null ? '-' : Number(rk.mdd_1y).toFixed(1) + '%'}<div class="fd-sub">BM ${rk.bm_mdd_1y === undefined || rk.bm_mdd_1y === null ? '-' : Number(rk.bm_mdd_1y).toFixed(1) + '%'}</div></td></tr>`; }).join('')}</table>
+    ${(m.errors || []).length ? `<div class="callout warn" style="margin-top:8px">받기 문제: ${m.errors.map(esc).join(' / ')}</div>` : ''}
+    <div class="kv" style="margin-top:8px">예시 공모펀드(실제 위탁 계약과 무관) · 기간은 달력 기준(직전 기준일) · 순자산 증감은 시장 등락과 자금 유출입이 섞인 값(설정원본 증감 = 자금 유출입 쪽)입니다.</div>`;
+  document.querySelectorAll('#fdTable tr.fd-r').forEach(tr => { const go = () => { FD.sel = tr.dataset.code; renderFunds(); };
+    tr.onclick = go; tr.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } }; });
+  renderFundDetail(fs.find(f => f.code === FD.sel));
+}
+function renderFundDetail(f){
+  const box = $('fdDetail');
+  if(!f || !f.ok){ box.hidden = true; return; }
+  box.hidden = false;
+  const c = f.chart || {}, fe = f.fees || {}, fl = f.flows || {}, rk = f.risk || {}, b = f.bm || {}, br = f.bm_returns || {};
+  const pf = (v, d = 1) => v === null || v === undefined ? '-' : num(v, d) + '%';
+  const chart = (c.dates || []).length > 1 ? `<div class="legend"><span><i style="background:var(--series-1)"></i>펀드(수정기준가)</span><span><i style="background:var(--series-bench)"></i>${esc(b.name || 'BM')}</span><span class="kv">주간 · 시작 = 100 · ${esc(c.dates[0])}부터</span></div>
+    ${lineChart(c.dates, [{vals: c.bm, color: 'var(--series-bench)', ink: 'var(--muted)', w: 1.5}, {vals: c.fund, color: 'var(--series-1)', w: 2.2}], {base: 100, label: `${f.name} 누적 수익 대 ${b.name || 'BM'}`})}` : '<div class="empty">차트 이력이 없습니다.</div>';
+  box.innerHTML = `<h2>${esc(f.name)} <span class="sub">${esc([f.manager, f.type, f.code].filter(Boolean).join(' · '))}</span></h2>${chart}
+    <table class="fdr" style="margin-top:8px"><tr><th></th>${FD_P.map(([, l, cl]) => `<th class="num${cl === 'c-opt' ? ' c-opt' : ''}">${l}</th>`).join('')}</tr>
+      <tr><td><b>펀드</b></td>${FD_P.map(([k, , cl]) => `<td class="num${cl === 'c-opt' ? ' c-opt' : ''}">${pc((f.returns || {})[k], 2)}</td>`).join('')}</tr>
+      <tr><td>${esc(b.name || 'BM')}</td>${FD_P.map(([k, , cl]) => `<td class="num${cl === 'c-opt' ? ' c-opt' : ''}">${pc(br[k], 2)}</td>`).join('')}</tr>
+      <tr><td>초과(%p)</td>${FD_P.map(([k, , cl]) => { const v = (f.excess || {})[k]; return `<td class="num${cl === 'c-opt' ? ' c-opt' : ''}">${v === null || v === undefined ? '-' : `<span class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${sgf(v, 2)}</span>`}</td>`; }).join('')}</tr></table>
+    <div class="fd-grid">
+      <div><h4>기준가·규모</h4><div class="kv">기준가 <b>${num(f.nav, 2)}</b> (${esc(f.nav_date || '-')}) · 수정기준가 ${num(f.adj_nav, 2)}<br>순자산 <b>${fdEok(f.aum_eok, 1)}</b> · 1개월 ${fdChg(fl.aum_chg_1m_pct, fl.aum_chg_1m_eok)} · 3개월 ${fdChg(fl.aum_chg_3m_pct, fl.aum_chg_3m_eok)}<br>설정원본 <b>${fdEok(f.units_eok, 1)}</b> · 1개월 ${fdChg(fl.units_chg_1m_pct, fl.units_chg_1m_eok)} · 3개월 ${fdChg(fl.units_chg_3m_pct, fl.units_chg_3m_eok)}</div></div>
+      <div><h4>보수(연, ${esc((FD.d.meta || {}).fee_as_of || '-')} 공시)</h4><div class="kv">총보수 <b>${pf(fe.total, 3)}</b> = 운용 ${pf(fe.mgmt, 3)} + 판매 ${pf(fe.sales, 3)} + 수탁 ${pf(fe.trustee, 3)} + 사무 ${pf(fe.admin, 3)}<br>실부담(TER) <b>${pf(fe.ter, 3)}</b> · 기타비용 ${pf(fe.other, 3)} · 매매·중개 ${pf(fe.trading, 3)}${fe.setup ? `<br>설정일 ${esc(fe.setup)}` : ''}</div></div>
+      <div><h4>위험</h4><div class="kv">1년 변동성 <b>${pf(rk.vol_1y)}</b> (BM ${pf(rk.bm_vol_1y)})<br>1년 최대낙폭 <b>${pf(rk.mdd_1y)}</b> (BM ${pf(rk.bm_mdd_1y)})<br>전체 최대낙폭 ${pf(rk.mdd_all)}${rk.mdd_all_from ? ` (${esc(rk.mdd_all_from)}부터)` : ''} · 분배 ${(f.settlements || []).filter(s => s.factor !== 1).length}회 반영</div></div>
+    </div>
+    <div class="kv" style="margin-top:8px">BM: ${esc(fdBm(b))}${f.bm_date ? ` (BM 기준일 ${esc(f.bm_date)})` : ''}.${f.note ? ' ' + esc(f.note) : ''}</div>`;
 }
 // ── 주식 · 유니버스 밸류에이션 — 한 줄 = 항목, 누르면 시트(상위 10종목 · 업종 · 기본 정보). 숫자는 fundamentals.py 가 모은다
 let FUND = null, FUND_T = null, FUND_REQ = false;

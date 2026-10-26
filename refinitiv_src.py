@@ -7,7 +7,7 @@
 - 키 체계: 호출하는 쪽은 기존 yfinance 표기(^KS11, 069500.KS, SPY, KRW=X …)를 그대로 쓰고
   여기서 RIC 으로 바꾼다. 그래서 CSV 열 이름·backtest 의 UNDER 표는 바뀌지 않는다.
 - 이 계정에서 값이 전혀 안 나오는 VIX 만 YF_ONLY 로 yfinance 에 남긴다(2026-10-23 실측).
-  .SPX·.VXN·.N225 처럼 get_timeseries 가 'no permission' 인 지수는 get_data TR.PriceClose 일별로 받는다.
+  .SPX·.VXN·.N225·.VIX3M 처럼 get_timeseries 가 'no permission' 인 지수는 get_data TR.PriceClose 일별로 받는다.
 - 주식·ETF 는 TR.TotalReturn 일별 수익률을 누적해 '배당 재투자 가격'을 만든다(yfinance auto_adjust 와 같은 뜻).
   지수·환율·금리·원자재는 CLOSE 그대로.
 """
@@ -28,7 +28,7 @@ TICKER_RIC = {
     "^KS11": ".KS11", "^KQ11": ".KQ11", "^KS200": ".KS200",
     "^IXIC": ".IXIC", "^NDX": ".NDX", "^N225": ".N225", "^STOXX50E": ".STOXX50E",
     "^HSI": ".HSI", "^NSEI": ".NSEI", "^TWII": ".TWII", "000300.SS": ".CSI300",
-    "^GSPC": ".SPX", "^VXN": ".VXN",
+    "^GSPC": ".SPX", "^VXN": ".VXN", "^MOVE": ".MOVE", "^VIX3M": ".VIX3M",   # .MOVE 2002-11~·.VIX3M 2007-11~(2026-10-26 실측)
     "^IRX": "US3MT=RR", "^TNX": "US10YT=RR",
     "KRW=X": "KRW=KFTC",   # 서울외환중개 현물 — KOSPI 와 같은 세션 마감(KRW= 은 뉴욕 마감이라 하루 어긋난다)
     "JPY=X": "JPY=", "EURUSD=X": "EUR=", "CNY=X": "CNY=",
@@ -44,8 +44,8 @@ US_RIC = {
     "EMLC": "EMLC.P", "EWY": "EWY.P",
 }
 # Refinitiv 에서 어느 경로로도 값이 안 나오는 것 → yfinance 유지(사용자 결정 2026-10-23).
-# .SPX·.VXN·.N225 는 get_timeseries 권한은 없지만 get_data TR.PriceClose 일별로는 나온다(_close_series 폴백).
-YF_ONLY = {"^VIX", "^MOVE", "^VIX3M"}   # ^MOVE·^VIX3M: Refinitiv RIC 미확인(probe_refinitiv C2) — 확인되면 TICKER_RIC 로 옮긴다
+# .SPX·.VXN·.N225·.VIX3M 은 get_timeseries 권한은 없지만 get_data TR.PriceClose 일별로는 나온다(_close_series 폴백).
+YF_ONLY = {"^VIX"}   # ^MOVE·^VIX3M 은 .MOVE·.VIX3M 일별 확인 후 TICKER_RIC 로 옮김(2026-10-26 — 최근 20일 yfinance 와 같은 값)
 
 _LOCK = threading.Lock()
 _EK = None

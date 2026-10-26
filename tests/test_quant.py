@@ -140,3 +140,10 @@ def test_run_copies_positions_key(monkeypatch):
     monkeypatch.setattr(analytics, "load_panel", lambda: pd.DataFrame())
     out = quant.run(save=False)
     assert out["positions_key"] == "abc123" and out["positions_as_of"] == "2026-10-26"
+
+
+def test_tech_label_judged_on_displayed_integer():
+    """−9.5 는 화면에 −10 으로 보이므로 약세(중립 아님) — 0.5 는 0 에서 멀어지게(JS toFixed 와 같음)."""
+    assert quant.tech_label(-9.5) == "약세" and quant.tech_label(-9.44) == "중립"
+    assert quant.tech_label(9.5) == "우호" and quant.tech_label(29.5) == "강세" and quant.tech_label(-29.5) == "매우 약세"
+    assert quant.tech_label(-9.46) == "약세"   # 소수 첫째 반올림 −9.5 → −10

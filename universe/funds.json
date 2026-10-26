@@ -1,0 +1,45 @@
+{
+  "_doc": "위탁운용사(펀드) 화면의 예시 공모펀드 — funds.py 가 금투협 전자공시(dis.kofia.or.kr)에서 기준가·설정원본·결산·보수를 받는다. code 는 펀드 표준코드(보수 공시 tmpV15). 펀드는 2026-09-30 보수 공시 목록에서 설정이 오래되고 클래스 설정원본이 큰 온라인(C-e) 클래스로 골랐다(예시 — 실제 위탁 계약과 무관). bm.file 은 data/history/ 안의 파일, bm.col 은 그 열, bm.kind 는 price(가격 지수·가격) 또는 yield_accrual(연 % 금리를 날짜 수만큼 쌓은 지수), bm.lag 는 펀드 기준일 D 에 BM 의 몇 번째 앞 거래일 값을 쓸지(0 = D 당일까지; 국내 주식 펀드 1, 미국 주식 펀드 2 — 일간 변화 상관 실측, funds.py 독스트링).",
+  "funds": [
+    {
+      "code": "KR5207895263",
+      "name": "교보파워인덱스증권자투자신탁 1(주식) ClassCe",
+      "manager": "교보자산운용",
+      "type": "국내주식 인덱스",
+      "bm": {"name": "KOSPI200", "file": "equity_daily.csv", "col": "^KS200", "kind": "price", "lag": 1},
+      "note": "BM 은 가격 지수(배당 제외) — 배당만큼 펀드가 앞서 보인다."
+    },
+    {
+      "code": "KR5236AS4818",
+      "name": "한국밸류10년투자증권투자신탁 1(주식) (C-e)",
+      "manager": "한국투자밸류자산운용",
+      "type": "국내주식 액티브",
+      "bm": {"name": "KOSPI", "file": "equity_daily.csv", "col": "^KS11", "kind": "price", "lag": 1},
+      "note": "가치주 액티브. BM 은 가격 지수(배당 제외)."
+    },
+    {
+      "code": "KRM302AO8219",
+      "name": "베어링고배당증권투자회사(주식) ClassCe",
+      "manager": "베어링자산운용",
+      "type": "국내주식 액티브(배당)",
+      "bm": {"name": "KOSPI", "file": "equity_daily.csv", "col": "^KS11", "kind": "price", "lag": 1},
+      "note": "고배당 액티브. 매년 3월 결산 분배가 있어 수정기준가로 비교한다. BM 은 가격 지수(배당 제외)."
+    },
+    {
+      "code": "KR5234852188",
+      "name": "IBK단기채증권자투자신탁[채권] 종류Ce",
+      "manager": "아이비케이자산운용",
+      "type": "국내채권(단기)",
+      "bm": {"name": "CD 91일 금리 누적", "file": "kofia_daily.csv", "col": "cd_91d", "kind": "yield_accrual", "lag": 1},
+      "note": "저장소에 국내 채권 총수익 지수가 없어 CD 91일 금리를 날짜 수만큼 쌓은 지수로 비교한다(듀레이션·신용 차이는 반영 안 됨)."
+    },
+    {
+      "code": "KR5223941018",
+      "name": "KB스타미국S&P500인덱스증권자투자신탁(주식-파생형)(H) C-E",
+      "manager": "케이비자산운용",
+      "type": "해외주식 인덱스(환헤지)",
+      "bm": {"name": "S&P500(달러)", "file": "equity_daily.csv", "col": "^GSPC", "kind": "price", "lag": 2},
+      "note": "환헤지(H) 클래스라 달러 기준 지수와 비교한다(헤지 비용·배당 차이는 남는다). BM 은 가격 지수."
+    }
+  ]
+}

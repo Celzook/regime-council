@@ -7,10 +7,14 @@
                             spread_aa·spread_bbb(회사채 AA−·BBB− 3년 − 국고 3년), usdkrw(KRW=KFTC), kospi200(.KS200)·kospi,
                             ks200_basis(KSc1 ÷ .KS200 − 1, %), vix(yfinance ^VIX — Refinitiv 권한 없음).
   data/history/equity_daily.csv(equity.py)·timing_daily.csv(spikes.py) : .KSVKOSPI(VKOSPI)·^VIX·^VIX3M — 두 파일을 날짜별로 합친다
-                            (^VIX3M 은 refinitiv_src.YF_ONLY 로 timing_daily.csv 에만 쌓인다). market.json equity.vkospi 가 더 최신 날짜면 끝에 잇는다.
+                            (^VIX3M 은 Refinitiv .VIX3M 으로 timing_daily.csv 에만 쌓인다). market.json equity.vkospi 가 더 최신 날짜면 끝에 잇는다.
   data/equity_valhist.json(valhist.py)      : KOSPI200 월말 PER·PBR(자기 과거 범위).
+  data/history/putcall_daily.csv·futures_oi_daily.csv(options_pc.py) : 옵션 풋·콜 거래량·미결제약정(매일 한 줄씩 쌓는 중),
+                            KOSPI200 선물 미결제약정(KSc1+KSc2, ks200_oi).
+  data/history/kofia_free_daily.csv(kofia_free.py) : 금투협 FreeSIS 증시자금추이 — 투자자예탁금(customer_deposits)·신용융자 잔고
+                            (credit_balance, 백만원 — 결제 T+2 라 최신 행이 전 영업일).
 계산(CODE, 네트워크 없음 — compute() 는 순수 함수):
-  변환: level(×scale) · ratio(a ÷ b) · ma_gap(종가 ÷ N일 이동평균 − 1, %) · ret(lag 거래일 전 → skip 거래일 전 수익률, %) · chg_pct(lag 거래일 변화율, %).
+  변환: level(×scale) · ratio(a ÷ b ×scale, window 면 a·b 각각 N개 합의 비) · ma_gap(종가 ÷ N일 이동평균 − 1, %) · ret(lag 거래일 전 → skip 거래일 전 수익률, %) · chg_pct(lag 거래일 변화율, %).
   입력 후보가 여럿이면(KOSPI200 → KOSPI) 규칙이 쓰는 지표를 모두 계산할 만큼 이력이 있는 첫 후보를 쓴다.
   백분위 = mid-rank(창 안에서 지금보다 낮은 날 + 같은 날 ½) ÷ 창 길이 — valhist.position·spikes.pct_1y·equity.level_stats 와 같은 정의.
            창은 모든 신호에서 관측치 개수: 1년 = 최근 252개(252개가 차야 — spikes.pct_1y 와 같음), 5년 = 최근 1260개(60개 초과면 계산,
@@ -22,12 +26,15 @@
   신선도: 신호 기준일이 신호들 중 가장 최근 기준일보다 composite.stale_bdays(기본 5) 영업일 넘게 늦으면 stale=true
           (월말 밸류에이션 행은 composite.stale_days_monthly(기본 45) 달력일). 값·상태는 보여 주되 합성에서 뺀다.
   합성 점수: 위험선호 +1·중립 0·위험회피 −1 을 group 안에서 평균 → group 들을 동일가중 평균(최적화 없음). in_composite=false(배경·참고)는 뺀다.
-            '구현·데이터 대기' 신호는 분모에서 빼고 waiting 으로만 나열. 경계는 표시값(소수 둘째 자리)에 엄격 부등호(> risk_on, < risk_off).
+            '이력 축적 중' 신호는 분모에서 빼고 waiting 으로만 나열. 경계는 표시값(소수 둘째 자리)에 엄격 부등호(> risk_on, < risk_off).
 출력: data/timing.json — 마켓타이밍 탭 '시그널'이 쓴다(W4 연결). 행 계약:
       ok     = 값을 계산했다(value·as_of 있음). false 면 reason(입력 없음·이력 짧음·계산 오류 …).
       judged = 상태(state)를 정했다. ok 이어도 판정 지표가 모자라면 false — 화면은 '보류'로 보여 준다.
       stale  = 기준일이 늦어 합성에서 뺐다(값·상태는 그대로 표시).
-      2차 신호(외국인 선물·신용잔고·예탁금·풋콜·차익잔고)는 원천 미확정 — 카탈로그 목록만 phase2 로 옮긴다(코드 없음).
+      history_rows = 원 입력 관측치 수(비율은 두 입력 중 짧은 쪽).
+상태(status) 셋: '구현' · '이력 축적 중'(원천은 있으나 과거 이력이 없어 매일 쌓는 중 — history_rows 가 카탈로그 min_rows 에
+      못 미치면 값만 보여 주고 판정 보류, accumulating 에 일수 나열) · '원천 미확정'(카탈로그 목록만 phase2 로 옮긴다, 코드 없음).
+      rule 없는 신호(character '참고'·합성 제외만 허용)는 값·백분위만 보여 주고 판정하지 않는다(judged=false, reference=true).
 
 사용법: python timing.py
 """
@@ -47,8 +54,13 @@ OUT = config.DATA_DIR / "timing.json"
 CATALOG = universe.DIR / "timing.json"
 EQ_HIST = config.DATA_DIR / "history" / "equity_daily.csv"
 TIMING_HIST = config.DATA_DIR / "history" / "timing_daily.csv"   # spikes.HIST — spikes 는 refinitiv_src 를 끌어오므로 import 하지 않는다
-WAITING = "구현·데이터 대기"
-IMPLEMENTED = ("구현", WAITING)
+PC_HIST = config.DATA_DIR / "history" / "putcall_daily.csv"       # options_pc.PC_HIST — 같은 이유로 import 하지 않는다
+OI_HIST = config.DATA_DIR / "history" / "futures_oi_daily.csv"    # options_pc.OI_HIST
+KOFIA_FREE_HIST = config.DATA_DIR / "history" / "kofia_free_daily.csv"   # kofia_free.OUT
+KOFIA_FREE_COLS = ("customer_deposits", "credit_balance")
+PC_COLS = ("put_vol", "call_vol", "put_oi", "call_oi")
+ACCUM = "이력 축적 중"
+IMPLEMENTED = ("구현", ACCUM)
 PHASE2 = "원천 미확정"
 STATES = ("위험선호", "중립", "위험회피")
 DIRECTIONS = ("high_risk_off", "high_risk_on")
@@ -62,7 +74,7 @@ WIN_1Y, WIN_5Y = 252, 1260  # 백분위·z 창 = 관측치 개수(spikes.PCT_WIN
 STALE_BDAYS, STALE_DAYS_MONTHLY = 5, 45   # 카탈로그 composite 에 없을 때 기본값
 METHOD = ("신호별 현재값과 자기 과거 1년(최근 252개)·5년(최근 1260개) 백분위(mid-rank), 1년 z-점수로 위험선호·중립·위험회피를 판정"
           "(임계값은 universe/timing.json, 판정은 화면에 보이는 반올림 값으로). "
-          "합성 점수 = 상태 점수(+1·0·−1)를 같은 묶음끼리 평균한 뒤 묶음 동일가중 평균 — 가중치 최적화 없음, 배경·참고·데이터 대기·지연 신호 제외. "
+          "합성 점수 = 상태 점수(+1·0·−1)를 같은 묶음끼리 평균한 뒤 묶음 동일가중 평균 — 가중치 최적화 없음, 배경·참고·이력 축적 중·지연 신호 제외. "
           "백분위·z 는 과거 분포 안 위치일 뿐 수익 예측이 아니며, 근거 등급(A 학술 다수·B 학술 일부·C 실무 관행)을 함께 봅니다.")
 
 
@@ -122,6 +134,13 @@ def validate_catalog(cat: dict) -> list[str]:
                 errs.append(f"{k}: {f} 없음")
         if (s.get("transform") or {}).get("kind") not in KINDS:
             errs.append(f"{k}: transform.kind 는 {KINDS}")
+        if st == ACCUM and not (isinstance(s.get("min_rows"), int) and not isinstance(s["min_rows"], bool)
+                                and s["min_rows"] > 0):
+            errs.append(f"{k}: 이력 축적 중 항목은 min_rows(양의 정수) 필요")
+        if "rule" not in s:   # 방향 없는 참고 지표 — 값만 보여 준다
+            if s.get("character") != "참고" or s.get("in_composite") or "contrarian" in s:
+                errs.append(f"{k}: rule 없는 신호는 character '참고'·합성 제외·contrarian 없음이어야 함")
+            continue
         rule = s.get("rule") or {}
         e = _conds_ok(rule.get("risk_off"), f"{k}.risk_off") + _conds_ok(rule.get("risk_on"), f"{k}.risk_on")
         if "contrarian" in s:
@@ -204,8 +223,10 @@ def transform(spec: dict, series: list[pd.Series]) -> pd.Series:
     if kind == "ratio":
         b = _clean(series[1])
         df = pd.concat([s, b], axis=1, join="inner")
+        if spec.get("window"):   # N개 합의 비(풋·콜 5일 거래량) — 하루 쏠림이 비율을 흔들지 않게
+            df = df.rolling(spec["window"]).sum().dropna()
         df = df[df.iloc[:, 1] != 0]
-        return df.iloc[:, 0] / df.iloc[:, 1]
+        return df.iloc[:, 0] / df.iloc[:, 1] * spec.get("scale", 1)
     if kind == "ma_gap":
         return (s / s.rolling(spec["window"]).mean() - 1) * 100
     if kind == "ret":
@@ -274,7 +295,14 @@ def _say(spec: dict, row: dict) -> str:
         pos.append(f"5년 중 {row['pct_5y']:.0f}%")
     if row.get("z_1y") is not None:
         pos.append(f"z {row['z_1y']:+.2f}")   # 판정과 같은 자릿수(소수 둘째) — 1.97 이 '+2.0' 으로 보이면 상태와 어긋남
-    tail = f"{row['state']}" if row["judged"] else "판정 보류(이력 부족)"
+    if row["judged"]:
+        tail = f"{row['state']}"
+    elif "rule" not in spec:
+        tail = "판정 없음(참고 지표 — 방향 미정)"
+    elif _accumulating(spec, row):
+        tail = f"판정 보류(이력 축적 중 {row['history_rows']}/{spec['min_rows']}일)"
+    else:
+        tail = "판정 보류(이력 부족)"
     text = f"{head}" + (f" — {', '.join(pos)}" if pos else "") + f" → {tail}."
     if row.get("stale"):
         text += f" 기준일 {row['as_of']} 지연 — 합성 제외."
@@ -283,10 +311,16 @@ def _say(spec: dict, row: dict) -> str:
     return text
 
 
+def _accumulating(spec: dict, row: dict) -> bool:
+    """'이력 축적 중' 이고 쌓인 관측치가 min_rows 에 못 미침 — 판정 보류."""
+    return spec.get("status") == ACCUM and (row.get("history_rows") or 0) < spec["min_rows"]
+
+
 def _pick(spec: dict, inputs: dict) -> tuple[str | None, pd.Series | None, dict | None]:
     """입력 후보(예: kospi200 → kospi) 중 규칙이 쓰는 지표를 모두 계산할 만큼 이력이 있는 첫 후보 → (이름, 원 시계열, 통계).
-    그런 후보가 없으면 변환값이라도 있는 첫 후보, 그것도 없으면 값이 있는 첫 후보(통계 None)."""
-    need = {c["m"] for c in spec["rule"]["risk_off"] + spec["rule"]["risk_on"]}
+    그런 후보가 없으면 변환값이라도 있는 첫 후보, 그것도 없으면 값이 있는 첫 후보(통계 None). rule 이 없으면 값이 나오는 첫 후보."""
+    rule = spec.get("rule") or {"risk_off": [], "risk_on": []}
+    need = {c["m"] for c in rule["risk_off"] + rule["risk_on"]}
     shown = present = None
     for n in spec["input"]:
         s = _clean(inputs.get(n))
@@ -308,14 +342,16 @@ def signal_row(spec: dict, inputs: dict, valhist_doc: dict | None = None) -> dic
     false 이고 화면은 '보류'. 판정·역발상 조건은 화면에 보이는 반올림 값으로 본다(보이는 숫자와 상태가 어긋나지 않게).
     stale(기준일 지연)은 여러 신호를 함께 봐야 하므로 compute() 가 붙인다."""
     base = {k: spec.get(k) for k in ("key", "name", "group", "unit", "source", "character", "direction",
-                                     "grade", "grade_note", "threshold_note", "in_composite", "status")}
-    empty = {**base, "ok": False, "judged": False, "stale": False, "reason": None, "value": None, "as_of": None,
+                                     "grade", "grade_note", "threshold_note", "in_composite", "status", "min_rows")}
+    empty = {**base, "reference": "rule" not in spec,   # 방향 판정 안 하는 참고 지표 — 화면은 '보류' 대신 '참고'
+             "ok": False, "judged": False, "stale": False, "reason": None, "value": None, "as_of": None,
              "input_used": None, "pct_1y": None, "pct_5y": None, "pct_5y_from": None, "z_1y": None, "chg_20d": None,
-             "history_from": None, "state": None, "contrarian_note": None}
+             "history_from": None, "history_rows": None, "state": None, "contrarian_note": None}
     row = dict(empty)
 
     def fail(reason: str) -> dict:
-        row.update(reason=reason, say=_say(spec, row))
+        row["reason"] = reason
+        row["say"] = _say(spec, row)   # reason 을 먼저 넣어야 문장에 사유가 보인다
         return row
 
     try:
@@ -340,21 +376,28 @@ def signal_row(spec: dict, inputs: dict, valhist_doc: dict | None = None) -> dic
                 if name is None:
                     return fail(f"입력 없음: {' 또는 '.join(spec['input'])}")
                 ss = [s]
-            if not st:
-                return fail("이력이 짧아 변환값 없음")
             hist_from = max(x.index[0] for x in ss).date().isoformat()   # 변환 전 원 입력의 시작(비율은 둘 다 있는 첫날)
+            row["history_rows"] = min(len(x) for x in ss)                  # 쌓인 관측치 수(이력 축적 중 신호의 일수)
+            if not st:
+                row["history_from"] = hist_from
+                return fail(f"이력 축적 중({row['history_rows']}/{spec['min_rows']}일)" if spec.get("status") == ACCUM
+                            else "이력이 짧아 변환값 없음")
         d = 1 if spec["unit"] == "bp" else 3 if spec["unit"] == "배" and tr["kind"] == "ratio" else 2
         shown = {"value": _r(st["value"], d), "pct_1y": _r(st["pct_1y"], 0), "pct_5y": _r(st["pct_5y"], 0),
                  "z_1y": _r(st["z_1y"], 2), "chg_20d": _r(st["chg_20d"], d)}
-        state = judge(spec["rule"], shown)
+        state = judge(spec["rule"], shown) if "rule" in spec and not _accumulating(spec, row) else None
         row.update(ok=True, judged=state is not None, state=state, input_used=name, as_of=st["as_of"],
                    history_from=hist_from, pct_5y_from=st["pct_5y_from"], **shown)
-        if spec.get("contrarian") and _check(spec["contrarian"]["when"], shown):
+        if state is not None and spec.get("contrarian") and _check(spec["contrarian"]["when"], shown):
             row["contrarian_note"] = spec["contrarian"]["note"]
         if spec["key"] == "trend_200d" and tr["kind"] == "ma_gap":
             gap = _clean(transform(tr, ss)).tail(22)    # 최근 21거래일 각 날 vs 전날 → 22개
             row["flips_1m"] = int((gap.gt(0).astype(int).diff().abs() > 0).sum()) if len(gap) > 1 else None
-        if state is None:
+        if "rule" not in spec:
+            row["reason"] = "방향 판정 안 함(참고 지표)"
+        elif _accumulating(spec, row):
+            row["reason"] = f"이력 축적 중 — {row['history_rows']}/{spec['min_rows']}일, 다 쌓이기 전엔 판정 보류"
+        elif state is None:
             row["reason"] = "판정 지표 부족(이력 짧음)"
         row["say"] = _say(spec, row)
         return row
@@ -392,14 +435,14 @@ def mark_stale(rows: list[dict], cat: dict, specs: list[dict] | None = None) -> 
 
 def composite(rows: list[dict], cat: dict) -> dict:
     """동일가중 합성 — 상태 점수를 group 안에서 평균한 뒤 group 평균. 쓸 수 있는 신호가 없으면 score None.
-    분모(n_total·n_groups_total) = in_composite 이고 '구현·데이터 대기'가 아닌 신호 — 데이터 대기는 waiting 으로만 나열.
+    분모(n_total·n_groups_total) = in_composite 이고 '이력 축적 중'이 아닌 신호 — 이력 축적 중은 waiting 으로만 나열.
     판정 못 한 신호는 missing, 기준일 지연(stale)은 stale 로 나열하고 둘 다 점수에서 뺀다.
     라벨은 표시 점수(소수 둘째 자리)에 엄격 부등호: > risk_on 위험선호, < risk_off 위험회피(정확히 1/3 = 0.33 은 중립)."""
     cfg = cat["composite"]
     pts = cfg["score"]
     comp = [r for r in rows if r.get("in_composite")]
-    waiting = [r["key"] for r in comp if r.get("status") == WAITING]
-    eligible = [r for r in comp if r.get("status") != WAITING]
+    waiting = [r["key"] for r in comp if r.get("status") == ACCUM]
+    eligible = [r for r in comp if r.get("status") != ACCUM]
     used = [r for r in eligible if r["ok"] and r["state"] in pts and not r.get("stale")]
     used_keys = {u["key"] for u in used}
     groups = {}
@@ -433,13 +476,17 @@ def compute(inputs: dict, cat: dict, valhist_doc: dict | None = None, as_of: dic
             "method": METHOD,
             "composite": composite(rows, cat),
             "signals": rows,
+            "accumulating": [{"key": r["key"], "name": r["name"], "history_rows": r["history_rows"] or 0,
+                              "min_rows": r["min_rows"], "history_from": r["history_from"], "judged": r["judged"]}
+                             for r in rows if r.get("status") == ACCUM],
             "phase2": [{k: s.get(k) for k in ("key", "name", "status", "definition", "candidates", "grade", "grade_note")}
                        for s in cat["signals"] if s["status"] == PHASE2],
             "notes": ["판정 기준·근거 등급은 universe/timing.json, 백분위는 mid-rank(자기 과거 분포 안 위치, 1년 = 최근 252개·5년 = 최근 1260개).",
                       "ok = 값 계산됨, judged = 상태 판정됨(false 면 '보류'), stale = 기준일 지연으로 합성 제외.",
                       "역발상 신호(VKOSPI·VIX)는 높을 때 '위험회피' 국면이지만, 극단이면 역발상 매수 참고 문구를 붙입니다.",
-                      "VIX·VIX3M 은 yfinance(Refinitiv 권한 없음, 예외 원천). 그 밖은 Refinitiv.",
-                      "출처: Refinitiv(LSEG)·yfinance · 로컬 전용(재배포 금지) · 매매 지시 아님."]}
+                      "VIX 는 yfinance(Refinitiv 권한 없음, 예외 원천). 그 밖(VIX3M 포함)은 Refinitiv.",
+                      "신용융자 잔고 비율은 시가총액 이력을 받을 수 없어 KOSPI 지수로 나눈 대용치(1년 백분위로만 판정).",
+                      "출처: Refinitiv(LSEG)·yfinance·금융투자협회 FreeSIS · 사내 공유 한정 · 외부 재배포 금지 · 매매 지시 아님."]}
 
 
 # ── 읽기(저장소 안 파일만, 네트워크 없음) ──
@@ -478,6 +525,17 @@ def load_inputs() -> tuple[dict, dict | None, dict, list]:
                 inputs[name] = s
     except Exception as e:  # noqa: BLE001
         errors.append(f"equity·timing_daily 합치기: {e}")
+    for path, cols in ((PC_HIST, {c: c for c in PC_COLS}), (OI_HIST, {"total": "ks200_oi"}),     # options_pc.py
+                       (KOFIA_FREE_HIST, {c: c for c in KOFIA_FREE_COLS})):                       # kofia_free.py — 없으면 그 신호만 '입력 없음'
+        try:
+            if path.exists():
+                f = pd.read_csv(path, index_col=0, parse_dates=True)
+                for col, name in cols.items():
+                    if col in f and f[col].notna().any():
+                        inputs[name] = f[col].dropna()
+                as_of[path.stem] = f.index.max().date().isoformat() if len(f) else None
+        except Exception as e:  # noqa: BLE001
+            errors.append(f"{path.stem}: {e}")
     m = load_json(config.DATA_DIR / "market.json") or {}
     f = (m.get("equity") or {}).get("vkospi")
     if isinstance(f, dict) and f.get("value") is not None and f.get("as_of"):

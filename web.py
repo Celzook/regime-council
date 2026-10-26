@@ -713,6 +713,17 @@ def api_timing():
     return jsonify(d)
 
 
+@app.get("/api/funds")
+def api_funds():
+    """위탁운용사(펀드) 표·차트(funds.py — refresh_all 이 만든다) — 없으면 빈 funds. 원격 응답의 오류 문장에는 파일 이름만."""
+    import funds
+    d = funds.load() or {"generated_at": None, "meta": {}, "method": None, "funds": []}
+    meta = d.get("meta")
+    if not _is_local() and isinstance(meta, dict) and meta.get("errors"):
+        meta["errors"] = [_QUOTED_PATH.sub(lambda m: "'" + re.split(r"[\\/]+", m.group(1))[-1] + "'", str(x)) for x in meta["errors"]]
+    return jsonify(d)
+
+
 @app.get("/api/timing/spikes")
 def api_timing_spikes():
     """급등 매수 이벤트 스터디(spikes.py — refresh_all 이 만든다) — 없으면 빈 studies. 과거 데이터 점검 자료(매매 지시 아님)."""

@@ -120,7 +120,7 @@ def collect():
 
     for p in ["/api/overview", "/api/room", "/api/alerts", "/api/log?limit=150", "/api/book", "/api/quant", "/api/strategy",
               "/api/equity", "/api/equity/fund", "/api/equity/valhist", "/api/universe/spark", "/api/backtest/catalog", "/api/macro",
-              "/api/timing", "/api/timing/spikes"]:
+              "/api/timing", "/api/timing/spikes", "/api/funds"]:
         take(p)
     for a in ("bond", "equity", "fx"):
         take(f"/api/analog?asset={a}")

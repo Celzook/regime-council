@@ -22,6 +22,14 @@ CAT = T.load_catalog()
 SPEC = {s["key"]: s for s in CAT["signals"]}
 
 
+@pytest.fixture(autouse=True)
+def _no_local_options(tmp_path, monkeypatch):
+    """data/history 의 실제 풋/콜·미결제약정 파일을 읽지 않게 — 필요한 테스트는 tmp_path 에 직접 쓴다."""
+    monkeypatch.setattr(T, "PC_HIST", tmp_path / "putcall_daily.csv")
+    monkeypatch.setattr(T, "OI_HIST", tmp_path / "futures_oi_daily.csv")
+    monkeypatch.setattr(T, "KOFIA_FREE_HIST", tmp_path / "kofia_free_daily.csv")
+
+
 def _days(n: int, end: str = "2026-10-23") -> pd.DatetimeIndex:
     return pd.bdate_range(end=end, periods=n)
 
@@ -40,7 +48,8 @@ def _inputs(n: int = 1500, seed: int = 3) -> dict:
             "kospi200": walk(0.0004, 0.01, 300), "kospi": walk(0.0004, 0.01, 2500),
             "spread_aa": pd.Series(0.6 + np.cumsum(rng.normal(0, 0.005, n)), index=idx),
             "spread_bbb": pd.Series(6.5 + np.cumsum(rng.normal(0, 0.01, n)), index=idx),
-            "usdkrw": walk(0, 0.004, 1350), "ks200_basis": pd.Series(rng.normal(0.2, 0.3, n), index=idx)}
+            "usdkrw": walk(0, 0.004, 1350), "ks200_basis": pd.Series(rng.normal(0.2, 0.3, n), index=idx),
+            "credit_balance": walk(0, 0.005, 2e7), "customer_deposits": walk(0, 0.008, 5e7)}
 
 
 def _valhist_doc(pe=None, pb=None) -> dict:
@@ -145,12 +154,15 @@ def test_catalog_valid_and_covers_implemented_and_phase2():
     assert T.validate_catalog(CAT) == []
     keys = set(SPEC)
     implemented = {"vkospi", "vix", "vix_term", "trend_200d", "mom_6m", "mom_12m", "credit_aa", "credit_bbb",
-                   "usdkrw", "valuation_pe", "valuation_pb", "ks200_basis"}
+                   "usdkrw", "valuation_pe", "valuation_pb", "ks200_basis", "futures_oi", "put_call", "put_call_oi",
+                   "credit_balance", "customer_deposits"}
     assert implemented <= keys
     rows = T.compute(_inputs(), CAT, _valhist_doc())["signals"]
     assert {r["key"] for r in rows} == {k for k, s in SPEC.items() if s["status"] in T.IMPLEMENTED}
     phase2 = [s for s in CAT["signals"] if s["status"] == T.PHASE2]
-    assert {s["key"] for s in phase2} == {"foreign_futures", "credit_balance", "customer_deposits", "put_call", "arbitrage_balance"}
+    assert {s["key"] for s in phase2} == {"foreign_futures", "arbitrage_balance"}
+    assert {k for k, s in SPEC.items() if s["status"] == T.ACCUM} == {"put_call", "put_call_oi"}
+    assert {s["status"] for s in CAT["signals"]} == {"구현", T.ACCUM, T.PHASE2}
     for s in phase2:
         assert s["candidates"] and s["definition"] and not s.get("rule") and not s["in_composite"]
     for s in CAT["signals"]:
@@ -294,7 +306,7 @@ def test_validate_catalog_contrarian_note_and_score_states():
 
 def test_signal_row_turns_any_error_into_ok_false(monkeypatch):
     spec = copy.deepcopy(SPEC["vix"])
-    del spec["rule"]                                                   # 판정 단계에서 KeyError 가 나는 신호
+    spec["rule"] = {}                                                  # 판정 단계에서 KeyError 가 나는 신호(rule 자체가 없으면 참고 지표)
     row = T.signal_row(spec, {"vix": _s([20.0] * 300)})
     assert row["ok"] is False and row["judged"] is False and row["reason"].startswith("계산 오류")
     assert row["value"] is None and row["say"]
@@ -303,7 +315,8 @@ def test_signal_row_turns_any_error_into_ok_false(monkeypatch):
         raise ValueError("규칙 깨짐")
     monkeypatch.setattr(T, "judge", boom)
     d = T.compute(_inputs(), CAT, _valhist_doc())                      # compute() 는 죽지 않는다
-    assert all(not r["ok"] and r["reason"].startswith("계산 오류") for r in d["signals"])
+    judged = [r for r in d["signals"] if "rule" in SPEC[r["key"]] and SPEC[r["key"]]["status"] == "구현"]
+    assert judged and all(not r["ok"] and r["reason"].startswith("계산 오류") for r in judged)
 
 
 def test_pick_falls_back_when_primary_present_but_short():
@@ -364,7 +377,7 @@ def test_composite_boundary_strict_on_displayed_score():
 
 
 def test_composite_excludes_waiting_signals_and_merges_us_volatility():
-    rows = [_row("a", "추세", "위험선호"), {**_row("w", "미국 변동성", None, ok=False), "status": T.WAITING}]
+    rows = [_row("a", "추세", "위험선호"), {**_row("w", "미국 변동성", None, ok=False), "status": T.ACCUM}]
     c = T.composite(rows, CAT)
     assert c["n_total"] == 1 and c["n_groups_total"] == 1 and c["waiting"] == ["w"] and c["missing"] == []
     assert c["label"] == "위험선호"
@@ -457,3 +470,107 @@ def test_load_inputs_reads_vix3m_from_timing_daily(tmp_path, monkeypatch):
     assert inputs["vkospi"].iloc[-1] == pytest.approx(s["vkospi"].iloc[-1])     # 같은 날은 equity_daily 값
     row = T.signal_row(SPEC["vix_term"], inputs)
     assert row["ok"] and row["input_used"] == "vix÷vix3m"
+
+
+# ── 2차 수급 신호: 이력 축적 중·참고(rule 없음) ──
+def _pc(n: int, last_put: float = 100.0) -> dict:
+    """합성 풋·콜 — 콜 200 고정, 풋 90~110 순환, 마지막 날만 last_put."""
+    put = [90.0 + (i % 21) for i in range(n - 1)] + [last_put]
+    return {"put_vol": _s(put), "call_vol": _s([200.0] * n), "put_oi": _s(put), "call_oi": _s([200.0] * n)}
+
+
+def test_accumulating_signal_held_until_min_rows_then_judged():
+    short = T.signal_row(SPEC["put_call_oi"], _pc(30, last_put=400.0))
+    assert short["ok"] and short["value"] == 2.0 and short["history_rows"] == 30 and short["min_rows"] == 60
+    assert short["judged"] is False and short["state"] is None and "이력 축적 중" in short["reason"]
+    assert "30/60일" in short["say"] and short["contrarian_note"] is None
+    full = T.signal_row(SPEC["put_call_oi"], _pc(80, last_put=400.0))
+    assert full["judged"] and full["state"] == "위험회피" and full["pct_5y"] == 99   # 80개 중 가장 큼 → mid-rank 99.4%
+    calm = T.signal_row(SPEC["put_call_oi"], _pc(80, last_put=50.0))
+    assert calm["state"] == "위험선호"
+
+
+def test_put_call_volume_ratio_uses_5day_sums_and_reports_days_when_too_short():
+    inp = {"put_vol": _s([10.0, 10, 10, 10, 60]), "call_vol": _s([50.0, 50, 50, 50, 50])}
+    row = T.signal_row(SPEC["put_call"], inp)
+    assert row["value"] == pytest.approx(100 / 250)                    # 5일 합 비(하루 비 1.2 가 아님)
+    four = T.signal_row(SPEC["put_call"], {k: v.iloc[1:] for k, v in inp.items()})
+    assert not four["ok"] and four["history_rows"] == 4 and "4/60일" in four["reason"]
+    d = T.compute({**_inputs(), **{k: v.iloc[1:] for k, v in inp.items()}}, CAT, _valhist_doc())
+    acc = {a["key"]: a for a in d["accumulating"]}
+    assert acc["put_call"]["history_rows"] == 4 and acc["put_call"]["min_rows"] == 60 and not acc["put_call"]["judged"]
+    assert "put_call" not in d["composite"]["missing"] and "put_call" not in d["composite"]["waiting"]   # 합성 제외(in_composite=false)
+
+
+def test_futures_oi_shows_value_without_direction():
+    oi = _s([100000.0 + 50 * i for i in range(300)])
+    row = T.signal_row(SPEC["futures_oi"], {"ks200_oi": oi})
+    assert row["ok"] and row["value"] == pytest.approx(round((oi.iloc[-1] / oi.iloc[-21] - 1) * 100, 2))
+    assert row["judged"] is False and row["state"] is None and "방향 판정 안 함" in row["reason"]
+    assert "판정 없음" in row["say"] and not SPEC["futures_oi"]["in_composite"]
+
+
+def test_validator_rule_less_and_accumulating_requirements():
+    bad = copy.deepcopy(CAT)
+    s = {x["key"]: x for x in bad["signals"]}
+    s["futures_oi"]["character"] = "동행"
+    del s["put_call_oi"]["min_rows"]
+    del s["credit_aa"]["rule"]                                          # 합성 신호에서 rule 을 빼면 오류
+    errs = T.validate_catalog(bad)
+    assert any(e.startswith("futures_oi:") for e in errs)
+    assert any(e.startswith("put_call_oi:") and "min_rows" in e for e in errs)
+    assert any(e.startswith("credit_aa:") for e in errs)
+
+
+def test_load_inputs_reads_putcall_and_futures_oi(tmp_path, monkeypatch):
+    s = _inputs(100)
+    monkeypatch.setattr(analytics, "load_panel", lambda: pd.DataFrame({"kospi200": s["kospi200"]}))
+    pc = pd.DataFrame({k: v for k, v in _pc(10).items()})
+    pc.index.name = "date"
+    pc.to_csv(tmp_path / "putcall_daily.csv")
+    oi = pd.DataFrame({"KSc1": [10.0, 11.0], "KSc2": [1.0, 2.0], "total": [11.0, 13.0]}, index=_days(2))
+    oi.index.name = "date"
+    oi.to_csv(tmp_path / "futures_oi_daily.csv")
+    for name, p in (("EQ_HIST", "equity_daily.csv"), ("TIMING_HIST", "timing_daily.csv"),
+                    ("PC_HIST", "putcall_daily.csv"), ("OI_HIST", "futures_oi_daily.csv")):
+        monkeypatch.setattr(T, name, tmp_path / p)
+    monkeypatch.setattr(T.config, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(valhist, "load", lambda: None)
+    inputs, _, as_of, _ = T.load_inputs()
+    assert len(inputs["put_vol"]) == 10 and inputs["call_oi"].iloc[-1] == 200.0
+    assert inputs["ks200_oi"].tolist() == [11.0, 13.0]
+    assert as_of["putcall_daily"] == as_of["futures_oi_daily"] == "2026-10-23"
+
+
+def test_kofia_free_signals_credit_ratio_and_deposit_growth():
+    """신용잔고 ÷ KOSPI(억원/pt, 대용치)의 1년 백분위 · 예탁금 20일 증가율 — 합성 값."""
+    idx = _days(300)
+    credit = pd.Series(np.linspace(2e7, 3e7, 300), index=idx)      # 백만원, 꾸준히 증가
+    kospi = pd.Series(2500.0, index=idx)
+    row = T.signal_row(SPEC["credit_balance"], {"credit_balance": credit, "kospi": kospi})
+    assert row["ok"] and row["value"] == pytest.approx(3e7 / 100 / 2500, abs=0.01)   # 억원 ÷ pt
+    assert row["pct_1y"] == 100 and row["state"] == "위험회피" and not row["reference"]
+    dep = pd.Series(np.r_[np.full(280, 5e7), np.full(20, 6e7)], index=idx)          # 마지막 20일에 20% 계단
+    r2 = T.signal_row(SPEC["customer_deposits"], {"customer_deposits": dep})
+    assert r2["ok"] and r2["value"] == pytest.approx(20.0) and r2["state"] == "위험선호"
+    assert not SPEC["credit_balance"]["in_composite"] and not SPEC["customer_deposits"]["in_composite"]
+
+
+def test_load_inputs_reads_kofia_free(tmp_path, monkeypatch):
+    s = _inputs(30)
+    monkeypatch.setattr(analytics, "load_panel", lambda: pd.DataFrame({"kospi": s["kospi"]}))
+    kf = pd.DataFrame({"customer_deposits": [5e7, 5.1e7], "credit_balance": [None, 2e7], "rp_balance": [1.0, 2.0]}, index=_days(2))
+    kf.index.name = "date"
+    kf.to_csv(tmp_path / "kofia_free_daily.csv")
+    for name, p in (("EQ_HIST", "equity_daily.csv"), ("TIMING_HIST", "timing_daily.csv")):
+        monkeypatch.setattr(T, name, tmp_path / p)
+    monkeypatch.setattr(T.config, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(valhist, "load", lambda: None)
+    inputs, _, as_of, _ = T.load_inputs()
+    assert inputs["customer_deposits"].tolist() == [5e7, 5.1e7] and inputs["credit_balance"].tolist() == [2e7]
+    assert "rp_balance" not in inputs and as_of["kofia_free_daily"] == "2026-10-23"
+
+
+def test_reference_flag_only_for_rule_less_signals():
+    rows = T.compute(_inputs(), CAT, _valhist_doc())["signals"]
+    assert {r["key"] for r in rows if r["reference"]} == {k for k, s in SPEC.items() if s["status"] in T.IMPLEMENTED and "rule" not in s}

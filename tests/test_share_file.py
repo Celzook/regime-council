@@ -90,3 +90,23 @@ def test_collect_skips_lan_hidden_paths(monkeypatch, tmp_path):
 def test_gitignore_keeps_reports_mp_venv_local():
     lines = {x.strip() for x in (Path(__file__).resolve().parents[1] / ".gitignore").read_text(encoding="utf-8").splitlines()}
     assert {"reports/", "data/mp/", ".venv/"} <= lines
+
+
+def test_share_export_per_position_replaces_empty_vs_market(monkeypatch):
+    """공유 밸류에이션 표 — 늘 비던 '시장 대비'(vs_*) 대신 자기 PER 5년 위치(valhist.position, 화면과 같은 백분위)."""
+    import equity
+    import fundamentals
+    import share_export
+    import valhist
+    eq = {"verdict": "v", "generated_at": "2026-10-26T10:00:00", "groups": [], "tiles": []}
+    fd = {"generated_at": "2026-10-26T10:00:00", "groups": [{"id": 1, "name": "국내"}],
+          "items": [{"key": "a", "item_id": 1, "name": "A", "say": "s", "src": "x", "kind": "index"},
+                    {"key": "b", "item_id": 1, "name": "B", "say": "s", "src": "x", "kind": "index"}]}
+    vh = {"items": {"a": {"n": 50, "pe": [10.0, 12.0, 14.0, 16.0, 18.0, 11.0]}}}   # 6개월 중 두 번째로 낮음 → (1 + ½) ÷ 6 = 25%
+    monkeypatch.setattr(equity, "load", lambda: eq)
+    monkeypatch.setattr(fundamentals, "load", lambda: fd)
+    monkeypatch.setattr(valhist, "load", lambda: vh)
+    rows = {r["key"]: r for r in share_export.build()["valuation"]}
+    assert (rows["a"]["per_pos"], rows["a"]["per_pos_word"], rows["a"]["per_pos_basis"]) == (25, "낮은 편", "구성 상위 90% 기준")
+    assert rows["b"]["per_pos"] is None and rows["b"]["per_pos_word"] == ""
+    assert not any(k.startswith("vs_") for r in rows.values() for k in r)

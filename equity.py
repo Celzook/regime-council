@@ -234,7 +234,8 @@ def sparks() -> dict:
         if len(s) < 30:
             return None
         ma = s.rolling(200).mean()
-        w = s[s.index > s.index[-1] - pd.DateOffset(years=1)]
+        prior = s.index[s.index <= s.index[-1] - pd.DateOffset(years=1)]   # 1년 전 날짜 이전 마지막 하루까지 — 팝오버 1년 수익률(_ret 와 같은 기준)
+        w = s[s.index >= prior[-1]] if len(prior) else s
         d0 = w.index[0]
         return {"d0": d0.date().isoformat(), "t": [(d - d0).days for d in w.index], "v": [g(float(x)) for x in w],
                 "m": [g(float(x)) for x in ma.reindex(w.index)]}

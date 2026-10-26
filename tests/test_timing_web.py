@@ -122,8 +122,10 @@ def test_refresh_steps_order():
     i = names.index
     assert i("밸류에이션 이력") < i("급등 매수") < i("마켓타이밍 시그널")
     assert i("시장 스냅샷") < i("마켓타이밍 시그널") and i("주식 대시보드") < i("마켓타이밍 시그널")
+    assert i("급등 매수") < i("옵션 풋/콜·미결제약정") < i("마켓타이밍 시그널") and i("증시자금(금투협)") < i("마켓타이밍 시그널")
+    assert i("과거 시계열") < i("위탁운용사 펀드") and i("주식 대시보드") < i("위탁운용사 펀드")   # BM 이력(kofia·equity_daily) 갱신 뒤
     quick = [n for n, _ in refresh_all.steps(True)]
-    assert "급등 매수" not in quick and "마켓타이밍 시그널" not in quick
+    assert not {"급등 매수", "마켓타이밍 시그널", "위탁운용사 펀드", "옵션 풋/콜·미결제약정", "증시자금(금투협)"} & set(quick)
 
 
 def test_spikes_step_skips_when_fresh(monkeypatch):

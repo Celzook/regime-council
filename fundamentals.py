@@ -273,7 +273,7 @@ def build(save: bool = True) -> dict:
                    "지수는 이익 데이터가 없어 대표 ETF 로 대신했습니다(항목마다 '기준' 표시).",
                    "ETF 의 PER 은 구성 종목 전체의 비중 가중 묶음 기준(적자 종목은 제외, '덮은 비중' 표시).",
                    "비싼지 싼지는 다른 시장이 아니라 자기 과거 PER·PBR 범위 안 위치로 봅니다(과거와 같은 기준 = 구성 상위 90%).",
-                   "출처: Refinitiv(LSEG) · 로컬 전용(재배포 금지) · 매매 지시 아님."]}
+                   "출처: Refinitiv(LSEG) · 사내 공유 한정 · 외부 재배포 금지 · 매매 지시 아님."]}
     if save:
         tmp = OUT.with_suffix(".json.tmp")
         tmp.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")

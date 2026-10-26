@@ -106,6 +106,13 @@ def _rsi(nav: pd.Series, n: int = 14) -> float:
     return float(100 - 100 / (1 + up / dn)) if dn > 0 else 100.0
 
 
+def tech_label(score: float) -> str:
+    """점수 → 라벨. 화면에 보이는 정수(소수 첫째 반올림 뒤 0.5 는 0 에서 멀어지게 — JS toFixed(0) 와 같음)로 판정해
+    −9.5 가 '−10'으로 보이면서 '중립'이 붙지 않게 한다(홈 점수판 sbTone 과 같은 규칙)."""
+    shown = math.copysign(math.floor(abs(round(score, 1)) + 0.5), score)
+    return "강세" if shown >= 30 else "우호" if shown >= 10 else "중립" if shown > -10 else "약세" if shown > -30 else "매우 약세"
+
+
 def tech_score(r: pd.Series) -> dict | None:
     r = r.dropna()
     if len(r) < 260:
@@ -120,7 +127,7 @@ def tech_score(r: pd.Series) -> dict | None:
     rsi = _rsi(nav)
     rev = -math.tanh((rsi - 50) / 25)
     score = 100 * (0.35 * trend + 0.35 * mom6 + 0.15 * mom1 + 0.15 * rev)
-    label = "강세" if score >= 30 else "우호" if score >= 10 else "중립" if score > -10 else "약세" if score > -30 else "매우 약세"
+    label = tech_label(score)
     hi = float(nav.tail(252).max())
     return {"score": round(score, 1), "label": label, "trend": round(trend, 2), "mom6": round(mom6, 2), "mom1": round(mom1, 2),
             "rsi": round(rsi, 1), "ret_1m": round(ret(21) * 100, 2), "ret_3m": round(ret(63) * 100, 2),
