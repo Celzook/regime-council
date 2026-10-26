@@ -715,13 +715,30 @@ def api_timing():
 
 @app.get("/api/funds")
 def api_funds():
-    """위탁운용사(펀드) 표·차트(funds.py — refresh_all 이 만든다) — 없으면 빈 funds. 원격 응답의 오류 문장에는 파일 이름만."""
+    """운용사·펀드 스크리닝 표(funds.py — refresh_all 이 만든다, 차트 시계열은 /api/funds/<code>) — 없으면 빈 문서.
+    원격 응답의 오류 문장에는 파일 이름만."""
     import funds
-    d = funds.load() or {"generated_at": None, "meta": {}, "method": None, "funds": []}
+    d = funds.load() or {"generated_at": None, "meta": {}, "method": None, "groups": [], "managers": [], "flow_leaders": {}, "funds": []}
     meta = d.get("meta")
     if not _is_local() and isinstance(meta, dict) and meta.get("errors"):
         meta["errors"] = [_QUOTED_PATH.sub(lambda m: "'" + re.split(r"[\\/]+", m.group(1))[-1] + "'", str(x)) for x in meta["errors"]]
     return jsonify(d)
+
+
+@app.get("/api/funds/charts")
+def api_fund_charts():
+    """전 펀드 차트 문서(공통 주간 격자) — 공유본이 한 번에 담아 상세 차트를 화면에서 만든다(share_site SHIM). 없으면 빈 문서."""
+    import funds
+    return jsonify(funds.load_charts() or {"generated_at": None, "dates": [], "funds": {}, "bm": {}, "median": {}})
+
+
+@app.get("/api/funds/<code>")
+def api_fund_detail(code):
+    """펀드 하나의 주간 누적 차트(펀드·BM·그룹 중앙값, 펀드 첫 점 = 100) — 없는 코드는 404."""
+    import funds
+    item = next((x for x in (funds.load() or {}).get("funds", []) if x.get("id") == code), None)
+    d = funds.detail(funds.load_charts(), code, item)
+    return jsonify(d) if d else _err("차트가 없는 펀드입니다.", 404)
 
 
 @app.get("/api/timing/spikes")

@@ -40,12 +40,24 @@ SHIM = """<script>
   const load = async f => (await realFetch(f, {cache: 'no-cache'})).json();
   const reply = (obj, status = 200) => new Response(JSON.stringify(obj), {status, headers: {'Content-Type': 'application/json'}});
   const RO = '공유 보기(읽기 전용)라 이 버튼은 동작하지 않습니다 — 원본 앱에서 실행하세요.';
+  // funds.detail() 과 같은 계산 — 펀드 첫 점 = 100, BM·그룹 중앙값도 그 점 = 100
+  const fundDetail = (ch, code, list) => {
+    const f = (ch.funds || {})[code]; if(!f) return null;
+    const i0 = f.v.findIndex(x => x !== null); if(i0 < 0) return null;
+    const rb = xs => (!xs || xs[i0] === null || xs[i0] === 0) ? null : xs.map((x, j) => (j < i0 || x === null) ? null : Math.round(x / xs[i0] * 10000) / 100);
+    const item = ((list || {}).funds || []).find(x => x.id === code) || {};
+    return {code, name: item.name || null, group_id: f.g, dates: ch.dates, fund: rb(f.v), bm: rb((ch.bm || {})[f.b || '']), bm_name: f.bn || null, group_median: rb((ch.median || {})[f.g])};
+  };
   const BT_NOTE = '공유 보기에서는 각 전략의 기본 설정 + 최근 기간(1·3·5·10년·올해·전체)만 볼 수 있습니다. 다른 설정·과거 국면·날짜 지정은 원본 앱에서 돌려 주세요.';
   window.fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : input.url;
     if(!url.startsWith('/api/')) return realFetch(input, init);
     const method = ((init && init.method) || 'GET').toUpperCase();
     snap = snap || await load('snap.json');
+    if(method === 'GET' && !(url in snap.get) && url.startsWith('/api/funds/') && snap.get['/api/funds/charts']){
+      const d = fundDetail(snap.get['/api/funds/charts'], decodeURIComponent(url.slice(11)), snap.get['/api/funds']);
+      return d ? reply(d) : reply({error: '차트가 없는 펀드입니다.'}, 404);
+    }
     if(method === 'GET') return url in snap.get ? reply(snap.get[url]) : reply({error: '공유 보기에 담기지 않은 데이터입니다.'}, 404);
     let body = {}; try { body = JSON.parse((init && init.body) || '{}'); } catch(e){}
     if(url === '/api/backtest/run' || url === '/api/backtest/all'){
@@ -122,6 +134,7 @@ def collect():
               "/api/equity", "/api/equity/fund", "/api/equity/valhist", "/api/universe/spark", "/api/backtest/catalog", "/api/macro",
               "/api/timing", "/api/timing/spikes", "/api/funds"]:
         take(p)
+    take("/api/funds/charts")   # 펀드 상세 차트(/api/funds/<code>)는 공유본에서 이 문서로 화면이 만든다(SHIM) — 펀드별로 담으면 약 3.4MB
     for a in ("bond", "equity", "fx"):
         take(f"/api/analog?asset={a}")
     for d in take("/api/discussions") or []:

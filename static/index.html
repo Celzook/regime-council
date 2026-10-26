@@ -730,22 +730,60 @@
   .spk-body table tr.hit td { font-weight:700; }
   .spk-body .kv { margin-top:6px; } .spk-body details { margin-top:8px; } .spk-body h4 { margin:10px 0 4px; font-size:12px; color:var(--muted); }
   @container main (max-width:640px){ .spk > summary { grid-template-columns:repeat(3,minmax(0,1fr)) 14px; } .spk > summary .nm { grid-column:1 / -1; } }
-  /* ── 위탁운용사 — 펀드 표(누르면 아래 상세: 누적 차트·기간 표·보수·위험) ── */
-  table.fdt { font-size:12.5px; } table.fdt td, table.fdt th { padding-left:6px; padding-right:6px; }
-  table.fdt td.nm b { font-weight:650; } table.fdt td.nm > span { display:block; font-size:11px; color:var(--muted); }
+  /* ── 운용사·펀드 — 분류군 탭 → 분류 칩·운용사·검색 → 펀드 표(정렬·더 보기) → 상세 · 분포 · 자금 · 운용사 ── */
+  .fd-bar { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; }
+  .fd-bar + .fd-bar { margin-top:8px; }
+  .fd-chip { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border:none; border-radius:99px; background:var(--fill-2); color:var(--ink); font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .fd-chip:hover:not(.on) { background:var(--fill-3); }
+  .fd-chip.on { background:var(--ink); color:var(--surface); }
+  .fd-chip i { font-style:normal; font-weight:500; opacity:.7; font-size:11.5px; }
+  .fd-chip.th { box-shadow:inset 0 0 0 1px var(--line); background:transparent; } .fd-chip.th.on { background:var(--ink); box-shadow:none; }
+  .fd-sep { font-size:11px; color:var(--muted); margin:0 2px 0 6px; }
+  .fd-bar select { max-width:220px; }
+  .fd-bar input[type=search] { font:inherit; font-size:13px; padding:5px 12px 5px 30px; border:none; border-radius:8px; background:var(--fill-2) var(--search-ico) no-repeat 9px center / 14px; color:var(--ink); min-width:0; width:200px; }
+  .fd-bar .fd-cnt { font-size:12px; color:var(--muted); margin-left:auto; }
+  table.fdt { font-size:12.5px; } table.fdt td, table.fdt th { padding-left:5px; padding-right:5px; }
+  table.fdt th.srt { cursor:pointer; user-select:none; white-space:nowrap; } table.fdt th.srt:hover { color:var(--ink); }
+  table.fdt th.srt.on { color:var(--ink); } table.fdt th.srt.on::after { content:attr(data-dir); margin-left:2px; font-size:10px; }
+  table.fdt td.nm { min-width:0; } table.fdt td.nm b { font-weight:650; } table.fdt td.nm > span { display:block; font-size:11px; color:var(--muted); }
   table.fdt tr.fd-r { cursor:pointer; } table.fdt tr.fd-r:hover td { background:var(--brand-soft); }
   table.fdt tr.fd-r.on td { background:var(--fill-1); } table.fdt tr.fd-r.on td.nm b { color:var(--brand); }
   table.fdt tr.fd-r:focus-visible { outline:2px solid var(--brand); outline-offset:-2px; }
+  table.fdt td.rk b { font-size:13px; } table.fdt td.rk .pctl.sm { width:40px; margin:3px 0 2px auto; }
   .fd-ex { font-size:11px; color:var(--muted); white-space:nowrap; } .fd-ex b { font-weight:600; color:var(--ink2); }
   .fd-sub { font-size:11px; color:var(--muted); white-space:nowrap; }
+  .fd-usd { font-size:10.5px; font-weight:700; padding:0 5px; border-radius:4px; background:var(--warn-bg); color:var(--rich-ink); margin-left:4px; vertical-align:1px; }
   .fd-n { display:none; font-style:normal; }
-  table.fdr th:first-child, table.fdr td:first-child { white-space:nowrap; }
-  .fd-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px 18px; margin-top:6px; }
-  .fd-grid h4 { margin:0 0 4px; font-size:12px; color:var(--muted); } .fd-grid .kv { line-height:1.6; }
-  .fd-grid .kv b { color:var(--ink); font-weight:600; }
-  @container main (max-width:900px){ table.fdt .c-mid { display:none; } .fd-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-  @container main (max-width:640px){ table.fdt .c-opt { display:none; } .fd-n { display:inline; } .fd-grid { grid-template-columns:1fr; }
-    table.fdr .c-opt { display:none; } }
+  .fd-more { display:flex; justify-content:center; gap:8px; margin-top:10px; }
+  table.fdr { font-size:12.5px; } table.fdr th:first-child, table.fdr td:first-child { white-space:nowrap; }
+  .fd-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px 18px; margin-top:8px; }
+  .fd-grid h4 { margin:0 0 4px; font-size:12px; color:var(--muted); } .fd-grid .kv { line-height:1.6; } .fd-grid .kv b { color:var(--ink); font-weight:600; }
+  .fd-dist { display:grid; grid-template-columns:minmax(0,140px) minmax(0,1fr) 120px; gap:2px 10px; align-items:center; font-size:12.5px; }
+  .fd-dist > .h { font-size:11px; color:var(--muted); padding-bottom:2px; }
+  .fd-dist .gn { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; } .fd-dist .gn:hover { color:var(--brand); }
+  .fd-dist .gn i { font-style:normal; color:var(--muted); font-size:11px; margin-left:3px; }
+  .fd-dist .gv { font-size:11.5px; color:var(--ink2); white-space:nowrap; text-align:right; font-variant-numeric:tabular-nums; }
+  .fd-dist svg { display:block; width:100%; height:22px; overflow:visible; }
+  .fd-dist .bx { fill:color-mix(in srgb, var(--series-1) 16%, transparent); } .fd-dist .md { stroke:var(--series-1); stroke-width:2.2; }
+  .fd-dist .bm { fill:var(--cheap); stroke:var(--surface); stroke-width:1; } .fd-dist .z { stroke:var(--axis); stroke-width:1; }
+  .fd-leg { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--ink2); margin:0 0 8px; }
+  .fd-leg i { display:inline-block; vertical-align:middle; margin-right:5px; }
+  .fd-flow { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px 18px; }
+  .fd-flow h4 { margin:0 0 4px; font-size:12px; color:var(--muted); }
+  .fd-flow svg { display:block; max-width:100%; height:auto; overflow:visible; }
+  .fd-flow .pl, .fd-flow .pv { font-size:12px; fill:var(--ink2); font-variant-numeric:tabular-nums; } .fd-flow .pv { fill:var(--ink); }
+  .fd-flow .pz { stroke:var(--axis); stroke-width:1; } .fd-flow .pb { fill:var(--flat); } .fd-flow .pb.up { fill:var(--up); } .fd-flow .pb.down { fill:var(--down); }
+  .fd-ld { list-style:none; margin:0; padding:0; font-size:12.5px; }
+  .fd-ld li { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; padding:3px 0; border-top:1px solid var(--hair); cursor:pointer; }
+  .fd-ld li:first-child { border-top:none; } .fd-ld li:hover { color:var(--brand); }
+  .fd-ld li span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .fd-ld li span i { font-style:normal; color:var(--muted); font-size:11px; margin-left:4px; }
+  .fd-ld li b { font-weight:650; font-variant-numeric:tabular-nums; }
+  table.fdm { font-size:12.5px; } table.fdm td:first-child { white-space:nowrap; } table.fdm th { white-space:nowrap; } table.fdm tr.fd-m { cursor:pointer; } table.fdm tr.fd-m:hover td { background:var(--brand-soft); }
+  table.fdm tr.fd-m.on td { background:var(--fill-1); }
+  @container main (max-width:900px){ table.fdt .c-mid { display:none; } .fd-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } table.fdm .c-mid { display:none; } }
+  @container main (max-width:640px){ table.fdt .c-opt, table.fdr .c-opt, table.fdm .c-opt { display:none; } .fd-n { display:inline; } .fd-grid { grid-template-columns:1fr; }
+    .fd-dist { grid-template-columns:minmax(0,92px) minmax(0,1fr) 78px; gap:2px 6px; } .fd-flow { grid-template-columns:1fr; }
+    .fd-bar input[type=search] { width:100%; flex:1 1 140px; } .fd-bar select { flex:1 1 140px; max-width:none; } .fd-bar .fd-cnt { margin-left:0; } }
   /* ── 백테스트 — macOS 설정 앱처럼: 왼쪽 전략 목록 · 오른쪽 상세(이름 → 설정 묶음 → 기간 묶음 → 실행) ── */
   .btlayout { display:grid; grid-template-columns:minmax(200px,236px) minmax(0,1fr); gap:var(--gap); align-items:start; } .btlayout > * { min-width:0; } .btlayout[hidden] { display:none; }
   .btlist { position:sticky; top:60px; padding:8px 6px; max-height:calc(100vh - 80px); overflow-y:auto; scrollbar-width:thin; }
@@ -894,6 +932,24 @@
   @keyframes shimmer { from { background-position:100% 0; } to { background-position:-150% 0; } }
   @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
   @keyframes pop { from { opacity:0; transform:scale(.97) translateY(8px); } to { opacity:1; transform:none; } }
+  /* 화면 안내 — Main Screen 네 화면의 데이터·읽는 법(정적 글, API 없음) */
+  #page-guide { overflow-wrap:anywhere; }
+  .gd-toc { display:flex; flex-wrap:wrap; gap:6px; }
+  .gd-hd { display:flex; align-items:center; gap:8px 12px; flex-wrap:wrap; margin-bottom:6px; } .gd-hd h2 { margin:0; flex:1 1 220px; }
+  .gd-lead { margin:0 0 12px; font-size:15px; font-weight:600; color:var(--ink); line-height:1.55; }
+  .gd-secs { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(440px, 100%), 1fr)); gap:10px; }
+  .gd-sec { border:1px solid var(--line); border-radius:var(--r-sm); padding:10px 12px; min-width:0; }
+  .gd-sec h3 { margin:0 0 6px; font-size:14px; font-weight:700; color:var(--ink); }
+  .gd-dl { display:grid; grid-template-columns:58px 1fr; gap:4px 10px; margin:0; font-size:13px; line-height:1.6; color:var(--ink2); }
+  .gd-dl dt { font-size:12px; font-weight:600; color:var(--muted); padding-top:1px; } .gd-dl dd { margin:0; min-width:0; }
+  .gd-list { margin:0; padding-left:18px; font-size:13px; line-height:1.6; color:var(--ink2); } .gd-list li { margin:3px 0; }
+  .gd-list .kv { font-size:12px; }
+  .gd-myth { margin-top:12px; } .gd-myth h3 { margin:0 0 4px; font-size:14px; font-weight:700; color:var(--ink); }
+  .gd-legend { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap:6px 16px; font-size:13px; color:var(--ink2); }
+  .gd-legend > div { min-width:0; line-height:1.9; } .gd-legend > div > :not(:last-child) { margin-right:6px; }
+  .gd-legend .hm-cell { display:inline-block; min-width:44px; text-align:center; }
+  .gd-wip { border:1px dashed var(--line); }
+  @media (max-width:560px){ .gd-dl { grid-template-columns:1fr; gap:0; } .gd-dl dt { margin-top:6px; } }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
 </style>
 </head>
@@ -938,13 +994,14 @@
     <div class="ngrp">Main Screen</div>
     <div class="tab on" data-t="equity"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5l5.5-5.5 4 4 7.5-7.5"/><path d="M15 8.5h5.5V14"/></svg><span>주식</span></div>
     <div class="tab" data-t="timing"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12.5h4l2.5-6 4.5 11 2.5-5H21"/></svg><span>마켓타이밍</span></div>
-    <div class="tab" data-t="funds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h16v10.5H4z"/><path d="M9 8.5V6h6v2.5"/><path d="M4 13h16"/></svg><span>위탁운용사</span></div>
+    <div class="tab" data-t="funds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h16v10.5H4z"/><path d="M9 8.5V6h6v2.5"/><path d="M4 13h16"/></svg><span>운용사·펀드</span></div>
     <div class="tab" data-t="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l3.5-4"/></svg><span>대시보드</span></div>
     <div class="ngrp">Strategy</div>
     <div class="tab" data-t="bt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 12.5a8 8 0 1 0 2.3-6.2"/><path d="M4 4.5v4.2h4.2"/><path d="M12 8v4.3l2.8 1.7"/></svg><span>백테스트</span></div>
     <div class="tab" data-t="strategy"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>전략</span></div>
     <div class="tab" data-t="quant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-9M3 20h18"/></svg><span>정량분석</span></div>
     <div class="ngrp">기타</div>
+    <div class="tab" data-t="guide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.1"/></svg><span>화면 안내</span></div>
     <div class="tab" data-t="room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 4.6 4.6 1.9-4.6 1.9L12 16.5l-1.9-4.6L5.5 10l4.6-1.9z"/><path d="M18.5 15.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/></svg><span>에이전트</span></div>
     <div class="tab" data-t="book"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7" width="17" height="12.5" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3.5 12.5h17"/></svg><span>내 포트</span></div>
     <div class="tab" data-t="checks"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.2l2.6 2.6 4.9-5.4"/></svg><span>점검</span></div>
@@ -1072,14 +1129,28 @@
   </div>
 </section>
 
-<!-- 위탁운용사 — 예시 공모펀드(funds.py — 금투협 전자공시). 자동 갱신(refresh_all)이 만든 파일을 읽기만 한다 -->
+<!-- 운용사·펀드 — 공모펀드 스크리닝(funds.py — 금투협 전자공시, 분류는 fund_universe.py). 자동 갱신(refresh_all)이 만든 파일을 읽기만 한다 -->
 <section class="page" id="page-funds">
   <div class="bhead">
-    <div><div class="ptitle">위탁운용사</div><div class="kv" id="fdMeta"></div></div>
+    <div><div class="ptitle">운용사·펀드</div><div class="kv" id="fdMeta"></div></div>
+    <span class="spacer"></span>
+    <span class="seg" id="fdFam"></span>
   </div>
-  <div class="card"><h2>펀드별 <span class="sub">수정기준가(분배 반영) 수익률 · 아래 작은 글씨 = BM 대비 초과(%p) · 줄을 누르면 아래에 누적 차트</span></h2><div id="fdTable"><div class="empty">불러오는 중…</div></div></div>
+  <div class="card">
+    <div class="fd-bar" id="fdGroups"></div>
+    <div class="fd-bar">
+      <select id="fdMgr" aria-label="운용사"></select>
+      <input id="fdQ" type="search" placeholder="펀드명·운용사 검색" aria-label="펀드명 검색">
+      <button class="btn sm" id="fdReset" type="button" hidden>필터 지우기</button>
+      <span class="fd-cnt" id="fdCnt"></span>
+    </div>
+  </div>
+  <div class="card"><h2>펀드별 <span class="sub">수정기준가(분배 반영) 수익률 · 작은 글씨 = BM 대비(%p) · 머리글을 누르면 정렬 · 줄을 누르면 상세</span></h2><div id="fdTable"><div class="empty">불러오는 중…</div></div></div>
   <div class="card" id="fdDetail" hidden></div>
-  <div class="card"><details class="rules"><summary>어떻게 계산했나요?</summary><ul id="fdRules"></ul></details></div>
+  <div class="card"><div class="gd-hd" style="margin:0"><h2 style="margin:0">분류별 성과 분포 <span class="sub">막대 = 상·하위 25% 구간 · 굵은 눈금 = 중앙값 · 파란 점 = 비교 지수 · 이름을 누르면 그 분류만</span></h2><span class="seg vwin" id="fdPer"></span></div><div id="fdDist" style="margin-top:8px"></div></div>
+  <div class="card"><h2>자금 흐름 <span class="sub">순유입(추정) = 설정원본 증감 × 현재 기준가 · 분배 재투자도 유입으로 잡힘</span></h2><div id="fdFlow"></div></div>
+  <div class="card"><h2>운용사 <span class="sub">전체 분류군 합계 · 누르면 그 운용사 펀드만</span></h2><div id="fdMgrs"></div></div>
+  <div class="card"><details class="rules"><summary>대상·분류·계산 방법</summary><ul id="fdRules"></ul></details></div>
 </section>
 
 <!-- 백테스트 — 왼쪽 전략 목록 · 오른쪽 설정·기간·실행·결과 (macOS 설정 앱 모양) -->
@@ -1128,6 +1199,214 @@
     <div class="card"><h2>스트레스 — 전체 소진율 <span class="src code">CODE</span></h2><div id="stressHome"></div></div>
     <div class="card" id="hcBrief"><h2>일일 브리프 <span class="src" id="briefSrc">—</span></h2><div id="brief"></div></div>
     <div class="card" id="hcValid"><h2>데이터·한도 검증</h2><div id="validation"></div></div>
+  </div>
+</section>
+
+<!-- 화면 안내 — Main Screen(주식·마켓타이밍·위탁운용사·대시보드)의 데이터·읽는 법. 정적 글이라 공유본에서도 그대로 보인다.
+     숫자 기준은 코드(equity.py·valhist.py·fundamentals.py·quant.py·timing.py + universe/timing.json·spikes.py·limits.py·datahealth.py) 기준 — 그쪽을 바꾸면 여기도 고친다 -->
+<section class="page" id="page-guide">
+  <div class="bhead">
+    <div><div class="ptitle">화면 안내</div><div class="kv">Main Screen 네 화면 — 무엇을 보여 주고 어떻게 읽는지 · 매매 지시 아님</div></div>
+  </div>
+  <div class="card">
+    <div class="gd-toc">
+      <button class="btn sm" onclick="$('gd-common').scrollIntoView({behavior:'smooth'})">공통·기호</button>
+      <button class="btn sm" onclick="$('gd-equity').scrollIntoView({behavior:'smooth'})">주식</button>
+      <button class="btn sm" onclick="$('gd-timing').scrollIntoView({behavior:'smooth'})">마켓타이밍</button>
+      <button class="btn sm" onclick="$('gd-funds').scrollIntoView({behavior:'smooth'})">운용사·펀드</button>
+      <button class="btn sm" onclick="$('gd-home').scrollIntoView({behavior:'smooth'})">대시보드</button>
+    </div>
+  </div>
+
+  <!-- 공통 -->
+  <div class="card" id="gd-common">
+    <h2>먼저 알아 둘 것 <span class="sub">네 화면 공통</span></h2>
+    <ul class="gd-list">
+      <li><b>매매 지시가 아닙니다.</b> 모든 숫자는 과거 시세를 코드로 계산한 점검 자료입니다. 판단은 운용역이 합니다.</li>
+      <li><b>갱신</b> — 평일 16:30(국내 장 마감 뒤) 자동 갱신. 대부분 <b>종가 기준</b>이고, 화면 위 'Refinitiv 연결 · 날짜 시각 갱신'이 마지막 갱신입니다. 장중 값이 아닙니다.</li>
+      <li><b>원천</b> — 기본은 Refinitiv(LSEG) Workspace. 예외: <b>VIX 는 yfinance</b>(이 계정에 Refinitiv 권한 없음), 펀드·투자자예탁금·신용융자는 <b>금융투자협회</b> 공시.</li>
+      <li><b>통화</b> — 주가·지수 수익률은 <b>현지 통화 기준</b>(환율 효과 제외), 주식·ETF 는 배당 재투자 가격입니다. 원화로 투자한 결과와 다릅니다.</li>
+      <li><b>기준일이 항목마다 다릅니다</b> — 해외 시장은 시차로 하루 늦을 수 있고, 금투협 증시자금(예탁금·신용융자)은 결제 T+2 라 전 영업일 값입니다. 각 줄의 기준일을 함께 보세요(금리 줄 등은 5일 넘게 지난 값을 흐리게 표시).</li>
+      <li><b>'데이터 점검 N' 배지</b>(화면 위) — 자동 점검이 찾은 이상: 지연(기준일이 같은 시장보다 늦음) · 급변(하루 변화가 평소의 약 10배 이상) · 정지(값이 며칠째 그대로) · 누락. 배지를 누르면 목록이 열립니다.</li>
+      <li><b>위치(%)</b> — 여러 화면의 '1년 위치·5년 위치·PER 위치'는 모두 같은 뜻: 지금 값이 <b>자기 과거 범위</b> 안에서 몇 % 지점인지(지금보다 낮았던 날·달의 비율). 다른 시장·다른 자산과 비교한 값이 아닙니다.</li>
+    </ul>
+    <div class="section-label">기호·색</div>
+    <div class="gd-legend">
+      <div><span class="pos">+1.2%</span><span class="neg">−1.2%</span><span>초록 = 상승·좋음, 빨강 = 하락·나쁨(미국식 — 국내 증권사 화면과 반대)</span></div>
+      <div><span class="hm-cell d" style="--t:1">−3.0%</span><span class="hm-cell" style="--t:0">0.0%</span><span class="hm-cell u" style="--t:1">+3.0%</span><span>히트맵 — 색이 진할수록 그 기간 안에서 크게 움직임</span></div>
+      <div><b style="color:var(--cheap-ink)">파랑</b><b style="color:var(--rich-ink)">앰버</b><span>자기 과거 대비 싼 편(30% 이하) · 비싼 편(70% 이상)</span></div>
+      <div><span class="flow good">강세</span><span class="flow good">우호</span><span class="flow">중립</span><span class="flow bad">약세</span><span class="flow bad">매우 약세</span><span>흐름(기술 점수 말로)</span></div>
+      <div><span class="chip ron">위험선호</span><span class="chip rneu">중립</span><span class="chip roff">위험회피</span><span>마켓타이밍 판정</span></div>
+      <div><span class="chip OFF">참고</span><span class="chip OFF">보류</span><span class="chip WATCH">이력 축적 중</span><span>판정 안 함 · 지표 모자람 · 이력 쌓는 중</span></div>
+      <div><span class="chip NORMAL">정상</span><span class="chip WATCH">관찰</span><span class="chip WARN">경고</span><span class="chip REDUCE">축소</span><span class="chip HALT">중단</span><span>한도 단계(오른쪽일수록 심각)</span></div>
+      <div><span class="src code">CODE</span><span class="src agent">AGENT</span><span>코드가 계산 · AI 에이전트가 쓴 문장</span></div>
+      <div><span>흐린 줄 = 합성에서 뺐거나 신호로 쓰지 않는 항목 · <b>*</b> = 5년이 다 차지 않은 위치</span></div>
+    </div>
+  </div>
+
+  <!-- 주식 -->
+  <div class="card" id="gd-equity">
+    <div class="gd-hd"><h2>주식 <span class="sub">시장 대시보드 · 유니버스 · 전략</span></h2><button class="btn sm primary" onclick="showTab('equity');scrollTo(0,0)">이 화면 열기</button></div>
+    <p class="gd-lead">세계 주식시장이 지금 오르는 흐름인지, 무엇이 앞서는지, 얼마나 불안한지, 자기 과거보다 비싼지를 한 화면에 모았습니다.</p>
+    <div class="gd-secs">
+      <div class="gd-sec"><h3>결론 한 줄 · 타일</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>대표 7개 시장(KOSPI·S&amp;P500·유로스톡스50·닛케이·CSI300·니프티·대만) 중 오르는/내리는 흐름, VIX 수준, 3개월 앞서는 스타일·업종. 타일 = KOSPI·S&amp;P500 1개월 수익률, VIX, 앞서는 스타일·업종.</dd>
+        <dt>데이터</dt><dd>Refinitiv 일별 종가(2005년~, VIX 만 yfinance). 제목 아래에 계산 시각과 가격 기준일 범위.</dd>
+        <dt>읽는 법</dt><dd>VIX 15 미만 낮음 · 15~20 보통 · 20~30 높음 · 30 이상 매우 높음(25 이상이면 타일이 빨강).</dd>
+        <dt>주의</dt><dd>현지 통화 기준 — 환율 움직임은 빠져 있습니다.</dd></dl></div>
+      <div class="gd-sec"><h3>시장 한눈에 (히트맵)</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>국내·선진국·신흥국·스타일·섹터·우선주의 1일·1주·1개월 수익률과 PER 위치 막대. 위 두 줄 = 변동성 지수(VIX·VXN·VKOSPI·VSTOXX, 1년 중 위치)와 국내 금리·크레딧(기준금리·CD91·국고3년−기준·BBB− 스프레드·선물 베이시스, 1개월 변화).</dd>
+        <dt>데이터</dt><dd>PER·PBR 은 Refinitiv 월말 값(2016년~, 이번 달은 지금 값). ETF·지수는 지금 구성 종목 중 비중 상위 90%(최대 300종목)로 묶어 계산. 주 1회 갱신.</dd>
+        <dt>읽는 법</dt><dd>색 진하기는 <b>열마다</b> 따로 — 그 열 상위 10% 크기가 가장 진한 색(최소 1일 1%·1주 2%·1개월 4%). PER 위치 = 선택 기간(1·3·5·10년, 기본 5년) 월말 값 중 지금보다 낮았던 달의 비율, 눈금 = 중앙값. 금리 줄은 금리·스프레드가 오르면 빨강(여건이 조여짐), 베이시스는 색 없음.</dd>
+        <dt>주의</dt><dd>지금 구성을 과거에 고정한 근사(편입·상장폐지 반영 안 됨). 적자 종목이 많은 달은 비어 있음. 유니버스 표의 PER(구성 전체)과 값이 다를 수 있습니다.</dd></dl></div>
+      <div class="gd-sec"><h3>지역별 표</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>지수별 현재값, 1주·1개월·3개월·올해 수익률, 1년 고점 대비, 흐름.</dd>
+        <dt>읽는 법</dt><dd>1년 고점 대비 = 최근 252거래일 최고가에서 몇 % 내려와 있나. 흐름 = 대시보드 점수판과 같은 기술 점수를 말로 바꾼 것(강세 ≥ +30 · 우호 ≥ +10 · 중립 · 약세 ≤ −10 · 매우 약세 ≤ −30). '대용' = 지수 대신 비슷한 시리즈.</dd>
+        <dt>주의</dt><dd>기간은 달력 기준(1개월 = 한 달 전 같은 날 이전 마지막 값).</dd></dl></div>
+      <div class="gd-sec"><h3>스타일·팩터 / 섹터·테마</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>3개월 동안 비교 기준(행 아래 '○○ 대비')보다 얼마나 앞섰나(%p). 같은 날짜끼리 맞춘 가격비로 계산.</dd>
+        <dt>읽는 법</dt><dd>초록 막대 = 앞섬, 빨강 = 뒤처짐. 오른쪽 칩은 그 자체의 흐름.</dd>
+        <dt>주의</dt><dd>지난 3개월 상대 성과일 뿐 다음 3개월 예측이 아닙니다.</dd></dl></div>
+      <div class="gd-sec"><h3>변동성</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>VIX(5년 중앙값·1개월 변화), VXN·VKOSPI·VSTOXX(1년 중 위치), KOSPI200 실제 60일 변동성(5년 중 위치). 막대 = VIX 의 지난 1년 중 위치.</dd>
+        <dt>읽는 법</dt><dd>파란 안내 줄 = 옵션 보험료(VIX)와 S&amp;P500 실제 60일 변동성의 차이. 4%p 이상 높으면 보험(풋 매수)이 비싼 편, 0 이하면 싼 편.</dd>
+        <dt>주의</dt><dd>변동성이 높다고 곧 하락한다는 뜻은 아닙니다. 급등 뒤의 과거 결과는 마켓타이밍 '급등 매수'에서 봅니다.</dd></dl></div>
+      <div class="gd-sec"><h3>우선주</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>삼성전자우 ÷ 삼성전자 가격비와 1년 최저~최고 사이 위치, 해외 우선주 ETF(PFF) 흐름.</dd>
+        <dt>읽는 법</dt><dd>위치 70% 이상 = 우선주가 상대적으로 비싼 편, 30% 이하 = 싼 편.</dd></dl></div>
+      <div class="gd-sec"><h3>유니버스 (위 '유니버스' 버튼)</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>항목별 PER·선행 PER·PBR·배당과 자기 과거 위치. 행을 누르면 상위 10종목.</dd>
+        <dt>데이터</dt><dd>Refinitiv ETF 구성 종목 전체와 비중, 종목 PER(최근 실적)·선행 PER(컨센서스). 지수 자체는 이익 자료가 없어 대표 ETF 로 대신(S&amp;P500 = SPY, 나스닥100 = QQQ, KOSPI = EWY 등). 12시간 지나면 다시 받습니다.</dd>
+        <dt>읽는 법</dt><dd>묶음 PER = 묶음 시가총액 ÷ 묶음 이익(비중 가중 조화평균).</dd>
+        <dt>주의</dt><dd>PER 1 미만·PBR 0.05 미만은 원천 오류로 뺍니다.</dd></dl></div>
+      <div class="gd-sec"><h3>전략 (위 '전략' 버튼)</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>유니버스 문서의 주식 결합 전략 — 구조, 돈 버는 상황, 손익 형태, 주요 리스크, 백테스트 준비 상태(바로 가능·근사·데이터 필요) 또는 요약 결과.</dd>
+        <dt>주의</dt><dd>백테스트는 공개 데이터로 과거를 돌려 본 결과입니다.</dd></dl></div>
+    </div>
+    <div class="gd-myth"><h3>자주 하는 오해</h3><ul class="gd-list">
+      <li>"초록이면 살 때다" — 아닙니다. 그 기간에 올랐다는 뜻뿐입니다.</li>
+      <li>"PER 위치 90% = 다른 나라보다 비싸다" — 아닙니다. <b>자기 과거</b>보다 비싸다는 뜻입니다.</li>
+      <li>"같은 진하기 = 같은 수익률" — 히트맵은 열마다 기준이 다릅니다.</li>
+      <li>"원화로 번 수익률" — 현지 통화 기준입니다.</li>
+    </ul></div>
+  </div>
+
+  <!-- 마켓타이밍 -->
+  <div class="card" id="gd-timing">
+    <div class="gd-hd"><h2>마켓타이밍 <span class="sub">시그널 · 급등 매수</span></h2>
+      <button class="btn sm primary" onclick="showTab('timing');document.querySelector('#tmSeg .s[data-v=sig]').click();scrollTo(0,0)">이 화면 열기</button>
+      <button class="btn sm" onclick="showTab('timing');document.querySelector('#tmSeg .s[data-v=spk]').click();scrollTo(0,0)">급등 매수 열기</button></div>
+    <p class="gd-lead">여러 위험 신호를 정해진 규칙으로 판정해 '지금 위험선호인가 위험회피인가'를 한 줄로 모으고, 공포 지표가 튀었을 때 샀다면 과거에 어땠는지 보여 줍니다.</p>
+    <div class="gd-secs">
+      <div class="gd-sec"><h3>시그널 — 종합 결론</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>합성 점수와 결론(위험선호·중립·위험회피), 합성에 쓴 신호 중 판정별 개수, 합성에서 뺀 개수.</dd>
+        <dt>데이터</dt><dd>자동 갱신 때 저장소에 쌓인 시계열만 읽어 계산(평일 16:30).</dd>
+        <dt>읽는 법</dt><dd>신호마다 위험선호 +1 · 중립 0 · 위험회피 −1 → 같은 묶음끼리 평균 → 묶음 5개(VKOSPI · 미국 변동성 · 추세 · 크레딧 · 환율)를 같은 비중으로 평균. 점수 +0.33 초과 위험선호, −0.33 미만 위험회피, 그 사이 중립(정확히 ±0.33 은 중립).</dd>
+        <dt>주의</dt><dd>가중치는 최적화하지 않은 동일가중입니다. 밸류에이션·수급·베이시스는 표에만 보이고 합성에는 들어가지 않습니다.</dd></dl></div>
+      <div class="gd-sec"><h3>시그널 — 신호별 표</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>신호마다 현재값, 1년·5년 위치, 판정, 근거 등급, 기준일. 이름 아래 = 성격(동행 · 역발상 · 추세 · 배경 · 참고).</dd>
+        <dt>읽는 법</dt><dd>위치 = 1년(최근 252개)·5년(최근 1,260개) 관측 중 지금보다 낮았던 비율. 이름에 마우스를 올리면 그 신호의 지금 판정 기준이 나옵니다. 근거 등급 A 학술 연구 다수 · B 일부 · C 실무 관행.</dd>
+        <dt>상태</dt><dd>참고 = 방향 판정 안 함 · 보류 = 판정 지표가 모자람 · 이력 축적 중 n/60일 = 과거 자료가 없어 매일 쌓는 중(60일 전엔 판정 안 함) · 지연 = 기준일이 가장 최근 신호보다 5영업일(월말 밸류는 45일) 넘게 늦어 합성에서 뺌(값은 표시).</dd>
+        <dt>주의</dt><dd>'역발상' 신호(VKOSPI·VIX·신용융자·풋/콜)는 높을 때 위험회피로 세지만, 과거엔 극단 뒤 반등이 잦았습니다 — 행 아래 '역발상 참고' 문구를 함께 보세요.</dd></dl></div>
+    </div>
+    <div class="section-label">신호별 판정 기준 (universe/timing.json, 2026-10-26 판 — 바뀌면 화면 툴팁이 우선)</div>
+    <ul class="gd-list">
+      <li><b>VKOSPI</b> <span class="kv">역발상 · 합성</span> — 회피: 40 이상 그리고 1년 상위 10% · 선호: 20 미만 그리고 1년 하위 25%. Refinitiv.</li>
+      <li><b>VIX</b> <span class="kv">역발상 · 합성(미국 변동성)</span> — 회피: 30 이상 · 선호: 15 미만. yfinance.</li>
+      <li><b>VIX 기간구조(VIX ÷ VIX3M)</b> <span class="kv">동행 · 합성(미국 변동성)</span> — 회피: 1.0 이상(단기 공포가 장기보다 큼) · 선호: 0.85 이하. VIX 와 한 묶음으로 한 번만 셉니다.</li>
+      <li><b>KOSPI200 200일선 대비</b> <span class="kv">추세 · 합성</span> — 선호: +1% 이상 · 회피: −1% 이하.</li>
+      <li><b>KOSPI200 6개월 · 12−1개월 모멘텀</b> <span class="kv">추세 · 합성</span> — 선호: +2% 이상 · 회피: −2% 이하(12−1개월은 최근 1개월 제외).</li>
+      <li><b>회사채 AA− · BBB− 스프레드(3년, 국고 3년 대비)</b> <span class="kv">동행 · 합성(크레딧)</span> — 회피: 1년 z ≥ +2 이면서 20거래일 확대 중 · 선호: z ≤ −1. 금투협 최종호가(Refinitiv).</li>
+      <li><b>USD/KRW 20일 변화</b> <span class="kv">동행 · 합성(환율)</span> — 회피: 1년 z ≥ +2(원화 급락) · 선호: z ≤ −2.</li>
+      <li><b>KOSPI200 PER·PBR 자기 과거 위치</b> <span class="kv">배경 · 합성 제외</span> — 5년 상위 20% 비쌈 · 하위 20% 쌈.</li>
+      <li><b>선물 베이시스</b> <span class="kv">참고 · 합성 제외</span> — 1년 z ±2. <b>선물 미결제약정 20일 변화</b> <span class="kv">참고</span> — 판정 없음(방향을 알 수 없음).</li>
+      <li><b>신용융자 잔고(KOSPI 지수 대비)</b> <span class="kv">역발상 · 합성 제외</span> — 1년 상위 10% 회피 · 하위 10% 선호. 시가총액 대신 지수로 나눈 대용치라 값 자체는 뜻이 없고 위치만 봅니다.</li>
+      <li><b>투자자 예탁금 20일 증가율</b> <span class="kv">동행 · 합성 제외</span> — 1년 상위 10% 선호 · 하위 10% 회피.</li>
+      <li><b>KOSPI200 옵션 풋/콜 비율(거래량 5일 · 미결제약정)</b> <span class="kv">역발상 · 이력 축적 중</span> — 60일 쌓인 뒤, 쌓인 기간 상위 10% 회피 · 하위 10% 선호.</li>
+      <li><span class="kv">준비 중(원천 미확정)</span> — 외국인 선물 순매수, 프로그램 차익잔고.</li>
+    </ul>
+    <div class="gd-secs" style="margin-top:12px">
+      <div class="gd-sec"><h3>급등 매수 — 무엇을 묻나</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>"공포 지표가 튀었을 때 대표 자산을 한 번 사서 들고 있으면, 몇 개월 보유부터 승률 90% 이상이었나?" — 조합마다 발생 건수, 12개월 승률, 90% 도달 보유기간. 누르면 1~36개월 표.</dd>
+        <dt>조합</dt><dd>VIX ≥ 30 · ≥ 40 → 나스닥100(QQQ) · VKOSPI ≥ 40 이면서 1년 상위 10% → KOSPI200(KODEX 200) · MOVE ≥ 120 · 140 · 160 → 미국 장기국채(TLT)·국고 10년.</dd>
+        <dt>데이터</dt><dd>VIX 는 yfinance, 나머지 Refinitiv(배당 재투자 가격). 국고 10년은 금리로 총수익을 근사 재구성. 20시간 지나면 다시 계산.</dd></dl></div>
+      <div class="gd-sec"><h3>급등 매수 — 읽는 법</h3><dl class="gd-dl">
+        <dt>세는 법</dt><dd>종가가 기준을 넘으면 1건. 그 뒤 재무장 기준 아래로 내려오고 20거래일이 지나야 다음 건을 셉니다(같은 급등을 여러 번 세지 않게).</dd>
+        <dt>체결</dt><dd>신호 다음 거래일 종가에 1회 매수, 왕복 비용 0.1% 차감(0.3% 로 올린 결과는 펼쳐서).</dd>
+        <dt>하한</dt><dd>표본이 적은 만큼 깎은 승률(Wilson 하한, 단측 90%). 건수가 적을수록 승률과 차이가 큽니다.</dd>
+        <dt>90% 도달</dt><dd>그 보유기간과 더 긴 모든 기간에서 승률 ≥ 90%, 건수 ≥ 8, 하한 ≥ 75% 인 가장 짧은 기간(표의 굵은 줄). 없으면 '도달 안 함'.</dd>
+        <dt>흐린 줄</dt><dd>'신호 아님' — MOVE 는 12개월 승률 70% 미만이거나 90% 에 도달하지 않으면 단독 효과가 확인되지 않은 것으로 봅니다.</dd>
+        <dt>지금 상태</dt><dd>조건 충족 · 이미 센 구간 · 대기 · 재무장 대기(급등 뒤 아직 기준 아래로 안 내려옴), 마지막 발생일.</dd></dl></div>
+    </div>
+    <div class="gd-myth"><h3>자주 하는 오해</h3><ul class="gd-list">
+      <li>"위험회피 = 팔아라" — 아닙니다. 신호를 모은 상태 표시이고, 일부 신호는 극단일수록 오히려 반등 참고(역발상)입니다.</li>
+      <li>"승률 90% = 90% 확률로 오른다" — 과거 수 건~수십 건의 비율입니다. 하한과 '최악' 열을 함께 보세요.</li>
+      <li>"점수가 클수록 수익이 크다" — 점수는 방향 판정의 평균일 뿐 수익 크기를 예측하지 않습니다.</li>
+      <li>"매일 센 수치가 더 정확하다" — 같은 급등을 중복으로 센 과대평가 값이라 비교용으로만 둡니다.</li>
+    </ul></div>
+  </div>
+
+  <!-- ▼ 위탁운용사(→ 운용사·펀드) 안내 — 실제 화면(static/index.html renderFunds·funds.py·fund_universe.py·universe/fund_classes.json) 기준.
+       그쪽을 바꾸면 이 블록(▼~▲)만 고친다 -->
+  <div class="card" id="gd-funds">
+    <div class="gd-hd"><h2>운용사·펀드 <span class="sub">공모펀드 스크리닝</span></h2><button class="btn sm primary" onclick="showTab('funds');scrollTo(0,0)">이 화면 열기</button></div>
+    <p class="gd-lead">공모 주식형 펀드를 분류별로 모아, 같은 분류 안에서 성과 순위와 자금 흐름을 비교합니다. 운용사를 고르면 그 운용사 펀드만 봅니다.</p>
+    <div class="gd-secs">
+      <div class="gd-sec"><h3>대상과 거르기</h3><dl class="gd-dl">
+        <dt>대상</dt><dd>국내주식 액티브 · 국내주식 인덱스 · 해외주식 공모펀드. ETF·재간접(TDF·EMP)·사모·모펀드·레버리지·인버스·ELS 연계는 제외.</dd>
+        <dt>거르기</dt><dd>합산 순자산 100억 이상, 설정 후 1년 이상. 빠진 펀드 수는 화면 맨 아래 '대상·분류·계산 방법'에 사유별로 나옵니다.</dd>
+        <dt>클래스</dt><dd>같은 펀드의 클래스를 하나로 묶음(이름에서 클래스 꼬리를 뗀 이름 + 운용사). 순자산·자금 = 판매 클래스 합(운용 계정 제외), 수익률·위험·보수 = 대표 클래스(C-e, 없으면 순자산이 가장 큰 판매 클래스).</dd>
+        <dt>분류</dt><dd>금투협 '펀드운용실적비교'의 공식 소유형(월말 기준)이 1차. 국내 일반만 펀드명 키워드로 가치·배당·중소형·성장을 나누고 나머지는 '일반'. 공식 '성장주'는 성장, '섹터'는 테마·업종으로 그대로. 해외는 주요투자지역별, 섹터·테마는 따로.</dd></dl></div>
+      <div class="gd-sec"><h3>화면 구성</h3><dl class="gd-dl">
+        <dt>맨 위</dt><dd>분류군 탭(국내 액티브 · 국내 인덱스 · 해외) → 분류 칩(테마는 테두리 칩) · 운용사 고르기 · 펀드명 검색.</dd>
+        <dt>펀드 표</dt><dd>기본은 분류 안 1년 백분위 높은 순. 머리글을 누르면 정렬(다시 누르면 반대). 수익률 1주~3년 아래 작은 글씨 = 비교 지수 대비 %p. 순자산·1개월 순유입·총보수·1년 변동성·1년 최대낙폭. 50개씩 '더 보기'. USD 표시는 달러 기준가 클래스.</dd>
+        <dt>상세</dt><dd>줄을 누르면 3년 주간 누적 차트(펀드 · 비교 지수 · 분류 중앙값, 펀드 첫 점 = 100)와 기간별 순위·보수·위험.</dd>
+        <dt>아래 칸</dt><dd>분류별 성과 분포(상·하위 25% 구간 · 중앙값 · 비교 지수, 기간 고르기) · 자금 흐름(분류별 1·3개월 순유입, 1개월 순유입·순유출 상위 10) · 운용사 요약(펀드 수 · 순자산 · 1년 백분위 평균 · 상위 25% 펀드 수 · 순유입 — 누르면 그 운용사만).</dd></dl></div>
+      <div class="gd-sec"><h3>숫자 기준</h3><dl class="gd-dl">
+        <dt>수익률</dt><dd>수정기준가(분배 반영, 보수 차감 후). 기간은 달력 기준 직전 기준일, YTD 는 올해 첫 기준가부터.</dd>
+        <dt>백분위</dt><dd>같은 분류 안 위치 — (나보다 낮은 펀드 + 같은 펀드 ½) ÷ 펀드 수. 100 에 가까울수록 상위. 순위 1 = 최고.</dd>
+        <dt>비교 지수</dt><dd>국내 액티브 KOSPI(중소형은 KOSDAQ) · 국내 인덱스 KOSPI200 · 해외 미국 S&amp;P500 · 중국 항셍 · 일본 닛케이225 · 인도 Nifty50 · 유럽 유로스톡스50 · 신흥국 EEM · 아시아 AAXJ(ETF 대용). 해외 글로벌·베트남·기타 지역·테마는 '비교 지수 없음'. 가격 지수라 배당만큼 펀드가 앞서 보이고, 환노출(UH) 펀드는 원화로 환산해 비교.</dd>
+        <dt>자금</dt><dd>순유입(추정) = 설정원본 증감 × 현재 기준가(분배 재투자도 유입으로 잡힘). 순자산 증감은 시장 등락까지 섞인 값.</dd>
+        <dt>데이터</dt><dd>금융투자협회 전자공시(기준가·설정원본·결산·보수). 평일 16:30 자동 갱신, 하루 1회.</dd></dl></div>
+    </div>
+    <div class="gd-myth"><h3>주의</h3><ul class="gd-list">
+      <li>국내 일반의 가치·배당·중소형·성장은 펀드명 키워드로 나눈 것이라 일부가 잘못 분류될 수 있습니다.</li>
+      <li>지난 성과 순위는 앞으로의 순위를 보장하지 않습니다. 같은 분류 안 상대 비교일 뿐입니다.</li>
+      <li>USD 클래스는 달러 기준가 그대로 계산해 금투협 공시(원화 환산) 수익률과 다를 수 있습니다.</li>
+    </ul></div>
+  </div>
+  <!-- ▲ 위탁운용사 안내 끝 -->
+
+  <!-- 대시보드 -->
+  <div class="card" id="gd-home">
+    <div class="gd-hd"><h2>대시보드 <span class="sub">한도 · 유니버스 점수판 · 오늘 할 일</span></h2><button class="btn sm primary" onclick="showTab('home');scrollTo(0,0)">이 화면 열기</button></div>
+    <p class="gd-lead">운용 손실한도가 얼마나 찼는지, 유니버스 전체가 어느 쪽으로 흐르는지, 오늘 처리할 일이 무엇인지를 한 화면에 모았습니다.</p>
+    <div class="gd-secs">
+      <div class="gd-sec"><h3>한도 게이지 (전체·채권·주식·환)</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>한도 소진율(%)과 단계 칩, 손실·한도·여유(억), 포지션 손절 단계.</dd>
+        <dt>데이터</dt><dd>포지션 파일과 한도표(data/positions.json · data/limits.json). 예시·가안이면 화면 위에 안내가 뜹니다.</dd>
+        <dt>읽는 법</dt><dd>소진율 = 손실 ÷ 한도(올해 평가손익, 환헤지 비용 차감 후, 이익이면 0%). 막대 위 눈금 = 한도표에 정한 경고·축소·중단 기준. 포지션은 손절금액의 70% 에 다가가면 경고, 닿으면 축소.</dd>
+        <dt>주의</dt><dd>0% 는 '손실이 없다'는 뜻이지 위험이 없다는 뜻이 아닙니다 — 스트레스 카드를 함께 보세요.</dd></dl></div>
+      <div class="gd-sec"><h3>유니버스 점수판</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>주식 유니버스(국내·선진국·신흥국·스타일·섹터·우선주)와 정량 스캐너(주가지수·환율·채권·원자재)의 기술 점수 게이지와 묶음 평균.</dd>
+        <dt>계산</dt><dd>−100(약세) ~ +100(강세) = 추세(200일선 대비) 35% + 6개월 모멘텀 35% + 1개월 모멘텀 15% + RSI 역추세 15%(과열이면 깎음). 각 항목은 자기 변동성으로 나눠 자산끼리 비교되게 합니다. 일별 종가 1년 이상 필요.</dd>
+        <dt>읽는 법</dt><dd>강세 ≥ +30 · 우호 ≥ +10 · 중립 ±10 · 약세 ≤ −10 · 매우 약세 ≤ −30. 반원 왼쪽 끝 −100, 꼭대기 0, 오른쪽 끝 +100. 채권은 금리를 가격으로 바꿔 계산(금리 하락 = 점수 상승). 마우스를 올리면(폰은 한 번 누르면) 1년 차트·점수 구성, 누르면 해당 탭.</dd>
+        <dt>주의</dt><dd>관례적 기술 지표로, 지금까지의 흐름 요약입니다. 추세 추종이라 방향이 바뀌는 시점에는 늦습니다.</dd></dl></div>
+      <div class="gd-sec"><h3>발동 신호 · 오늘 할 일</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>일일 점검(코드)이 낸 한도·손절 경고와 조치 기한, 보류 중 점검 보고서, 점검 권고(시장 급변·손실한도 접근), 채택 안 된 MP.</dd>
+        <dt>읽는 법</dt><dd>등급 하한 = 전체·자산·포지션 단계 중 가장 높은 것. 모두 정상이어도 스트레스 후 축소·중단에 닿으면 '관찰'.</dd>
+        <dt>주의</dt><dd>일일 점검을 실행해야 채워집니다. 비어 있는 카드는 맨 위 한 줄 띠로 모입니다.</dd></dl></div>
+      <div class="gd-sec"><h3>MP 괴리 · 스트레스 · 브리프 · 검증</h3><dl class="gd-dl">
+        <dt>MP 괴리</dt><dd>채택한 모델 포트(MP)와 지금 비중의 차이 상위 5개.</dd>
+        <dt>스트레스</dt><dd>시나리오별 손실(억)과 그 뒤 전체 소진율·단계. '참고' 시나리오는 최악 판정에서 빼고, '사이징'은 규모 산정용입니다.</dd>
+        <dt>브리프</dt><dd>일일 점검 때 생성. AGENT 표시 = AI 에이전트가 쓴 해석(숫자는 코드 계산).</dd>
+        <dt>검증</dt><dd>⛔ 오류 · ⚠ 경고 — 데이터·한도표 입력 문제.</dd></dl></div>
+    </div>
+    <div class="gd-myth"><h3>자주 하는 오해</h3><ul class="gd-list">
+      <li>"점수 +60 이면 앞으로 오른다" — 지금까지 흐름이 강했다는 뜻입니다.</li>
+      <li>"게이지가 낮으면 안전하다" — 현재 손익 기준입니다. 급변 시 손실은 스트레스 카드가 보여 줍니다.</li>
+      <li>"브리프는 사람이 검토한 의견" — AGENT 표시는 AI 가 쓴 문장입니다. 근거 숫자를 확인하세요.</li>
+    </ul></div>
   </div>
 </section>
 
@@ -2289,60 +2568,202 @@ function renderTmSpk(){
     return `<tr><td data-tip="${esc(t.rule || '')}"><b>${esc(t.name)}</b><div class="kv">${esc(t.source || '')}</div></td><td class="num">${num(c.value, 2)}<div class="kv">${esc(c.as_of || '')}</div></td><td>${stt}</td><td class="kv">${c.last_event ? `${esc(c.last_event)}<br>${c.days_since_last_event}거래일 전` : '-'}</td></tr>`; }).join('')}</table>`;
   $('spkRules').innerHTML = Object.values(m.definitions || {}).map(t => `<li>${esc(t)}</li>`).join('') + (cp.note ? `<li>${esc(cp.note)}</li>` : '');
 }
-// ── 위탁운용사 — 예시 공모펀드(funds.json). 숫자는 funds.py 가 금투협 전자공시에서 받아 계산하고 화면은 읽기만 한다
-let FD = {d: null, sel: null};
-const FD_P = [['1W', '1주', 'c-mid'], ['1M', '1개월', ''], ['3M', '3개월', 'c-mid'], ['YTD', 'YTD', 'c-opt'], ['1Y', '1년', '']];
-const fdBm = b => b ? `${b.name} — ${b.kind === 'yield_accrual' ? '금리를 날짜 수만큼 쌓은 지수' : '가격 지수(배당 제외)'} · 펀드 기준일 D 에 BM 은 ${b.lag}거래일 앞 값` : '';
-const fdEok = (v, d = 0) => v === null || v === undefined ? '-' : num(v, d) + '억';
-const fdChg = (pct, eok) => pct === null || pct === undefined ? '-' : `${sgf(pct, 1)}% (${sg(eok, 0)}억)`;
+// ── 운용사·펀드 — 공모펀드 스크리닝(funds.json). 숫자는 funds.py 가 금투협 전자공시에서 받아 계산하고 화면은 읽기만 한다
+//    분류군(국내 액티브·국내 인덱스·해외) → 분류 칩 · 운용사 · 이름 검색 → 표(기본 1년 백분위 높은 순). 상세 차트는 /api/funds/<코드>
+const FD = {d: null, fam: 'kr_active', grp: null, mgr: '', q: '', sort: {k: 'pct', p: '1Y', dir: -1}, per: '1Y', show: 50, sel: null, mgrAll: false, req: 0};
+const FD_P = [['1W', '1주', 'c-mid'], ['1M', '1개월', 'c-opt'], ['3M', '3개월', 'c-mid'], ['YTD', 'YTD', 'c-opt'], ['1Y', '1년', ''], ['3Y', '3년', 'c-opt']];
+const FD_PL = Object.fromEntries(FD_P.map(([k, l]) => [k, l]));
+const FD_FAM = [['kr_active', '국내 액티브'], ['kr_index', '국내 인덱스'], ['global', '해외']];
+const FD_KIND = {style: '스타일', theme: '테마', index: '인덱스', region: '지역'};
+const fdNz = v => v !== null && v !== undefined && isFinite(v);
+const fdP = (v, d = 1) => fdNz(v) ? num(v, d) + '%' : '-';
+const fdEok = (v, d = 0) => fdNz(v) ? num(v, d) + '억' : '-';
+const fdFlow = v => fdNz(v) ? `<span class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${sg(v, 0)}억</span>` : '<span class="kv">-</span>';
+const fdGroup = id => ((FD.d && FD.d.groups) || []).find(g => g.id === id);
+const fdFund = id => ((FD.d && FD.d.funds) || []).find(f => f.id === id);
+const fdUsd = f => f.currency === 'USD' ? '<span class="fd-usd" data-tip="달러 표시 클래스 — 수익률이 달러 기준가 그대로(원화 환산 아님)라 금투협 공시 수익률과 다를 수 있습니다">USD</span>' : '';
 async function loadFunds(){
-  try { FD.d = await api('/api/funds'); renderFunds(); } catch(e){ $('fdTable').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+  try { FD.d = await api('/api/funds'); renderFunds(); }
+  catch(e){ $('fdTable').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+function fdSort(k, p){   // 같은 머리글을 다시 누르면 방향만 바꾼다
+  const s = FD.sort;
+  if(s.k === k && (s.p || null) === (p || null)) s.dir = -s.dir;
+  else FD.sort = {k, p: p || s.p, dir: ['name', 'fee', 'vol'].includes(k) ? 1 : -1};
+  FD.show = 50; renderFdTable();
+}
+function fdRows(){
+  const q = FD.q.trim().toLowerCase();
+  return (FD.d.funds || []).filter(f => f.family === FD.fam && (!FD.grp || f.group_id === FD.grp) && (!FD.mgr || f.manager_cd === FD.mgr)
+    && (!q || (f.name || '').toLowerCase().includes(q) || (f.manager || '').toLowerCase().includes(q)));
+}
+function fdKey(f){
+  const s = FD.sort;
+  return s.k === 'pct' ? (f.pct || {})[s.p] : s.k === 'r' ? (f.returns || {})[s.p] : s.k === 'aum' ? f.aum_eok : s.k === 'flow' ? (f.flows || {}).flow_eok_1m
+    : s.k === 'fee' ? (f.fees || {}).total : s.k === 'vol' ? (f.risk || {}).vol_1y : s.k === 'mdd' ? (f.risk || {}).mdd_1y : f.name;
 }
 function renderFunds(){
-  const d = FD.d || {}, fs = d.funds || [], m = d.meta || {};
-  $('fdMeta').textContent = d.generated_at ? `기준가 ${m.as_of || '-'} · 보수 공시 ${m.fee_as_of || '-'} · ${d.generated_at.replace('T', ' ').slice(5, 16)} 계산 · 출처 ${(m.sources || []).join(', ')} · 예시 펀드` : '아직 없음';
+  const d = FD.d || {}, m = d.meta || {}, fs = d.funds || [];
+  const rop = m.rop_month ? `${m.rop_month.slice(0, 4)}-${m.rop_month.slice(4)}` : '-';
+  $('fdMeta').textContent = d.generated_at ? `기준가 ${m.as_of || '-'} · 분류 ${rop}월말 · 보수 공시 ${m.fee_as_of || '-'} · 펀드 ${m.n_ok ?? '-'}/${m.n_total ?? '-'}개 · ${d.generated_at.replace('T', ' ').slice(5, 16)} 계산 · 출처 ${(m.sources || []).join(', ')} · 매매 지시 아님` : '아직 없음';
   $('fdMeta').title = $('fdMeta').textContent;
-  $('fdRules').innerHTML = [d.method, ...(m.notes || []), m.hist_start ? `기준가 이력 ${m.hist_start}부터 받음(최대낙폭 '전체'는 이 시작 이후).` : ''].filter(Boolean).map(x => `<li>${esc(x)}</li>`).join('');
-  if(!d.generated_at || !fs.length){ $('fdTable').innerHTML = '<div class="empty">아직 계산 결과가 없습니다 — 자동 갱신(평일 16:30)을 기다리거나 운영 PC 에서 python funds.py 를 실행하세요.</div>'; $('fdDetail').hidden = true; return; }
-  if(!fs.some(f => f.code === FD.sel)) FD.sel = (fs.find(f => f.ok) || fs[0]).code;
-  const ret = (f, k) => { const ex = (f.excess || {})[k];
-    return `${pc((f.returns || {})[k], 2)}${ex === null || ex === undefined ? '' : `<div class="fd-ex">BM <b>${sgf(ex, 2)}</b>%p</div>`}`; };
-  $('fdTable').innerHTML = `<table class="fdt"><tr><th>펀드</th><th class="num c-opt">기준가</th>${FD_P.map(([, l, c]) => `<th class="num ${c}">${l}</th>`).join('')}<th class="num">순자산</th><th class="num c-opt">총보수</th><th class="num c-opt">1년 변동성</th><th class="num c-opt">1년 MDD</th></tr>${
-    fs.map(f => { const fl = f.flows || {}, rk = f.risk || {}, fe = f.fees || {};
-      if(!f.ok) return `<tr class="fd-r off" data-code="${esc(f.code)}" tabindex="0"><td class="nm"><b>${esc(f.name)}</b><span>${esc(f.manager || '')} · ${esc(f.type || '')}</span><div class="tm-why">기준가를 받지 못함 — 아래 받기 문제 참고</div></td><td colspan="10" class="kv">-</td></tr>`;
-      return `<tr class="fd-r${f.code === FD.sel ? ' on' : ''}" data-code="${esc(f.code)}" tabindex="0" aria-selected="${f.code === FD.sel}">
-        <td class="nm"><b>${esc(f.name)}</b><span>${esc(f.manager || '')} · ${esc(f.type || '')}<i class="fd-n"> · 총보수 ${fe.total === undefined || fe.total === null ? '-' : num(fe.total, 3) + '%'} · MDD ${rk.mdd_1y === undefined || rk.mdd_1y === null ? '-' : Number(rk.mdd_1y).toFixed(1) + '%'}</i></span></td>
-        <td class="num c-opt">${num(f.nav, 2)}<div class="fd-sub">${esc((f.nav_date || '').slice(5))}</div></td>
-        ${FD_P.map(([k, , c]) => `<td class="num ${c}">${ret(f, k)}</td>`).join('')}
-        <td class="num">${fdEok(f.aum_eok)}<div class="fd-sub" data-tip="${esc(`순자산 3개월 ${fdChg(fl.aum_chg_3m_pct, fl.aum_chg_3m_eok)} · 설정원본 1개월 ${fdChg(fl.units_chg_1m_pct, fl.units_chg_1m_eok)}`)}">1M ${fl.aum_chg_1m_pct === null || fl.aum_chg_1m_pct === undefined ? '-' : sgf(fl.aum_chg_1m_pct, 1) + '%'}<span class="c-mid"> · 3M ${fl.aum_chg_3m_pct === null || fl.aum_chg_3m_pct === undefined ? '-' : sgf(fl.aum_chg_3m_pct, 1) + '%'}</span></div></td>
-        <td class="num c-opt">${fe.total === undefined || fe.total === null ? '-' : num(fe.total, 3) + '%'}</td>
-        <td class="num c-opt">${rk.vol_1y === undefined || rk.vol_1y === null ? '-' : num(rk.vol_1y, 1) + '%'}<div class="fd-sub">BM ${rk.bm_vol_1y === undefined || rk.bm_vol_1y === null ? '-' : num(rk.bm_vol_1y, 1) + '%'}</div></td>
-        <td class="num c-opt">${rk.mdd_1y === undefined || rk.mdd_1y === null ? '-' : Number(rk.mdd_1y).toFixed(1) + '%'}<div class="fd-sub">BM ${rk.bm_mdd_1y === undefined || rk.bm_mdd_1y === null ? '-' : Number(rk.bm_mdd_1y).toFixed(1) + '%'}</div></td></tr>`; }).join('')}</table>
-    ${(m.errors || []).length ? `<div class="callout warn" style="margin-top:8px">받기 문제: ${m.errors.map(esc).join(' / ')}</div>` : ''}
-    <div class="kv" style="margin-top:8px">예시 공모펀드(실제 위탁 계약과 무관) · 기간은 달력 기준(직전 기준일) · 순자산 증감은 시장 등락과 자금 유출입이 섞인 값(설정원본 증감 = 자금 유출입 쪽)입니다.</div>`;
-  document.querySelectorAll('#fdTable tr.fd-r').forEach(tr => { const go = () => { FD.sel = tr.dataset.code; renderFunds(); };
-    tr.onclick = go; tr.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } }; });
-  renderFundDetail(fs.find(f => f.code === FD.sel));
+  renderFdRules();
+  if(!d.generated_at || !fs.length){
+    $('fdTable').innerHTML = '<div class="empty">아직 계산 결과가 없습니다 — 자동 갱신(평일 16:30)을 기다리거나 운영 PC 에서 python -X utf8 funds.py 를 실행하세요.</div>';
+    ['fdGroups', 'fdDist', 'fdFlow', 'fdMgrs'].forEach(k => $(k).innerHTML = ''); $('fdDetail').hidden = true; return;
+  }
+  const cnt = fam => fs.filter(f => f.family === fam).length;
+  $('fdFam').innerHTML = FD_FAM.map(([k, l]) => `<span class="s${k === FD.fam ? ' on' : ''}" data-v="${k}">${l} <span class="kv">${cnt(k)}</span></span>`).join('');
+  $('fdFam').querySelectorAll('.s').forEach(b => b.onclick = () => { FD.fam = b.dataset.v; FD.grp = null; FD.show = 50; renderFunds(); });
+  $('fdPer').innerHTML = (m.periods || FD_P.map(p => p[0])).map(p => `<span class="s${p === FD.per ? ' on' : ''}" data-v="${p}">${FD_PL[p] || p}</span>`).join('');
+  $('fdPer').querySelectorAll('.s').forEach(b => b.onclick = () => { FD.per = b.dataset.v; renderFunds(); });
+  renderFdFilters(); renderFdTable(); renderFdDist(); renderFdFlow(); renderFdMgrs();
 }
-function renderFundDetail(f){
-  const box = $('fdDetail');
-  if(!f || !f.ok){ box.hidden = true; return; }
-  box.hidden = false;
-  const c = f.chart || {}, fe = f.fees || {}, fl = f.flows || {}, rk = f.risk || {}, b = f.bm || {}, br = f.bm_returns || {};
-  const pf = (v, d = 1) => v === null || v === undefined ? '-' : num(v, d) + '%';
-  const chart = (c.dates || []).length > 1 ? `<div class="legend"><span><i style="background:var(--series-1)"></i>펀드(수정기준가)</span><span><i style="background:var(--series-bench)"></i>${esc(b.name || 'BM')}</span><span class="kv">주간 · 시작 = 100 · ${esc(c.dates[0])}부터</span></div>
-    ${lineChart(c.dates, [{vals: c.bm, color: 'var(--series-bench)', ink: 'var(--muted)', w: 1.5}, {vals: c.fund, color: 'var(--series-1)', w: 2.2}], {base: 100, label: `${f.name} 누적 수익 대 ${b.name || 'BM'}`})}` : '<div class="empty">차트 이력이 없습니다.</div>';
-  box.innerHTML = `<h2>${esc(f.name)} <span class="sub">${esc([f.manager, f.type, f.code].filter(Boolean).join(' · '))}</span></h2>${chart}
-    <table class="fdr" style="margin-top:8px"><tr><th></th>${FD_P.map(([, l, cl]) => `<th class="num${cl === 'c-opt' ? ' c-opt' : ''}">${l}</th>`).join('')}</tr>
-      <tr><td><b>펀드</b></td>${FD_P.map(([k, , cl]) => `<td class="num${cl === 'c-opt' ? ' c-opt' : ''}">${pc((f.returns || {})[k], 2)}</td>`).join('')}</tr>
-      <tr><td>${esc(b.name || 'BM')}</td>${FD_P.map(([k, , cl]) => `<td class="num${cl === 'c-opt' ? ' c-opt' : ''}">${pc(br[k], 2)}</td>`).join('')}</tr>
-      <tr><td>초과(%p)</td>${FD_P.map(([k, , cl]) => { const v = (f.excess || {})[k]; return `<td class="num${cl === 'c-opt' ? ' c-opt' : ''}">${v === null || v === undefined ? '-' : `<span class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${sgf(v, 2)}</span>`}</td>`; }).join('')}</tr></table>
+function renderFdFilters(){
+  const gs = (FD.d.groups || []).filter(g => g.family === FD.fam), n = gs.reduce((a, g) => a + g.n, 0);
+  const chip = g => `<button type="button" class="fd-chip${g.kind === 'theme' ? ' th' : ''}${FD.grp === g.id ? ' on' : ''}" data-g="${esc(g.id)}" data-tip="${esc(`${FD_KIND[g.kind] || g.kind} · 순자산 ${num(g.aum_eok, 0)}억 · 비교 지수 ${g.bm ? g.bm.name : '없음'}`)}">${esc(g.group)} <i>${g.n}</i></button>`;
+  const main = gs.filter(g => g.kind !== 'theme'), th = gs.filter(g => g.kind === 'theme');
+  $('fdGroups').innerHTML = `<button type="button" class="fd-chip${FD.grp ? '' : ' on'}" data-g="">전체 <i>${n}</i></button>`
+    + (main.length ? `<span class="fd-sep">${FD_KIND[main[0].kind] || ''}</span>` + main.map(chip).join('') : '')
+    + (th.length ? '<span class="fd-sep">테마</span>' + th.map(chip).join('') : '');
+  $('fdGroups').querySelectorAll('.fd-chip').forEach(b => b.onclick = () => { FD.grp = b.dataset.g || null; FD.show = 50; renderFdTable(); renderFdFilters(); });
+  const ms = {}; (FD.d.funds || []).filter(f => f.family === FD.fam).forEach(f => { ms[f.manager_cd] = ms[f.manager_cd] || {n: 0, name: f.manager}; ms[f.manager_cd].n++; });
+  if(FD.mgr && !ms[FD.mgr]){ const mm = (FD.d.managers || []).find(x => x.manager_cd === FD.mgr); ms[FD.mgr] = {n: 0, name: mm ? mm.manager : FD.mgr}; }
+  $('fdMgr').innerHTML = '<option value="">운용사 전체</option>' + Object.entries(ms).sort((a, b) => b[1].n - a[1].n || a[1].name.localeCompare(b[1].name))
+    .map(([cd, x]) => `<option value="${esc(cd)}"${cd === FD.mgr ? ' selected' : ''}>${esc(x.name)} (${x.n})</option>`).join('');
+  $('fdQ').value = FD.q;
+  $('fdReset').hidden = !(FD.grp || FD.mgr || FD.q);
+}
+$('fdMgr').onchange = () => { FD.mgr = $('fdMgr').value; FD.show = 50; renderFdTable(); renderFdFilters(); renderFdMgrs(); };
+$('fdQ').oninput = () => { FD.q = $('fdQ').value; FD.show = 50; renderFdTable(); $('fdReset').hidden = !(FD.grp || FD.mgr || FD.q); };
+$('fdReset').onclick = () => { FD.grp = null; FD.mgr = ''; FD.q = ''; FD.show = 50; renderFunds(); };
+function renderFdTable(){
+  const s = FD.sort, rows = fdRows(), rp = s.k === 'r' ? s.p : s.k === 'pct' ? s.p : '1Y';
+  rows.sort((a, b) => { const x = fdKey(a), y = fdKey(b);
+    if(!fdNz(x) && typeof x !== 'string') return fdNz(y) || typeof y === 'string' ? 1 : 0;
+    if(!fdNz(y) && typeof y !== 'string') return -1;
+    return (typeof x === 'string' ? x.localeCompare(y) : x - y) * s.dir; });
+  $('fdCnt').textContent = `${rows.length}개${rows.length > FD.show ? ` 중 ${FD.show}개 표시` : ''}`;
+  const th = (k, p, label, cls = '') => { const on = s.k === k && (!p || s.p === p);
+    return `<th class="srt ${cls}${on ? ' on' : ''}" data-k="${k}"${p ? ` data-p="${p}"` : ''} data-dir="${s.dir < 0 ? '▼' : '▲'}">${label}</th>`; };
+  const ret = (f, k) => { const ex = (f.excess || {})[k];
+    return `${pc((f.returns || {})[k], 1)}${fdNz(ex) ? `<div class="fd-ex">BM <b>${sgf(ex, 1)}</b></div>` : ''}`; };
+  if(!rows.length){ $('fdTable').innerHTML = '<div class="empty">조건에 맞는 펀드가 없습니다.</div>'; return; }
+  $('fdTable').innerHTML = `<table class="fdt"><tr>${th('pct', rp, `분류 내<br><span class="kv">${FD_PL[rp]} 백분위</span>`, 'num')}${th('name', null, '펀드')}${FD_P.map(([k, l, c]) => th('r', k, l, 'num ' + c)).join('')}${th('aum', null, '순자산', 'num')}${th('flow', null, '1M 유입', 'num c-opt')}${th('fee', null, '총보수', 'num c-opt')}${th('vol', null, '변동성', 'num c-mid')}${th('mdd', null, '1Y MDD', 'num c-opt')}</tr>${
+    rows.slice(0, FD.show).map(f => { const fl = f.flows || {}, rk = f.risk || {}, fe = f.fees || {}, p = (f.pct || {})[rp], r = (f.rank || {})[rp], g = fdGroup(f.group_id) || {};
+      const sub = [f.manager, FD.grp ? '' : f.group, f.theme || '', f.hedge || '', f.rep_class ? `${f.rep_class}${f.n_classes > 1 ? ` 외 ${f.n_classes - 1}` : ''}` : ''].filter(Boolean).map(esc).join(' · ');
+      return `<tr class="fd-r${f.id === FD.sel ? ' on' : ''}" data-id="${esc(f.id)}" tabindex="0">
+        <td class="num rk" data-tip="${esc(`${g.group || ''} ${f.n_group}개 중 ${FD_PL[rp]} 수익률 ${r ?? '-'}위 · 백분위 = 나보다 낮은 펀드 + 같은 펀드 ½ (높을수록 상위)`)}"><b>${fdNz(p) ? num(p, 0) : '-'}</b>${fdNz(p) ? `<div class="pctl sm"><i style="left:${p}%"></i></div>` : ''}<div class="fd-sub">${r ?? '-'}/${f.n_group}위</div></td>
+        <td class="nm"><b>${esc(f.name)}</b>${fdUsd(f)}<span>${sub}<i class="fd-n"> · 순유입 1M ${fdNz(fl.flow_eok_1m) ? sg(fl.flow_eok_1m, 0) + '억' : '-'} · 총보수 ${fdP(fe.total, 2)}</i></span></td>
+        ${FD_P.map(([k, , c]) => `<td class="num ${c}">${ret(f, k)}</td>`).join('')}
+        <td class="num">${fdEok(f.aum_eok)}<div class="fd-sub" data-tip="${esc(`순자산 증감 1개월 ${fdNz(fl.aum_chg_eok_1m) ? sg(fl.aum_chg_eok_1m, 0) + '억' : '-'} · 3개월 ${fdNz(fl.aum_chg_eok_3m) ? sg(fl.aum_chg_eok_3m, 0) + '억' : '-'} · 순유입(추정) 3개월 ${fdNz(fl.flow_eok_3m) ? sg(fl.flow_eok_3m, 0) + '억' : '-'}`)}">3M ${fdNz(fl.flow_eok_3m) ? sg(fl.flow_eok_3m, 0) + '억' : '-'}</div></td>
+        <td class="num c-opt">${fdFlow(fl.flow_eok_1m)}</td>
+        <td class="num c-opt">${fdP(fe.total, 2)}</td>
+        <td class="num c-mid">${fdP(rk.vol_1y)}</td>
+        <td class="num c-opt">${fdP(rk.mdd_1y)}</td></tr>`; }).join('')}</table>
+    ${rows.length > FD.show ? `<div class="fd-more"><button class="btn sm" type="button" id="fdMore">${Math.min(50, rows.length - FD.show)}개 더 보기</button><button class="btn sm" type="button" id="fdAll">전부 보기(${rows.length})</button></div>` : ''}
+    <div class="kv" style="margin-top:8px">순자산 아래 = 3개월 순유입(추정) · USD = 달러 표시 클래스 · 펀드 = 클래스 묶음(수익률은 대표 클래스, 순자산·자금은 클래스 합)</div>`;
+  $('fdTable').querySelectorAll('th.srt').forEach(h => h.onclick = () => fdSort(h.dataset.k, h.dataset.p));
+  $('fdTable').querySelectorAll('tr.fd-r').forEach(tr => { const go = () => openFundDetail(tr.dataset.id, true);
+    tr.onclick = go; tr.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } }; });
+  if($('fdMore')) $('fdMore').onclick = () => { FD.show += 50; renderFdTable(); };
+  if($('fdAll')) $('fdAll').onclick = () => { FD.show = rows.length; renderFdTable(); };
+}
+async function openFundDetail(id, scroll){
+  const f = fdFund(id); if(!f) return;
+  FD.sel = id; const req = ++FD.req;
+  document.querySelectorAll('#fdTable tr.fd-r').forEach(tr => tr.classList.toggle('on', tr.dataset.id === id));
+  const box = $('fdDetail'); box.hidden = false;
+  box.innerHTML = fdDetailHtml(f, null, '차트 불러오는 중…');
+  if(scroll) box.scrollIntoView({behavior: 'smooth', block: 'start'});
+  let ch = null, err = null;
+  try { ch = await api('/api/funds/' + encodeURIComponent(id)); } catch(e){ err = e.message; }
+  if(req !== FD.req) return;   // 그사이 다른 펀드를 눌렀다
+  box.innerHTML = fdDetailHtml(f, ch, err);
+}
+function fdDetailHtml(f, ch, msg){
+  const g = fdGroup(f.group_id) || {}, fe = f.fees || {}, fl = f.flows || {}, rk = f.risk || {}, st = g.stats || {}, bmName = (f.bm && f.bm.name) || (g.bm && g.bm.name);
+  const ok = ch && (ch.dates || []).length > 1;
+  const chart = ok ? `<div class="legend"><span><i style="background:var(--series-1)"></i>펀드(수정기준가)</span>${ch.bm ? `<span><i style="background:var(--series-bench)"></i>${esc(ch.bm_name || bmName || 'BM')}</span>` : '<span class="kv">비교 지수 없음</span>'}${ch.group_median ? `<span><i style="background:var(--cheap)"></i>${esc(g.group || '분류')} 중앙값</span>` : ''}<span class="kv">주간 · 펀드 첫 점 = 100 · ${esc(ch.dates[0])}~</span></div>
+    ${lineChart(ch.dates, [...(ch.group_median ? [{vals: ch.group_median, color: 'var(--cheap)', ink: 'var(--cheap-ink)', w: 1.4}] : []), ...(ch.bm ? [{vals: ch.bm, color: 'var(--series-bench)', ink: 'var(--muted)', w: 1.4}] : []), {vals: ch.fund, color: 'var(--series-1)', w: 2.2}], {base: 100, label: `${f.name} 누적 수익 대 비교 지수·분류 중앙값`})}`
+    : `<div class="empty">${esc(msg || '차트 이력이 없습니다.')}</div>`;
+  const cell = (v, fn) => fdNz(v) ? fn(v) : '-';
+  const hide = (k, c) => c === 'c-mid' || k === 'YTD' ? ' c-opt' : '';   // 폰: 1개월·1년·3년만
+  const row = (label, get, cls = '') => `<tr class="${cls}"><td>${label}</td>${FD_P.map(([k, , c]) => `<td class="num${hide(k, c)}">${get(k)}</td>`).join('')}</tr>`;
+  return `<div class="gd-hd"><h2 style="margin:0">${esc(f.name)}${fdUsd(f)} <span class="sub">${esc([f.manager, `${f.family === 'global' ? '해외' : '국내'} ${g.group || f.group}`, f.theme, f.region && f.region !== g.group ? f.region : '', f.id].filter(Boolean).join(' · '))}</span></h2><button class="btn sm" type="button" onclick="$('fdDetail').hidden=true">닫기</button></div>${chart}
+    <table class="fdr" style="margin-top:8px"><tr><th></th>${FD_P.map(([k, l, c]) => `<th class="num${hide(k, c)}">${l}</th>`).join('')}</tr>
+      ${row('<b>펀드</b>', k => pc((f.returns || {})[k], 2))}
+      ${bmName ? row(esc(bmName), k => pc((f.bm_returns || {})[k], 2)) + row('BM 대비(%p)', k => cell((f.excess || {})[k], v => `<span class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${sgf(v, 2)}</span>`)) : `<tr><td colspan="7" class="kv" style="white-space:normal">비교 지수 없음 — 이 분류에 맞는 지수가 저장소에 없습니다(분류 중앙값·백분위로 비교)</td></tr>`}
+      ${row(`${esc(g.group || '분류')} 중앙값`, k => pc((st[k] || {}).median, 2))}
+      ${row('분류 내 순위', k => fdNz((f.rank || {})[k]) ? `${f.rank[k]}/${(st[k] || {}).n ?? f.n_group} <span class="kv">(${num(f.pct[k], 0)})</span>` : '-')}</table>
     <div class="fd-grid">
-      <div><h4>기준가·규모</h4><div class="kv">기준가 <b>${num(f.nav, 2)}</b> (${esc(f.nav_date || '-')}) · 수정기준가 ${num(f.adj_nav, 2)}<br>순자산 <b>${fdEok(f.aum_eok, 1)}</b> · 1개월 ${fdChg(fl.aum_chg_1m_pct, fl.aum_chg_1m_eok)} · 3개월 ${fdChg(fl.aum_chg_3m_pct, fl.aum_chg_3m_eok)}<br>설정원본 <b>${fdEok(f.units_eok, 1)}</b> · 1개월 ${fdChg(fl.units_chg_1m_pct, fl.units_chg_1m_eok)} · 3개월 ${fdChg(fl.units_chg_3m_pct, fl.units_chg_3m_eok)}</div></div>
-      <div><h4>보수(연, ${esc((FD.d.meta || {}).fee_as_of || '-')} 공시)</h4><div class="kv">총보수 <b>${pf(fe.total, 3)}</b> = 운용 ${pf(fe.mgmt, 3)} + 판매 ${pf(fe.sales, 3)} + 수탁 ${pf(fe.trustee, 3)} + 사무 ${pf(fe.admin, 3)}<br>실부담(TER) <b>${pf(fe.ter, 3)}</b> · 기타비용 ${pf(fe.other, 3)} · 매매·중개 ${pf(fe.trading, 3)}${fe.setup ? `<br>설정일 ${esc(fe.setup)}` : ''}</div></div>
-      <div><h4>위험</h4><div class="kv">1년 변동성 <b>${pf(rk.vol_1y)}</b> (BM ${pf(rk.bm_vol_1y)})<br>1년 최대낙폭 <b>${pf(rk.mdd_1y)}</b> (BM ${pf(rk.bm_mdd_1y)})<br>전체 최대낙폭 ${pf(rk.mdd_all)}${rk.mdd_all_from ? ` (${esc(rk.mdd_all_from)}부터)` : ''} · 분배 ${(f.settlements || []).filter(s => s.factor !== 1).length}회 반영</div></div>
-    </div>
-    <div class="kv" style="margin-top:8px">BM: ${esc(fdBm(b))}${f.bm_date ? ` (BM 기준일 ${esc(f.bm_date)})` : ''}.${f.note ? ' ' + esc(f.note) : ''}</div>`;
+      <div><h4>규모·자금</h4><div class="kv">순자산 <b>${fdEok(f.aum_eok, 1)}</b> (클래스 ${f.n_classes}개 합) · 설정원본 ${fdEok(f.units_eok, 1)}<br>순자산 증감 1개월 ${fdNz(fl.aum_chg_eok_1m) ? sg(fl.aum_chg_eok_1m, 0) + '억' : '-'} (${fdNz(fl.aum_chg_pct_1m) ? sgf(fl.aum_chg_pct_1m, 1) + '%' : '-'}) · 3개월 ${fdNz(fl.aum_chg_eok_3m) ? sg(fl.aum_chg_eok_3m, 0) + '억' : '-'}<br>순유입(추정) 1개월 <b>${fdNz(fl.flow_eok_1m) ? sg(fl.flow_eok_1m, 0) + '억' : '-'}</b> · 3개월 <b>${fdNz(fl.flow_eok_3m) ? sg(fl.flow_eok_3m, 0) + '억' : '-'}</b></div></div>
+      <div><h4>보수(연, ${esc((FD.d.meta || {}).fee_as_of || '-')} 공시 · 대표 클래스)</h4><div class="kv">총보수 <b>${fdP(fe.total, 3)}</b> = 운용 ${fdP(fe.mgmt, 3)} + 판매 ${fdP(fe.sales, 3)} + 수탁 ${fdP(fe.trustee, 3)} + 사무 ${fdP(fe.admin, 3)}<br>실부담(TER) <b>${fdP(fe.ter, 3)}</b> · 기타비용 ${fdP(fe.other, 3)} · 매매·중개 ${fdP(fe.trading, 3)}</div></div>
+      <div><h4>위험(1년)</h4><div class="kv">변동성 <b>${fdP(rk.vol_1y)}</b> · 최대낙폭 <b>${fdP(rk.mdd_1y)}</b></div><h4 style="margin-top:6px">클래스·기준</h4><div class="kv">대표 ${esc(f.rep_class || '-')}${f.rep_is_ce ? '' : ' (C-e 없음 → 순자산 최대 클래스)'} · 설정 ${esc(f.setup || '-')}<br>기준가 ${num(f.nav, 2)}${f.currency === 'USD' ? ' 달러' : ''} (${esc(f.nav_date || '-')}) · 통화 ${esc(f.currency || '-')}${f.hedge ? ' · ' + esc(f.hedge === 'UH' ? '환노출(UH) — BM 원화 환산' : f.hedge === 'H' ? '환헤지(H)' : f.hedge) : ''}</div></div>
+    </div>`;
+}
+function renderFdDist(){
+  const P = FD.per, gs = (FD.d.groups || []).filter(g => g.family === FD.fam), W = 400, H = 22;
+  const vals = gs.flatMap(g => { const s = (g.stats || {})[P] || {}; return [s.p25, s.p75, s.median, (g.bm_returns || {})[P]]; }).filter(fdNz);
+  if(!vals.length){ $('fdDist').innerHTML = '<div class="empty">분포를 낼 수 없습니다.</div>'; return; }
+  let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals); const pad = (hi - lo) * 0.04 || 1; lo -= pad; hi += pad;
+  const X = v => ((v - lo) / (hi - lo) * W).toFixed(1);
+  $('fdDist').innerHTML = `<div class="fd-leg"><span><i style="width:16px;height:9px;border-radius:2px;background:color-mix(in srgb, var(--series-1) 16%, transparent)"></i>상·하위 25% 구간</span><span><i style="width:2px;height:11px;background:var(--series-1)"></i>중앙값</span><span><i style="width:8px;height:8px;border-radius:50%;background:var(--cheap)"></i>비교 지수</span><span class="kv">${FD_PL[P]} 수익률 · 축 ${sgf(lo + pad, 0)}% ~ ${sgf(hi - pad, 0)}%</span></div>
+    <div class="fd-dist"><div class="h">분류(펀드 수)</div><div class="h">분포</div><div class="h" style="text-align:right">중앙값 · BM</div>${gs.map(g => { const s = (g.stats || {})[P] || {}, b = (g.bm_returns || {})[P];
+      const box = fdNz(s.p25) && fdNz(s.p75) ? `<rect class="bx" x="${X(s.p25)}" y="5" width="${Math.max(1.5, X(s.p75) - X(s.p25))}" height="12" rx="2"/>` : '';
+      const tip = `${g.group} ${s.n ?? g.n}개 · ${FD_PL[P]} 하위 25% ${fdNz(s.p25) ? sgf(s.p25, 1) + '%' : '-'} · 중앙값 ${fdNz(s.median) ? sgf(s.median, 1) + '%' : '-'} · 상위 25% ${fdNz(s.p75) ? sgf(s.p75, 1) + '%' : '-'} · ${g.bm ? `${g.bm.name} ${fdNz(b) ? sgf(b, 1) + '%' : '-'}` : '비교 지수 없음'}`;
+      return `<div class="gn${FD.grp === g.id ? ' on' : ''}" data-g="${esc(g.id)}" title="${esc(tip)}">${esc(g.group)}<i>${s.n ?? g.n}</i></div>
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(tip)}"><line class="z" x1="${X(0)}" x2="${X(0)}" y1="1" y2="${H - 1}"/>${box}${fdNz(s.median) ? `<line class="md" x1="${X(s.median)}" x2="${X(s.median)}" y1="3" y2="${H - 3}"/>` : ''}${fdNz(b) ? `<circle class="bm" cx="${X(b)}" cy="${H / 2}" r="4"/>` : ''}</svg>
+        <div class="gv">${fdNz(s.median) ? sgf(s.median, 1) + '%' : '-'} · ${g.bm ? (fdNz(b) ? sgf(b, 1) + '%' : '-') : '<span class="kv">지수 없음</span>'}</div>`; }).join('')}</div>`;
+  $('fdDist').querySelectorAll('.gn').forEach(el => el.onclick = () => { FD.grp = el.dataset.g; FD.show = 50; renderFdFilters(); renderFdTable(); $('fdTable').scrollIntoView({behavior: 'smooth', block: 'start'}); });
+}
+function renderFdFlow(){
+  const gs = (FD.d.groups || []).filter(g => g.family === FD.fam), fl = FD.d.flow_leaders || {};
+  const dom = Math.max(1, ...gs.flatMap(g => [Math.abs(g.flow_eok_1m || 0), Math.abs(g.flow_eok_3m || 0)]));
+  const bars = k => hbars(gs.map(g => [g.group, g[k], fdNz(g[k]) ? sg(g[k], 0) + '억' : '-']), 340, 76, 64, dom, 19);
+  const list = ids => `<ul class="fd-ld">${(ids || []).map(fdFund).filter(Boolean).map(f => `<li data-id="${esc(f.id)}"><span>${esc(f.name)}<i>${esc(f.manager)} · ${esc(f.group)}</i></span><b class="${(f.flows || {}).flow_eok_1m > 0 ? 'pos' : 'neg'}">${sg((f.flows || {}).flow_eok_1m, 0)}억</b></li>`).join('')}</ul>`;
+  const m = FD.d.meta || {}, base = m.flow_base || {};
+  $('fdFlow').innerHTML = `<div class="fd-flow">
+      <div><h4>${esc(FD_FAM.find(x => x[0] === FD.fam)[1])} 분류별 순유입 — 1개월(${esc(base['1m'] || '-')}~)</h4>${bars('flow_eok_1m')}</div>
+      <div><h4>3개월(${esc(base['3m'] || '-')}~)</h4>${bars('flow_eok_3m')}</div>
+      <div><h4>1개월 순유입 상위 10 <span class="kv">전체 분류군</span></h4>${list(fl.in_1m)}</div>
+      <div><h4>1개월 순유출 상위 10 <span class="kv">전체 분류군</span></h4>${list(fl.out_1m)}</div></div>`;
+  $('fdFlow').querySelectorAll('li[data-id]').forEach(li => li.onclick = () => { const f = fdFund(li.dataset.id); if(!f) return;
+    if(f.family !== FD.fam){ FD.fam = f.family; FD.grp = null; renderFunds(); } openFundDetail(f.id, true); });
+}
+function renderFdMgrs(){
+  const ms = (FD.d.managers || []).slice().sort((a, b) => (b.aum_eok || 0) - (a.aum_eok || 0)), show = FD.mgrAll ? ms : ms.slice(0, 15);
+  const fam = FD.fam, fl = FD_FAM.find(x => x[0] === fam)[1];
+  $('fdMgrs').innerHTML = `<table class="fdm"><tr><th>운용사</th><th class="num">펀드</th><th class="num">순자산</th><th class="num" data-tip="운용사 펀드들의 분류 내 1년 백분위 평균(50 = 분류 중간)">1Y 백분위</th><th class="num c-opt">${esc(fl)}</th><th class="num c-mid" data-tip="분류 안 1년 백분위 75 이상 펀드 수">상위 25%</th><th class="num">순유입 1M</th><th class="num c-opt">3M</th><th class="num c-mid">순자산 증감 1M</th></tr>${
+    show.map(m => { const fm = (m.families || {})[fam];
+      return `<tr class="fd-m${m.manager_cd === FD.mgr ? ' on' : ''}" data-cd="${esc(m.manager_cd)}"><td><b>${esc(m.manager)}</b></td><td class="num">${m.n}</td><td class="num">${fdEok(m.aum_eok)}</td><td class="num">${fdNz(m.avg_pct_1y) ? num(m.avg_pct_1y, 0) : '-'}</td>
+        <td class="num c-opt">${fm ? `${fdNz(fm.avg_pct_1y) ? num(fm.avg_pct_1y, 0) : '-'} <span class="kv">(${fm.n})</span>` : '<span class="kv">-</span>'}</td><td class="num c-mid">${m.top_quartile_1y ?? '-'}</td>
+        <td class="num">${fdFlow(m.flow_eok_1m)}</td><td class="num c-opt">${fdFlow(m.flow_eok_3m)}</td><td class="num c-mid">${fdFlow(m.aum_chg_eok_1m)}</td></tr>`; }).join('')}</table>
+    ${ms.length > 15 ? `<div class="fd-more"><button class="btn sm" type="button" id="fdMgrAll">${FD.mgrAll ? '상위 15개만' : `전부 보기(${ms.length})`}</button></div>` : ''}
+    <div class="kv" style="margin-top:6px">순자산 큰 순 · '${esc(fl)}' 열 = 지금 고른 분류군만의 1년 백분위 평균(펀드 수) · 순자산 증감 = 시장 등락 + 자금 유출입</div>`;
+  $('fdMgrs').querySelectorAll('tr.fd-m').forEach(tr => tr.onclick = () => {
+    const cd = tr.dataset.cd; FD.mgr = FD.mgr === cd ? '' : cd; FD.show = 50;
+    if(FD.mgr && !(FD.d.funds || []).some(f => f.family === FD.fam && f.manager_cd === cd)){   // 이 분류군에 펀드가 없으면 펀드가 가장 많은 분류군으로
+      const fs = Object.entries((FD.d.managers.find(x => x.manager_cd === cd) || {}).families || {}).sort((a, b) => b[1].n - a[1].n);
+      if(fs.length){ FD.fam = fs[0][0]; FD.grp = null; }
+    }
+    renderFunds(); $('fdTable').scrollIntoView({behavior: 'smooth', block: 'start'}); });
+  if($('fdMgrAll')) $('fdMgrAll').onclick = () => { FD.mgrAll = !FD.mgrAll; renderFdMgrs(); };
+}
+function renderFdRules(){
+  const d = FD.d || {}, m = d.meta || {}, u = m.universe || {};
+  const gs = (d.groups || []).map(g => `${g.family_label} ${g.group} → ${g.bm ? g.bm.name : '비교 지수 없음'}`);
+  const ex = Object.entries(u.excluded || {}).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${num(n, 0)}`);
+  $('fdRules').innerHTML = [
+    d.method,
+    u.n ? `대상 ${u.n}개 펀드(클래스 묶음) — 국내주식 액티브·국내주식 인덱스·해외주식 공모펀드, 금투협 '펀드운용실적비교' 공식 소유형(${m.rop_month ? m.rop_month.slice(0, 4) + '-' + m.rop_month.slice(4) : '-'}월말) 기준 분류. 국내 일반은 펀드명 키워드로 가치·배당·중소형·성장을 나눕니다(키워드라 일부 잘못 분류될 수 있음).` : '',
+    ex.length ? `제외(클래스 단위): ${ex.join(' · ')}.` : '',
+    (u.unclassified_sample || []).length ? `금투협 소유형이 없어 빠진 예: ${u.unclassified_sample.slice(0, 5).join(', ')}.` : '',
+    gs.length ? `분류별 비교 지수: ${gs.join(' · ')}.` : '',
+    m.flow_base ? `자금 기준일: 1개월 ${m.flow_base['1m'] || '-'} · 3개월 ${m.flow_base['3m'] || '-'} → ${m.as_of || '-'}. 이력은 ${m.hist_from || '-'}부터.` : '',
+    ...(m.notes || []),
+    (m.errors || []).length ? `받기 문제: ${m.errors.join(' / ')}` : '',
+  ].filter(Boolean).map(t => `<li>${esc(t)}</li>`).join('');
 }
 // ── 주식 · 유니버스 밸류에이션 — 한 줄 = 항목, 누르면 시트(상위 10종목 · 업종 · 기본 정보). 숫자는 fundamentals.py 가 모은다
 let FUND = null, FUND_T = null, FUND_REQ = false;

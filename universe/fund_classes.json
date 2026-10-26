@@ -1,0 +1,78 @@
+{
+  "_doc": "공모펀드 스크리닝 분류 사전 — fund_universe.py 가 읽는다. 1차 분류는 금투협 '펀드운용실적비교' 공식 소유형(sub_types — 월말 기준, 펀드별)과 주요투자지역이고, 이 파일의 키워드는 그 위에 얹는 세분(국내 일반 → 가치·배당·중소형)과 제외 규칙이다. 키워드는 펀드명에 들어 있으면(대소문자 무시) 맞은 것으로 본다 — 위에서부터 첫 번째로 맞은 것을 쓴다. 고친 뒤 python -X utf8 funds.py --force 로 다시 계산한다.",
+  "sub_types": {
+    "111": {"name": "국내 주식-일반", "family": "kr_active", "kind": "style", "refine": true},
+    "112": {"name": "국내 주식-성장주", "family": "kr_active", "kind": "style", "group": "성장"},
+    "113": {"name": "국내 주식-섹터", "family": "kr_active", "kind": "theme", "group": "테마·업종"},
+    "114": {"name": "국내 주식-인덱스", "family": "kr_index", "kind": "index", "group": "인덱스"},
+    "181": {"name": "국내 파생형-증권(주식)", "family": "kr_index", "kind": "index", "group": "인덱스", "require": ["인덱스"]},
+    "211": {"name": "해외 주식-일반", "family": "global", "kind": "region"},
+    "212": {"name": "해외 주식-성장주", "family": "global", "kind": "region"},
+    "213": {"name": "해외 주식-섹터", "family": "global", "kind": "theme", "group": "테마·섹터"},
+    "214": {"name": "해외 주식-인덱스", "family": "global", "kind": "region", "index": true},
+    "281": {"name": "해외 파생형-증권(주식)", "family": "global", "kind": "region", "index": true, "require": ["인덱스"]}
+  },
+  "families": {
+    "kr_active": "국내주식 액티브",
+    "kr_index": "국내주식 인덱스",
+    "global": "해외주식"
+  },
+  "kr_styles": [
+    {"group": "중소형", "keywords": ["중소형", "중소", "스몰캡", "코스닥", "소형주", "미드캡", "강소"]},
+    {"group": "성장", "keywords": ["그로쓰", "그로스", "growth"]},
+    {"group": "배당", "keywords": ["배당", "인컴"]},
+    {"group": "가치", "keywords": ["밸류", "가치", "value"]}
+  ],
+  "kr_default_style": "일반",
+  "regions": {
+    "미국": ["북미"],
+    "중국": ["중국(홍콩)", "대중국(중국,홍콩,대만)", "중국"],
+    "글로벌": ["글로벌", "글로벌(선진국)"],
+    "신흥국": ["글로벌(신흥국가)", "브릭스", "아시아(신흥국가)", "중남미", "동유럽", "러시아", "친디아", "이머징"],
+    "아시아": ["아시아", "아시아(X-Japan)", "아시아퍼시픽", "아시아퍼시픽(X-Japan)", "대만"],
+    "일본": ["일본"],
+    "유럽": ["유럽", "서유럽"],
+    "인도": ["인도"],
+    "베트남": ["베트남"]
+  },
+  "other_region": "기타 지역",
+  "themes": [
+    {"label": "반도체·IT", "keywords": ["반도체", "IT", "테크", "디지털", "소프트웨어", "AI", "인공지능", "4차산업", "코어테크"]},
+    {"label": "2차전지·친환경", "keywords": ["2차전지", "배터리", "친환경", "에너지", "신재생", "클린", "탄소", "수소", "그린"]},
+    {"label": "헬스케어", "keywords": ["헬스케어", "바이오", "의료", "제약", "헬스"]},
+    {"label": "그룹주", "keywords": ["그룹"]},
+    {"label": "금융·부동산", "keywords": ["금융", "리츠", "은행", "부동산"]},
+    {"label": "소비·브랜드", "keywords": ["소비", "컨슈머", "브랜드", "럭셔리", "명품"]},
+    {"label": "인프라·산업재", "keywords": ["인프라", "방산", "조선", "우주", "산업재", "기계"]},
+    {"label": "ESG", "keywords": ["ESG", "지속가능", "책임투자"]}
+  ],
+  "other_theme": "기타 테마",
+  "exclude": [
+    {"reason": "ETF", "keywords": ["상장지수"]},
+    {"reason": "재간접(TDF·EMP 포함)", "keywords": ["재간접", "TDF", "EMP", "TIF"]},
+    {"reason": "사모", "keywords": ["사모"]},
+    {"reason": "모펀드", "keywords": ["모투자", "(모)"]},
+    {"reason": "레버리지·인버스", "keywords": ["레버리지", "인버스", "2X", "-1X"]},
+    {"reason": "ELS 연계", "keywords": ["ELS", "지수연계"]}
+  ],
+  "big_types": ["주식형", "주식파생형"],
+  "screen": {"min_aum_eok": 100, "min_age_days": 365},
+  "rep_class": ["C-e", "Ce", "C-E", "CE"],
+  "benchmarks": {
+    "_doc": "그룹 → data/history/ 의 BM 열. lag = 펀드 기준일 D 에 BM 의 몇 번째 앞 거래일 값을 쓸지(일간 변화 상관 실측, funds.py 독스트링). fx_unhedged = 펀드명에 UH(환노출)가 있으면 BM × KRW=X 로 원화 환산. null = 저장소에 맞는 지수가 없어 BM 없음.",
+    "kr_active": {"name": "KOSPI", "file": "equity_daily.csv", "col": "^KS11", "lag": 1},
+    "kr_index": {"name": "KOSPI200", "file": "equity_daily.csv", "col": "^KS200", "lag": 1},
+    "kr_active:중소형": {"name": "KOSDAQ", "file": "equity_daily.csv", "col": "^KQ11", "lag": 1, "_note": "중소형 액티브는 코스닥 비중이 커 KOSDAQ 과 비교(2026-10-26 실측: 펀드 25개 일간 로그 변화 상관 중앙값 lag1 KOSDAQ 0.90 · KOSPI 0.87, lag0·lag2 ≤ −0.06)"},
+    "global:미국": {"name": "S&P500", "file": "equity_daily.csv", "col": "^GSPC", "lag": 2, "fx_unhedged": true},
+    "global:중국": {"name": "항셍", "file": "equity_daily.csv", "col": "^HSI", "lag": 2, "fx_unhedged": true},
+    "global:일본": {"name": "닛케이225", "file": "equity_daily.csv", "col": "^N225", "lag": 2, "fx_unhedged": true},
+    "global:인도": {"name": "Nifty50", "file": "equity_daily.csv", "col": "^NSEI", "lag": 2, "fx_unhedged": true},
+    "global:유럽": {"name": "유로스톡스50", "file": "equity_daily.csv", "col": "^STOXX50E", "lag": 2, "fx_unhedged": true},
+    "global:신흥국": {"name": "EEM(신흥국 ETF 대용)", "file": "equity_daily.csv", "col": "EEM", "lag": 2, "fx_unhedged": true},
+    "global:아시아": {"name": "AAXJ(아시아 ETF 대용)", "file": "equity_daily.csv", "col": "AAXJ", "lag": 2, "fx_unhedged": true},
+    "global:글로벌": null,
+    "global:베트남": null,
+    "global:기타 지역": null,
+    "global:테마·섹터": null
+  }
+}
