@@ -342,8 +342,39 @@ def test_run_skips_when_fresh(monkeypatch):
     called = []
     monkeypatch.setattr(F, "build", lambda *a, **k: called.append(1) or {"meta": {"n_ok": 1, "n_total": 1, "as_of": "x", "runtime_sec": 1}})
     monkeypatch.setattr(F, "age_hours", lambda: 2.0)
-    assert F.run().startswith("건너뜀") and not called
-    assert F.run(force=True).startswith("펀드 1/1") and called == [1]
+    refreshed = []
+    monkeypatch.setattr(F, "refresh_bm", lambda *a, **k: refreshed.append(1) or "")
+    assert F.run().startswith("건너뜀") and not called and not refreshed
+    assert F.run(force=True).startswith("펀드 1/1") and called == [1] and refreshed == [1]   # 계산 전에 BM 갱신
+
+    def boom(*a, **k):
+        raise RuntimeError("Refinitiv 끊김")
+    monkeypatch.setattr(F, "refresh_bm", boom)
+    assert F.run(force=True).startswith("펀드 1/1")                                       # BM 갱신 실패해도 계산은 한다
+
+
+def test_refresh_bm_only_fund_file_columns(monkeypatch, tmp_path):
+    import refinitiv_src as R
+    seen = {}
+
+    def fake(path, tickers, start, **k):
+        seen.update(path=path, tickers=tickers, start=start)
+        return pd.DataFrame({t: [1.0] for t in tickers}, index=pd.DatetimeIndex(["2026-10-23"]))
+    monkeypatch.setattr(R, "refresh_frame", fake)
+    monkeypatch.setattr(F, "HIST_DIR", tmp_path)
+    cfg = {"benchmarks": {"a": {"file": "equity_daily.csv", "col": "^GSPC"}, "b": {"file": F.BM_FILE, "col": ".X"},
+                          "c": {"file": F.BM_FILE, "col": ".A"}, "d": None, "_note": "글"}}
+    assert F.refresh_bm(cfg).startswith("BM .A, .X")
+    assert seen["path"] == tmp_path / F.BM_FILE and seen["tickers"] == [".A", ".X", "KRW=X"]   # 환산용 KRW=X 도 같은 파일
+    assert F.refresh_bm({"benchmarks": {"a": {"file": "equity_daily.csv", "col": "^GSPC"}}}).startswith("건너뜀")
+
+
+def test_catalog_global_and_vietnam_bm_in_fund_file():
+    import fund_universe as FU
+    b = FU.load_cfg()["benchmarks"]
+    for g in ("global:글로벌", "global:베트남"):
+        assert b[g]["file"] == F.BM_FILE and b[g]["lag"] == 2 and b[g]["fx_unhedged"] is True
+    assert b["global:테마·섹터"] is None and b["global:기타 지역"] is None
 
 
 # ── API ──

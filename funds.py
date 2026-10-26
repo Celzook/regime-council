@@ -22,7 +22,9 @@
   BM(그룹별, fund_classes.json benchmarks)도 같은 두 기준일. BM 값은 lag=n 이면 기준일 D 보다 앞선 n 번째 거래일 값.
     2026-10-26 실측(그룹별 펀드 최대 25개, 최근 1년 일간 로그 변화 상관의 중앙값): 국내 그룹 lag1 0.87~1.00(lag0 ≈ −0.1),
     해외 미국 lag2 0.70 · 유럽 0.94 · 일본 0.81 · 인도 0.63 · 중국 0.50 · 아시아(AAXJ) 0.42 · 신흥국(EEM) 0.32 — 해외는 아시아도 lag2
-    (lag1 은 모두 0.21 이하). 환노출(UH) 펀드는 BM × KRW=X(같은 lag). 초과수익 = 펀드 − BM(%p).
+    (lag1 은 모두 0.21 이하). 2026-10-27 추가: 글로벌(MSCI ACWI) lag2 0.70 · 베트남(VN Index) 0.82(lag1 ≤ 0.23) — 이 둘은 주식 화면
+    파일에 없어 refresh_bm 이 fund_bm_daily.csv 로 받는다(run() 이 계산 전에). 테마·섹터·기타 지역은 BM 없음(한 지수로 대표 안 됨).
+    환노출(UH) 펀드는 BM × KRW=X(같은 lag). 초과수익 = 펀드 − BM(%p).
   백분위(pct) = 그룹 안 mid-rank 백분위 — (나보다 낮은 펀드 수 + 같은 펀드 수(나 포함) ÷ 2) ÷ 펀드 수 × 100. 높을수록 좋다.
     rank = 그룹 안 순위(1 = 최고). 기본 정렬은 1년 백분위.
   변동성 = 최근 1년 일간 로그수익률 표준편차 × √252. 최대낙폭 = 최근 1년 고점 대비 최저.
@@ -54,6 +56,8 @@ OUT = config.DATA_DIR / "funds.json"
 CHARTS = config.DATA_DIR / "fund_charts.json"
 CACHE = config.DATA_DIR / "_raw" / "kofia"
 HIST_DIR = config.DATA_DIR / "history"
+BM_FILE = "fund_bm_daily.csv"      # 펀드 전용 BM(refresh_bm) — 주식 화면 equity_daily.csv 와 따로
+BM_START = "2015-01-01"
 URL = "https://dis.kofia.or.kr/proframeWeb/XMLSERVICES/"
 HEADERS = {"Content-Type": "application/xml; charset=UTF-8", "User-Agent": "Mozilla/5.0",
            "Referer": "https://dis.kofia.or.kr/websquare/index.jsp"}
@@ -325,6 +329,20 @@ def fees(codes: set[str], today: dt.date) -> tuple[str | None, dict[str, dict]]:
 
 
 # ── BM ──
+def refresh_bm(cfg: dict | None = None) -> str:
+    """주식 화면 파일(equity_daily.csv)에 없는 BM 열(benchmarks 의 file = BM_FILE — MSCI ACWI·VN Index)과 원화 환산용 KRW=X 를
+    BM_FILE 에 증분 갱신(Refinitiv). equity_daily.csv 에 넣지 않는 이유: equity.py 의 full 갱신(refresh_frame full)이 유니버스에 없는 열을 지운다.
+    Refinitiv 미연결이면 기존 파일 그대로."""
+    import fund_universe as FU
+    import refinitiv_src as R
+    specs = (cfg or FU.load_cfg())["benchmarks"].values()
+    cols = sorted({s["col"] for s in specs if isinstance(s, dict) and s.get("file") == BM_FILE})
+    if not cols:
+        return "건너뜀(대상 없음)"
+    df = R.refresh_frame(HIST_DIR / BM_FILE, cols + ["KRW=X"], BM_START)
+    return f"BM {', '.join(cols)} · {df.index.max().date() if len(df) else '없음'}"
+
+
 def bm_series(spec: dict, hist_dir=None, fx: bool = False) -> pd.Series:
     """BM 수준 시계열(날짜 오름차순). fx=True 면 KRW=X(원/달러)를 곱해 원화로 바꾼다(같은 날짜 기준, 직전 값으로 채움)."""
     path = (hist_dir or HIST_DIR) / spec["file"]
@@ -624,7 +642,7 @@ def build(save: bool = True, today: dt.date | None = None) -> dict:
                   "families": cfg["families"], "periods": list(PERIODS),
                   "runtime_sec": round(time.time() - t0, 1), "requests": dict(STATS),
                   "notes": ["금투협 공시 기준가·설정원본으로 계산(수익률은 대표 클래스, 보수 차감 후).",
-                            "BM 은 저장소의 Refinitiv 이력(가격 지수, 배당 제외). 해외 글로벌·베트남·테마는 맞는 지수가 없어 BM 없음.",
+                            "BM 은 저장소의 Refinitiv 이력(가격 지수, 배당 제외). 해외 테마·섹터·기타 지역은 한 지수로 대표되지 않아 BM 없음.",
                             "보수는 협회 공시 기준일 값(총보수 = 운용+판매+수탁+사무관리, 실부담 = 총보수+기타비용+매매·중개수수료).",
                             "순유입(추정) = 클래스별 설정원본 증감 × 현재 기준가 — 분배 재투자도 유입으로 잡힌다.",
                             "순자산 = 기준가 일괄 공시에 나온 판매 클래스의 합(운용 계정 제외) — 일괄 공시에 빠진 클래스가 있으면 조금 작게 잡힌다."]},
@@ -709,6 +727,10 @@ def run(force: bool = False) -> str:
     age = age_hours()
     if not force and age is not None and age < STALE_HOURS:
         return f"건너뜀({age:.0f}시간 전 갱신)"
+    try:
+        refresh_bm()
+    except Exception as e:  # noqa: BLE001 — BM 갱신 실패는 기존 파일로 계산(없으면 그 그룹만 BM 없음)
+        print("BM 갱신 실패:", _clean_err(e))
     d = build()
     m = d["meta"]
     return f"펀드 {m['n_ok']}/{m['n_total']} · 기준 {m['as_of']} · {m['runtime_sec']:.0f}초"

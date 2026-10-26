@@ -122,7 +122,7 @@ def steps(quick: bool):
         ("정량 분석", lambda: quant.run() and "갱신"),
         ("밸류에이션", _fund_if_stale),
         ("밸류에이션 이력", _valhist_if_stale),
-        ("위탁운용사 펀드", _funds),                # BM 이 equity_daily·kofia_daily 를 읽으므로 그 갱신 뒤
+        ("위탁운용사 펀드", _funds),                # BM 이 equity_daily·kofia_daily 를 읽으므로 그 갱신 뒤(fund_bm_daily.csv — ACWI·VN Index 는 funds.run 이 계산 전에 직접 갱신)
         ("급등 매수", _spikes_if_stale),           # timing_daily.csv(^VIX3M)를 받으므로 시그널보다 먼저
         ("옵션 풋/콜·미결제약정", _options_pc),     # putcall_daily·futures_oi_daily.csv — 시그널보다 먼저
         ("증시자금(금투협)", _kofia_free),          # kofia_free_daily.csv(예탁금·신용융자) — 시그널보다 먼저

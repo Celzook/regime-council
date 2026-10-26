@@ -70,9 +70,10 @@
     "global:유럽": {"name": "유로스톡스50", "file": "equity_daily.csv", "col": "^STOXX50E", "lag": 2, "fx_unhedged": true},
     "global:신흥국": {"name": "EEM(신흥국 ETF 대용)", "file": "equity_daily.csv", "col": "EEM", "lag": 2, "fx_unhedged": true},
     "global:아시아": {"name": "AAXJ(아시아 ETF 대용)", "file": "equity_daily.csv", "col": "AAXJ", "lag": 2, "fx_unhedged": true},
-    "global:글로벌": null,
-    "global:베트남": null,
+    "global:글로벌": {"name": "MSCI ACWI", "file": "fund_bm_daily.csv", "col": ".dMIWD00000PUS", "lag": 2, "fx_unhedged": true, "_note": "Refinitiv MSCI ACWI 가격지수(USD, 일별 .d — S&P500 등 다른 지역과 같은 가격지수, 순수익 지수는 .dMIWD00000NUS). funds.refresh_bm 이 fund_bm_daily.csv 로 받는다. 2026-10-27 실측: 펀드 25개 일간 로그 변화 상관 중앙값 lag2 0.70 · lag1 0.23 · lag0 −0.10 · lag3 0.04"},
+    "global:베트남": {"name": "VN Index", "file": "fund_bm_daily.csv", "col": ".VNI", "lag": 2, "fx_unhedged": true, "_note": "Refinitiv .VNI(호치민 VN-Index, VND). 2026-10-27 실측: 펀드 8개 상관 중앙값 lag2 0.82 · lag1 0.13 · lag0 −0.02(EEM 은 lag2 0.02 — 베트남과 무관). UH 펀드는 KRW=X 를 곱한다(VND→원이 아니라 달러 환율 — 다른 지역과 같은 근사)."},
     "global:기타 지역": null,
-    "global:테마·섹터": null
+    "global:테마·섹터": null,
+    "_null_note": "기타 지역(미래에셋 라이프사이클·장기주택마련 2개 — 지역 혼합)과 테마·섹터(반도체·2차전지·헬스케어 … 7종 테마 30개)는 한 지수로 대표되지 않아 BM 없음. 2026-10-27 실측: 테마·섹터 vs MSCI ACWI lag2 상관 중앙값 0.50, 기타 지역 vs ACWI 0.28·EEM 0.36."
   }
 }
