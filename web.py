@@ -702,6 +702,24 @@ def api_equity_valhist():
     return jsonify(valhist.load() or {"generated_at": None, "method": None, "items": {}})
 
 
+@app.get("/api/timing")
+def api_timing():
+    """마켓타이밍 시그널 표(timing.py — refresh_all 이 만든다) — 없으면 빈 signals. 원격 응답의 입력 오류 문장에는 파일 이름만."""
+    import timing
+    d = timing.load() or {"generated_at": None, "meta": {}, "method": None, "composite": {}, "signals": [], "phase2": [], "notes": []}
+    meta = d.get("meta")
+    if not _is_local() and isinstance(meta, dict) and meta.get("errors"):
+        meta["errors"] = [_QUOTED_PATH.sub(lambda m: "'" + re.split(r"[\\/]+", m.group(1))[-1] + "'", str(x)) for x in meta["errors"]]
+    return jsonify(d)
+
+
+@app.get("/api/timing/spikes")
+def api_timing_spikes():
+    """급등 매수 이벤트 스터디(spikes.py — refresh_all 이 만든다) — 없으면 빈 studies. 과거 데이터 점검 자료(매매 지시 아님)."""
+    import spikes
+    return jsonify(spikes.load() or {"generated_at": None, "meta": {}, "triggers": {}, "studies": [], "missing": []})
+
+
 @app.post("/api/equity/fund/refresh")
 def api_equity_fund_refresh():
     import fundamentals

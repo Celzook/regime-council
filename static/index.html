@@ -704,6 +704,28 @@
     .fs-cols, .fs-row { grid-template-columns:16px minmax(0,1fr) max-content max-content 12px; gap:10px; } .fs-cols .wt, .fs-row .wt { display:none; }
     .fs-more { padding-left:34px; }
   }
+  /* ── 마켓타이밍 — 판정 칩: 위험선호 초록 · 위험회피 빨강 · 중립 회색 ── */
+  .chip.ron { --c:var(--up); } .chip.roff { --c:var(--down); } .chip.rneu { --c:var(--flat); }
+  table.tmt td.nm b { font-weight:650; } table.tmt td.nm > span { display:block; font-size:11px; color:var(--muted); }
+  table.tmt tr.tm-g td { background:var(--fill-1); font-size:12px; font-weight:700; color:var(--ink2); padding:4px 8px; }
+  table.tmt tr.tm-g td .kv { font-weight:500; margin-left:6px; }
+  table.tmt tr.off td:not(.nm) { opacity:.5; }
+  .tm-why { font-size:12px; color:color-mix(in oklab, var(--risk-warn) 62%, var(--ink)); margin-top:2px; }
+  .tm-ctr { font-size:12px; color:var(--ink2); margin-top:2px; }
+  .tm-n { display:none; font-style:normal; }
+  @container main (max-width:640px){ table.tmt .c-opt { display:none; } .tm-n { display:inline; } }
+  .spk { border-top:1px solid var(--hair); } .spk:first-child { border-top:none; }
+  .spk > summary { list-style:none; display:grid; grid-template-columns:minmax(0,1fr) repeat(3,92px) 14px; gap:6px 10px; align-items:center; padding:9px 4px; cursor:pointer; color:var(--ink); font-size:13px; border-radius:8px; }
+  .spk > summary::-webkit-details-marker { display:none; }
+  .spk > summary:hover { background:var(--brand-soft); }
+  .spk .nm b { font-weight:650; } .spk .vd { font-size:12.5px; color:var(--ink2); margin-top:1px; }
+  .spk .k { font-size:11px; color:var(--muted); } .spk .v { font-weight:650; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .spk.dim > summary { opacity:.55; } .spk.dim .vd { color:var(--muted); }
+  .spk .chev { color:var(--muted); transition:transform .2s; } .spk[open] .chev { transform:rotate(90deg); }
+  .spk-body { padding:2px 4px 12px; }
+  .spk-body table tr.hit td { font-weight:700; }
+  .spk-body .kv { margin-top:6px; } .spk-body details { margin-top:8px; } .spk-body h4 { margin:10px 0 4px; font-size:12px; color:var(--muted); }
+  @container main (max-width:640px){ .spk > summary { grid-template-columns:repeat(3,minmax(0,1fr)) 14px; } .spk > summary .nm { grid-column:1 / -1; } }
   /* ── 백테스트 — macOS 설정 앱처럼: 왼쪽 전략 목록 · 오른쪽 상세(이름 → 설정 묶음 → 기간 묶음 → 실행) ── */
   .btlayout { display:grid; grid-template-columns:minmax(200px,236px) minmax(0,1fr); gap:var(--gap); align-items:start; } .btlayout > * { min-width:0; } .btlayout[hidden] { display:none; }
   .btlist { position:sticky; top:60px; padding:8px 6px; max-height:calc(100vh - 80px); overflow-y:auto; scrollbar-width:thin; }
@@ -895,6 +917,7 @@
   <nav class="tabs" id="tabs" role="tablist" aria-orientation="vertical">
     <div class="ngrp">내 담당</div>
     <div class="tab on" data-t="equity"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5l5.5-5.5 4 4 7.5-7.5"/><path d="M15 8.5h5.5V14"/></svg><span>주식</span></div>
+    <div class="tab" data-t="timing"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12.5h4l2.5-6 4.5 11 2.5-5H21"/></svg><span>마켓타이밍</span></div>
     <div class="tab" data-t="bt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 12.5a8 8 0 1 0 2.3-6.2"/><path d="M4 4.5v4.2h4.2"/><path d="M12 8v4.3l2.8 1.7"/></svg><span>백테스트</span></div>
     <div class="ngrp">오늘</div>
     <div class="tab" data-t="room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 4.6 4.6 1.9-4.6 1.9L12 16.5l-1.9-4.6L5.5 10l4.6-1.9z"/><path d="M18.5 15.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/></svg><span>에이전트</span></div>
@@ -1007,6 +1030,26 @@
       <div class="card"><h2>아직 연결 안 된 데이터</h2><div id="eqMiss2"></div></div>
     </div>
     <div class="kv" style="margin:-4px 4px 20px">문서 전체(채권·외환·원자재·대체 포함)는 <b>regime-council/universe/멀티에셋_유니버스_전략.xlsx</b> · 원본 데이터 universe/universe.json</div>
+  </div>
+</section>
+
+<!-- 마켓타이밍 — 시그널(timing.py) · 급등 매수(spikes.py). 둘 다 자동 갱신(refresh_all)이 만든 파일을 읽기만 한다 -->
+<section class="page" id="page-timing">
+  <div class="bhead">
+    <div><div class="ptitle">마켓타이밍</div><div class="kv" id="tmMeta"></div></div>
+    <span class="spacer"></span>
+    <span class="seg" id="tmSeg"><span class="s on" data-v="sig">시그널</span><span class="s" data-v="spk">급등 매수</span></span>
+  </div>
+  <div id="tmSig">
+    <div class="card sverdict" id="tmVerdict"><div class="empty">불러오는 중…</div></div>
+    <div class="card"><h2>신호별 <span class="sub">1년·5년 위치 = 지금 값이 자기 과거 범위 안 몇 % 지점인지 · 이름에 마우스를 올리면 판정 기준</span></h2><div id="tmTable"></div></div>
+    <div class="card"><details class="rules"><summary>이 표는 어떻게 판단하나요?</summary><ul id="tmRules"></ul></details></div>
+  </div>
+  <div id="tmSpk" hidden>
+    <div class="card sverdict" id="spkVerdict"><div class="empty">불러오는 중…</div></div>
+    <div class="card"><h2>지표·대상별 <span class="sub">누르면 보유기간별 표 · 흐린 줄 = 신호로 쓰지 않음</span></h2><div id="spkList"></div></div>
+    <div class="card"><h2>지금 상태 <span class="sub">공포 지표의 오늘 값 · 마지막 발생</span></h2><div id="spkNow"></div></div>
+    <div class="card"><details class="rules"><summary>어떻게 계산했나요?</summary><ul id="spkRules"></ul></details></div>
   </div>
 </section>
 
@@ -1197,6 +1240,7 @@ function showTab(t){
   if(t === 'quant') loadQuant();
   if(t === 'strategy') loadStrategy();
   if(t === 'equity') loadEquity();
+  if(t === 'timing') loadTiming();
   if(t === 'bt') loadBt();
   if(t === 'home' && Date.now() - SB.qAt > 600000) loadScoreboard();
   if(!$('chatPanel').hidden) refreshChatContext();  // 대화창이 열려 있으면 '화면 공유' 대상도 바뀐다
@@ -2107,6 +2151,105 @@ document.querySelectorAll('#eqSeg .s').forEach(b => b.onclick = () => {
   if(v === 'uni' && !FUND) loadFund();
   if(!$('chatPanel').hidden) refreshChatContext();
 });
+// ── 마켓타이밍 — 시그널(timing.json)·급등 매수(spikes.json). 숫자는 refresh_all 이 만들고 화면은 읽기만 한다
+let TM = {sig: null, spk: null};
+async function loadTiming(){
+  const [a, b] = await Promise.allSettled([api('/api/timing'), api('/api/timing/spikes')]);
+  if(a.status === 'fulfilled'){ TM.sig = a.value; renderTmSig(); } else $('tmVerdict').innerHTML = `<div class="empty">${esc(a.reason.message)}</div>`;
+  if(b.status === 'fulfilled'){ TM.spk = b.value; renderTmSpk(); } else $('spkVerdict').innerHTML = `<div class="empty">${esc(b.reason.message)}</div>`;
+  const at = d => d && d.generated_at ? d.generated_at.replace('T', ' ').slice(5, 16) + ' 계산' : '아직 없음';
+  $('tmMeta').textContent = `시그널 ${at(TM.sig)} · 급등 매수 ${at(TM.spk)} · 평일 16:30 자동 갱신 · 매매 지시 아님`; $('tmMeta').title = $('tmMeta').textContent;
+}
+document.querySelectorAll('#tmSeg .s').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#tmSeg .s').forEach(x => x.classList.toggle('on', x === b));
+  $('tmSig').hidden = b.dataset.v !== 'sig'; $('tmSpk').hidden = b.dataset.v !== 'spk';
+  if(!$('chatPanel').hidden) refreshChatContext();
+});
+const TM_ST = {'위험선호': 'ron', '중립': 'rneu', '위험회피': 'roff'};
+const TM_NONE = '<div class="empty">아직 계산 결과가 없습니다 — 자동 갱신(평일 16:30)을 기다리거나 운영 PC 에서 직접 계산하세요.</div>';
+const tmVal = r => r.value === null || r.value === undefined ? '-' : r.unit === '%' ? sgf(r.value, 2) + '%' : r.unit === '배' ? num(r.value, 3) + '배' : num(r.value, 2) + ' ' + esc(r.unit || '');
+const tmPos = (v, from) => v === null || v === undefined ? '<span class="kv">-</span>' : `<span${from ? ` data-tip="${esc(`5년이 다 차지 않음 — ${from}부터 위치`)}"` : ''}>${num(v, 0)}%${from ? '*' : ''}</span>`;
+function tmChip(r){
+  if(!r.ok) return '<span class="chip OFF">계산 못 함</span>';
+  if(!r.judged) return '<span class="chip OFF">보류</span>';
+  return `<span class="chip ${TM_ST[r.state] || 'OFF'}">${esc(r.state)}</span>`;
+}
+function renderTmSig(){
+  const d = TM.sig, rows = d.signals || [], c = d.composite || {};
+  if(!d.generated_at || !rows.length){ $('tmVerdict').innerHTML = TM_NONE; $('tmTable').innerHTML = ''; $('tmRules').innerHTML = ''; return; }
+  const inC = rows.filter(r => r.in_composite), used = inC.filter(r => r.ok && r.judged && !r.stale);
+  const cnt = st => used.filter(r => r.state === st).length;
+  const name = k => (rows.find(r => r.key === k) || {}).name || k;
+  const tone = {'위험선호': 'good', '위험회피': 'bad'}[c.label] || '';
+  const th = c.thresholds || {};
+  const gtxt = Object.entries(c.groups || {}).map(([g, v]) => `${g} ${sg(v, 2)}`).join(' · ');
+  const left = [[c.stale, '기준일 지연'], [c.missing, '판정 못 함'], [c.waiting, '데이터 대기']].filter(([l]) => l && l.length).map(([l, t]) => `${t}: ${l.map(name).join(', ')}`);
+  $('tmVerdict').innerHTML = c.score === null || c.score === undefined
+    ? `<div class="vd-head"><span class="vd-dot"></span><div>종합 판단 보류 — 합성에 쓸 수 있는 신호가 없습니다</div></div>`
+    : `<div class="vd-head"><span class="vd-dot ${tone}"></span><div>지금 시장 신호 종합: ${esc(c.label)} <span class="kv" style="font-size:14px">점수 ${sg(c.score, 2)}</span></div></div>
+    <div class="vd-sub">신호 ${c.n_used}/${c.n_total}개 · 묶음 ${c.n_groups}/${c.n_groups_total}개를 같은 비중으로 평균(+1 위험선호 · 0 중립 · −1 위험회피) — 점수 ${sg(th.risk_on, 2)} 초과면 위험선호, ${sg(th.risk_off, 2)} 미만이면 위험회피.${gtxt ? ' 묶음별: ' + esc(gtxt) + '.' : ''}${left.length ? ' 합성 제외 — ' + esc(left.join(' / ')) + '.' : ''}</div>
+    <div class="vtiles" style="--n:4">
+      <div class="vtile"><div class="l">위험선호</div><div class="v good">${cnt('위험선호')}</div><div class="s">합성에 쓴 신호 중</div></div>
+      <div class="vtile"><div class="l">중립</div><div class="v">${cnt('중립')}</div><div class="s">합성에 쓴 신호 중</div></div>
+      <div class="vtile"><div class="l">위험회피</div><div class="v bad">${cnt('위험회피')}</div><div class="s">합성에 쓴 신호 중</div></div>
+      <div class="vtile"><div class="l">합성 제외</div><div class="v">${rows.length - used.length}</div><div class="s">배경·참고 ${rows.filter(r => !r.in_composite).length} · 지연·보류 ${inC.length - used.length}</div></div>
+    </div>`;
+  const groups = [...new Set(rows.map(r => r.group))];
+  $('tmTable').innerHTML = `<table class="tmt"><tr><th>신호</th><th class="num">현재값</th><th class="num">1년 위치</th><th class="num c-opt">5년 위치</th><th>판정</th><th class="c-opt">근거</th><th class="c-opt">기준일</th></tr>${
+    groups.map(g => { const gs = (c.groups || {})[g];
+      return `<tr class="tm-g"><td colspan="7">${esc(g)}${gs !== undefined && gs !== null ? `<span class="kv">묶음 점수 ${sg(gs, 2)}</span>` : rows.some(r => r.group === g && r.in_composite) ? '' : '<span class="kv">합성 제외(배경·참고)</span>'}</td></tr>`
+        + rows.filter(r => r.group === g).map(r => {
+          const why = !r.ok ? `계산 못 함 — ${r.reason || '입력 없음'}` : !r.judged ? `보류 — ${r.reason || '판정에 필요한 지표가 모자람'}` : r.stale ? `지연 — 기준일 ${r.as_of}이 다른 신호보다 늦어 합성에서 뺐습니다(값·판정은 그대로 표시)` : '';
+          const tip = [r.threshold_note, r.source ? '출처: ' + r.source : '', r.history_from ? `이력 ${r.history_from}부터` : ''].filter(Boolean).join('\n');
+          return `<tr class="${why ? 'off' : ''}"><td class="nm" data-tip="${esc(tip)}"><b>${esc(r.name)}</b><span>${esc(r.character || '')}${r.in_composite ? '' : ' · 합성 제외'}<i class="tm-n"> · ${esc(r.as_of || '-')} · 근거 ${esc(r.grade || '-')}</i></span>${why ? `<div class="tm-why">${esc(why)}</div>` : ''}${r.contrarian_note ? `<div class="tm-ctr">${esc(r.contrarian_note)}</div>` : ''}</td>
+            <td class="num">${tmVal(r)}</td><td class="num">${tmPos(r.pct_1y)}</td><td class="num c-opt">${tmPos(r.pct_5y, r.pct_5y_from)}</td><td>${tmChip(r)}</td>
+            <td class="c-opt" data-tip="${esc(r.grade_note || '')}">${esc(r.grade || '-')}</td><td class="c-opt kv">${esc(r.as_of || '-')}</td></tr>`; }).join(''); }).join('')}</table>
+    ${(d.meta && d.meta.errors || []).length ? `<div class="callout warn" style="margin-top:8px">입력 문제: ${d.meta.errors.map(esc).join(' / ')}</div>` : ''}
+    <div class="kv" style="margin-top:8px">근거 등급: A 학술 연구 다수 · B 학술 일부 · C 실무 관행 — 위치·판정은 과거 분포 안 위치일 뿐 수익 예측이 아닙니다.</div>`;
+  $('tmRules').innerHTML = [d.method, c.note, ...(d.notes || [])].filter(Boolean).map(t => `<li>${esc(t)}</li>`).join('')
+    + ((d.phase2 || []).length ? `<li>준비 중인 신호(원천 미확정): ${d.phase2.map(p => esc(p.name)).join(' · ')}</li>` : '');
+}
+const hKo = h => h ? String(h).replace('M', '개월') : '';
+function spkTable(tab, reach){
+  return `<table><tr><th>보유</th><th class="num">건수</th><th class="num">승률</th><th class="num" data-tip="표본이 적은 만큼 깎은 승률(Wilson 하한, 단측 90%)">하한</th><th class="num">중앙값</th><th class="num">최악</th></tr>${
+    (tab || []).map(r => `<tr class="${r.h === reach ? 'hit' : ''}"><td>${hKo(r.h)}</td><td class="num">${r.n}</td><td class="num">${r.win === null || r.win === undefined ? '-' : num(r.win, 1) + '%'}</td><td class="num">${r.lb === null || r.lb === undefined ? '-' : num(r.lb, 1) + '%'}</td><td class="num">${pc(r.median, 1)}</td><td class="num">${pc(r.worst, 1)}</td></tr>`).join('')}</table>`;
+}
+const r12 = tab => (tab || []).find(r => r.h === '12M') || {};
+const sigTag = (ok, vd) => ok === false ? `<span class="chip OFF">신호 아님(${esc(vd || '')})</span>` : '';
+function renderTmSpk(){
+  const d = TM.spk, st = d.studies || [], m = d.meta || {};
+  if(!d.generated_at || !st.length){ $('spkVerdict').innerHTML = TM_NONE; $('spkList').innerHTML = ''; $('spkNow').innerHTML = ''; $('spkRules').innerHTML = ''; return; }
+  const sigs = st.filter(s => s.is_signal), hits = sigs.filter(s => s.reach_90);
+  const lbl = {}; st.forEach(s => { lbl[s.target] = s.target_name; }); Object.values(d.triggers || {}).forEach(t => { lbl[t.series] = lbl[t.series] || t.name.split(' ')[0]; });
+  const cp = m.common_period || {}, cost = m.costs || {};
+  $('spkVerdict').innerHTML = `<div class="vd-head"><span class="vd-dot"></span><div>${st.length}개 조합 중 신호로 볼 수 있는 것 ${sigs.length}개 · 오래 들고 있으면 승률 90% 이상 ${hits.length}개</div></div>
+    <div class="vd-sub">${hits.length ? hits.map(s => `${esc(s.trigger_name)} → ${esc(s.target_name)}: ${hKo(s.reach_90)} 이상 보유`).join(' · ') + '. ' : ''}공포 지표가 튀면 다음 거래일 종가에 한 번 사서 들고 있었을 때의 과거 결과입니다.
+      공통 기간 ${esc(cp.start || '-')}부터${(cp.binding || []).length ? `(가장 늦게 시작한 ${cp.binding.map(k => esc(lbl[k] || k)).join(', ')} 기준)` : ''} · 왕복 비용 ${num(cost.round_trip, 1)}% 차감(민감도 ${num(cost.sensitivity, 1)}%는 펼쳐서).</div>
+    <div class="vd-note">${(m.notes || []).map(esc).join(' ')}</div>`;
+  $('spkList').innerHTML = st.map(s => {
+    const a = r12(s.table), cs = s.cost_sens || {}, ed = s.every_day || {}, lg = s.longest, kr = s.krw;
+    const aux = (t, title) => !t ? '' : t.skipped ? `<div class="kv">${esc(title)}: ${esc(t.reason || '생략')}</div>`
+      : `<details><summary>${esc(title)} — ${esc(t.start || '')}부터 ${t.n_events}건 · ${esc(t.verdict || '')}${t.is_signal === false ? ' · 신호 아님' : ''}</summary>${spkTable(t.table, t.reach_90)}</details>`;
+    return `<details class="spk${s.is_signal ? '' : ' dim'}"><summary>
+      <div class="nm"><b>${esc(s.trigger_name)} → ${esc(s.target_name)}</b> ${sigTag(s.is_signal, s.verdict)}<div class="vd">${s.is_signal ? esc(s.verdict) : '과거 결과로는 이 지표 하나만으로 매수 근거가 되지 않습니다'}</div></div>
+      <div><div class="k">발생</div><div class="v">${s.n_events}건</div></div>
+      <div><div class="k">12개월 승률</div><div class="v">${a.win === null || a.win === undefined ? '-' : num(a.win, 0) + '%'}${a.n !== undefined && a.n !== s.n_events ? ` <span class="kv">(${a.n}건)</span>` : ''}</div></div>
+      <div><div class="k">90% 도달</div><div class="v">${s.reach_90 ? hKo(s.reach_90) + ' 보유' : '도달 안 함'}</div></div>
+      <span class="chev">›</span></summary>
+      <div class="spk-body">
+        <div class="kv" style="margin:0 0 6px">${esc(s.rule)} · ${esc(s.start)}부터 · ${esc(s.ccy)} 기준 · 굵은 줄 = 90% 도달 보유기간</div>
+        ${spkTable(s.table, s.reach_90)}
+        <div class="kv">비용 ${num(cs.cost, 1)}%로 올려도 12개월 승률 ${r12(cs.table).win === undefined ? '-' : num(r12(cs.table).win, 0) + '%'} · 90% 도달 ${cs.reach_90 ? hKo(cs.reach_90) : '안 함'}
+          · 조건이 참인 모든 날을 세면 ${ed.n ?? '-'}일, 12개월 승률 ${r12(ed.table).win === undefined ? '-' : num(r12(ed.table).win, 0) + '%'}(${esc(ed.label || '중복 포함·과대평가')}, 비교용)</div>
+        ${aux(lg, '보조 — 최장 기간')}${aux(kr, '보조 — ' + ((kr && kr.label) || '원화 환산'))}
+      </div></details>`; }).join('')
+    + ((d.missing || []).length ? `<div class="kv" style="margin-top:8px">생략: ${d.missing.map(x => `${esc(x.trigger)} → ${esc(x.target)}(${esc(x.reason)})`).join(' · ')}</div>` : '');
+  const trs = Object.values(d.triggers || {});
+  $('spkNow').innerHTML = !trs.length ? '<div class="empty">지표 이력이 없습니다.</div>' : `<table><tr><th>지표 조건</th><th class="num">오늘 값</th><th>상태</th><th>마지막 발생</th></tr>${trs.map(t => { const c = t.current || {};
+    const stt = c.active ? (c.armed ? '<span class="chip WARN">조건 충족</span>' : '<span class="chip OFF">조건 충족 · 이미 센 구간</span>') : c.armed ? '<span class="chip OFF">대기</span>' : '<span class="chip OFF" data-tip="급등 뒤 아직 기준 아래로 내려오지 않아 새로 세지 않는 상태">재무장 대기</span>';
+    return `<tr><td data-tip="${esc(t.rule || '')}"><b>${esc(t.name)}</b><div class="kv">${esc(t.source || '')}</div></td><td class="num">${num(c.value, 2)}<div class="kv">${esc(c.as_of || '')}</div></td><td>${stt}</td><td class="kv">${c.last_event ? `${esc(c.last_event)}<br>${c.days_since_last_event}거래일 전` : '-'}</td></tr>`; }).join('')}</table>`;
+  $('spkRules').innerHTML = Object.values(m.definitions || {}).map(t => `<li>${esc(t)}</li>`).join('') + (cp.note ? `<li>${esc(cp.note)}</li>` : '');
+}
 // ── 주식 · 유니버스 밸류에이션 — 한 줄 = 항목, 누르면 시트(상위 10종목 · 업종 · 기본 정보). 숫자는 fundamentals.py 가 모은다
 let FUND = null, FUND_T = null, FUND_REQ = false;
 async function loadFund(){

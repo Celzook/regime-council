@@ -203,6 +203,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--kofia", action="store_true", help="금투협 전자공시 일괄 1건도 시험(컴플라이언스 확인 후)")
     a = ap.parse_args()
+    sys.stdout.reconfigure(errors="replace")  # Windows 콘솔(cp949)은 '—' 등을 못 찍어 저장 뒤 마지막 출력에서 죽었다
     if not R.available(force=True):
         sys.exit(f"Refinitiv 미연결 — Workspace 로그인 후 Windows 파이썬으로 다시 실행: {R.status()}")
     for fn in (probe_funds, probe_equities, probe_spikes, probe_timing):

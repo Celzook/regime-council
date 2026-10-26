@@ -2,6 +2,7 @@
 """장 마감 뒤 자동 갱신 — Windows 작업 스케줄러가 평일 16:30 에 부른다(register_refresh_task.ps1).
 
 순서: Workspace 연결 확인 → 과거 시계열 → 시장 스냅샷 → 인포맥스·매크로 → 주식 대시보드 → 정량 → 밸류에이션(12시간 지났을 때) → 밸류에이션 이력(7일 지났을 때)
+     → 급등 매수(spikes.py, 20시간 지났을 때 — 약 70초, timing_daily.csv 도 받는다) → 마켓타이밍 시그널(timing.py — 앞 단계 파일만 읽음)
      → 시험 포트 평가 → 전략 보드 → 백테스트 요약 → 데이터 점검(datahealth.py — 찾은 이상은 실패로 치지 않는다).
 한 단계가 실패해도 나머지는 계속한다. 결과는 data/log/refresh_status.json(화면용)과 data/log/refresh_YYYYMMDD.log 에 남는다.
 Workspace 가 꺼져 있거나 로그아웃돼 있으면(무인 실행 중 세션 타임아웃 포함) 아무것도 덮어쓰지 않고 Windows 알림을 띄운 뒤 끝낸다.
@@ -53,6 +54,21 @@ def _valhist_if_stale():
     return "갱신"
 
 
+def _spikes_if_stale():
+    import spikes
+    age = spikes.age_hours()
+    if age is not None and age < spikes.STALE_HOURS:
+        return f"건너뜀(계산한 지 {age:.1f}시간)"
+    spikes.build()
+    return "갱신"
+
+
+def _timing():
+    import timing
+    c = timing.build()["composite"]
+    return f"합성 {c.get('label') or '-'}"
+
+
 def _macro():
     import infomax_bridge
     m = infomax_bridge.read().get("meta", {})
@@ -90,6 +106,8 @@ def steps(quick: bool):
         ("정량 분석", lambda: quant.run() and "갱신"),
         ("밸류에이션", _fund_if_stale),
         ("밸류에이션 이력", _valhist_if_stale),
+        ("급등 매수", _spikes_if_stale),           # timing_daily.csv(^VIX3M)를 받으므로 시그널보다 먼저
+        ("마켓타이밍 시그널", _timing),             # 밸류에이션 이력·시장 스냅샷·주식 대시보드 결과를 읽는다
         ("시험 포트 평가", _book),
         ("전략 보드", lambda: strategy.build() and "갱신"),
         ("백테스트 요약", lambda: backtest.run_all() and "갱신"),
