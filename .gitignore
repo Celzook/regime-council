@@ -21,6 +21,9 @@ data/timing.json
 data/funds.json
 data/fund_charts.json
 data/fund_universe.json
+data/pairs.json
+data/pairs_charts.json
+data/pairs_master.json
 data/*.tmp
 # 위 값으로 만든 보고서(점검·일일·MP·토의·투자위 보고) — 포지션 수치 포함(README 보안·운영 주의)
 data/mp/
@@ -44,6 +47,8 @@ _보관_예시데이터(PPT기준)/
 
 # 사내 공유 접속 키
 data/.lan_key
+# 외부 API 키(OpenDART·data.go.kr·KRX OPEN API)
+data/.api_keys.json
 # Refinitiv 권한 점검 결과(probe_refinitiv.py)
 data/probe_result.json
 # 병렬 작업용 임시 worktree

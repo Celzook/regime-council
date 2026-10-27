@@ -1,0 +1,5 @@
+{
+  "note": "페어 후보 수작업 보정 — dart_src·pair_universe 가 읽는다. name_to_code: DART 타법인출자 현황의 출자 대상 이름(inv_prm)을 상장 종목코드로 잇는다(이름이 상장사 이름과 달라 자동으로 못 맞춘 것만 — dart_src.py 실행 결과의 '못 맞춘 이름' 참고). exclude: 후보에서 뺄 페어 id('a~b', 예 '005935.KS~005930.KS')와 사유.",
+  "name_to_code": {},
+  "exclude": []
+}

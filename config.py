@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """국면협의회(regime-council) 설정."""
+import json
 import os
 from pathlib import Path
 
@@ -46,6 +47,24 @@ REFINITIV_APPKEY_FILES = [
     "~/.claude/reference/refinitiv-workspace/.appkey",
     r"\\wsl.localhost\Ubuntu\home\infomax\.claude\reference\refinitiv-workspace\.appkey",
 ]
+# 외부 API 키(OpenDART·data.go.kr·KRX OPEN API) — 환경변수가 우선, 없으면 이 파일(저장소 제외). 코드에 박지 않는다.
+# data.go.kr 은 '디코딩' 키를 넣는다(requests 가 다시 인코딩한다).
+API_KEYS_FILE = DATA_DIR / ".api_keys.json"
+
+
+def api_key(name: str) -> str:
+    """name = DART_API_KEY · DATA_GO_KR_KEY · KRX_API_KEY. 없으면 RuntimeError."""
+    key = os.environ.get(name, "").strip()
+    if not key:
+        try:
+            key = str(json.loads(API_KEYS_FILE.read_text(encoding="utf-8")).get(name, "")).strip()
+        except (OSError, ValueError):
+            key = ""
+    if not key:
+        raise RuntimeError(f"API 키 없음 — 환경변수 {name} 또는 {API_KEYS_FILE.name}")
+    return key
+
+
 # 사내망 공유 — 환경변수 REGIME_LAN=1 로 켤 때만(대시보드_사내공유.bat). 평소에는 127.0.0.1 전용.
 # 켜면 0.0.0.0:5101 로 열고, 아래 대역의 PC 만·접속 키를 가진 사람만·읽기 전용으로 받는다.
 # 이 PC 의 주소(220.86.116.130)는 사설망이 아니라 공인 IP 라 대역 제한과 접속 키를 둘 다 건다(2026-10-23 확인).
@@ -65,7 +84,7 @@ LAN_GET_ALLOW: list[str] = [
     "/api/checks", "/api/checks/*", "/api/mp", "/api/mp/*", "/api/analog",
     "/api/discussions", "/api/discussions/*", "/api/report/*",
     "/api/quant", "/api/strategy", "/api/equity", "/api/equity/fund", "/api/equity/valhist",
-    "/api/backtest/catalog", "/api/macro", "/api/timing", "/api/timing/spikes", "/api/funds", "/api/funds/*",
+    "/api/backtest/catalog", "/api/macro", "/api/timing", "/api/timing/spikes", "/api/timing/pairs", "/api/timing/pairs/*", "/api/funds", "/api/funds/*",
 ]
 # 매크로 화면을 보고 있을 때 인포맥스 값을 다시 받는 주기(분) — 한 번에 숨김 엑셀이 약 10초 떴다 닫힌다.
 INFOMAX_REFRESH_MIN = 5

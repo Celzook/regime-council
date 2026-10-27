@@ -718,6 +718,24 @@
   .tm-p2h { margin:14px 0 4px; font-size:12px; color:var(--muted); font-weight:650; }
   .tm-p2 { margin:0; padding-left:18px; font-size:13px; } .tm-p2 li { margin:4px 0; } .tm-p2 .kv { font-size:12px; }
   @container main (max-width:640px){ table.tmt .c-opt { display:none; } .tm-n { display:inline; } }
+  /* 페어 — 표는 tmt 를 그대로 쓰고(좁으면 c-opt 숨김) 행을 누르면 상자(#box)에 z 차트·거래 */
+  .pr-scroll { overflow-x:auto; }
+  table.prt tr.pr-r { cursor:pointer; } table.prt tr.pr-r:hover td { background:var(--brand-soft); }
+  table.prt tr.pr-r:focus-visible { outline:2px solid var(--brand); outline-offset:-2px; }
+  table.prt td.nm .pr-vs { color:var(--muted); font-weight:500; margin:0 3px; }
+  .pr-kind { font-size:11px; font-weight:600; padding:0 6px; border-radius:4px; background:var(--fill-2); color:var(--ink2); margin-left:6px; vertical-align:1px; white-space:nowrap; }
+  .pr-z { font-weight:650; } .pr-z.hi { color:var(--caution-ink); } .pr-z.st { color:var(--bad-ink); }
+  .pr-sub { display:block; font-size:11px; color:var(--muted); white-space:nowrap; }
+  .chip.pr-sig { --c:var(--caution); }
+  table.prb td:first-child { white-space:nowrap; }
+  table.prb tr.pr-ref td { background:var(--fill-1); font-style:italic; }
+  .pr-facts { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:13px; color:var(--ink2); margin:2px 0 10px; }
+  .pr-facts b { color:var(--ink); font-weight:650; font-variant-numeric:tabular-nums; }
+  .chart .pr-hl-exit { stroke:var(--axis); stroke-dasharray:2 3; } .chart .pr-hl-entry { stroke:var(--caution); stroke-dasharray:5 3; } .chart .pr-hl-stop { stroke:var(--down); stroke-dasharray:5 3; }
+  .chart .pr-win { fill:color-mix(in srgb, var(--up) 14%, transparent); } .chart .pr-loss { fill:color-mix(in srgb, var(--down) 12%, transparent); } .chart .pr-open { fill:color-mix(in srgb, var(--flat) 20%, transparent); }
+  .legend i.pr-dash { height:0; border-top:2px dashed var(--c); background:none; border-radius:0; }
+  .legend i.pr-box { height:10px; background:var(--c); }
+  @container main (max-width:900px){ table.prt .c-mid { display:none; } }
   .spk { border-top:1px solid var(--hair); } .spk:first-child { border-top:none; }
   .spk > summary { list-style:none; display:grid; grid-template-columns:minmax(0,1fr) repeat(3,92px) 14px; gap:6px 10px; align-items:center; padding:9px 4px; cursor:pointer; color:var(--ink); font-size:13px; border-radius:8px; }
   .spk > summary::-webkit-details-marker { display:none; }
@@ -1109,12 +1127,12 @@
   </div>
 </section>
 
-<!-- 마켓타이밍 — 시그널(timing.py) · 급등 매수(spikes.py). 둘 다 자동 갱신(refresh_all)이 만든 파일을 읽기만 한다 -->
+<!-- 마켓타이밍 — 시그널(timing.py) · 급등 매수(spikes.py) · 페어(pairs.py). 모두 자동 갱신(refresh_all)이 만든 파일을 읽기만 한다 -->
 <section class="page" id="page-timing">
   <div class="bhead">
     <div><div class="ptitle">마켓타이밍</div><div class="kv" id="tmMeta"></div></div>
     <span class="spacer"></span>
-    <span class="seg" id="tmSeg"><span class="s on" data-v="sig">시그널</span><span class="s" data-v="spk">급등 매수</span></span>
+    <span class="seg" id="tmSeg"><span class="s on" data-v="sig">시그널</span><span class="s" data-v="spk">급등 매수</span><span class="s" data-v="pair">페어</span></span>
   </div>
   <div id="tmSig">
     <div class="card sverdict" id="tmVerdict"><div class="empty">불러오는 중…</div></div>
@@ -1126,6 +1144,12 @@
     <div class="card"><h2>지표·대상별 <span class="sub">누르면 보유기간별 표 · 흐린 줄 = 신호로 쓰지 않음</span></h2><div id="spkList"></div></div>
     <div class="card"><h2>지금 상태 <span class="sub">공포 지표의 오늘 값 · 마지막 발생</span></h2><div id="spkNow"></div></div>
     <div class="card"><details class="rules"><summary>어떻게 계산했나요?</summary><ul id="spkRules"></ul></details></div>
+  </div>
+  <div id="tmPair" hidden>
+    <div class="card sverdict" id="prVerdict"><div class="empty">불러오는 중…</div></div>
+    <div class="card"><h2>지금 페어 <span class="sub">z = 두 종목 가격 차이가 평소보다 몇 표준편차 벌어졌나 · 누르면 3년 z 차트와 거래 내역</span></h2><div class="fd-bar" id="prBar"></div><div id="prTable"></div></div>
+    <div class="card"><h2>백테스트 <span class="sub">같은 규칙을 과거에 돌렸을 때 · 청산된 거래만</span></h2><div id="prBt"></div></div>
+    <div class="card"><details class="rules"><summary>어떻게 계산했나요?</summary><ul id="prRules"></ul></details></div>
   </div>
 </section>
 
@@ -1293,10 +1317,11 @@
 
   <!-- 마켓타이밍 -->
   <div class="card" id="gd-timing">
-    <div class="gd-hd"><h2>마켓타이밍 <span class="sub">시그널 · 급등 매수</span></h2>
+    <div class="gd-hd"><h2>마켓타이밍 <span class="sub">시그널 · 급등 매수 · 페어</span></h2>
       <button class="btn sm primary" onclick="showTab('timing');document.querySelector('#tmSeg .s[data-v=sig]').click();scrollTo(0,0)">이 화면 열기</button>
-      <button class="btn sm" onclick="showTab('timing');document.querySelector('#tmSeg .s[data-v=spk]').click();scrollTo(0,0)">급등 매수 열기</button></div>
-    <p class="gd-lead">여러 위험 신호를 정해진 규칙으로 판정해 '지금 위험선호인가 위험회피인가'를 한 줄로 모으고, 공포 지표가 튀었을 때 샀다면 과거에 어땠는지 보여 줍니다.</p>
+      <button class="btn sm" onclick="showTab('timing');document.querySelector('#tmSeg .s[data-v=spk]').click();scrollTo(0,0)">급등 매수 열기</button>
+      <button class="btn sm" onclick="showTab('timing');document.querySelector('#tmSeg .s[data-v=pair]').click();scrollTo(0,0)">페어 열기</button></div>
+    <p class="gd-lead">여러 위험 신호를 정해진 규칙으로 판정해 '지금 위험선호인가 위험회피인가'를 한 줄로 모으고, 공포 지표가 튀었을 때 샀다면 과거에 어땠는지, 같이 움직이던 두 종목의 가격 차이가 벌어졌을 때 되돌림에 걸었다면 어땠는지 보여 줍니다.</p>
     <div class="gd-secs">
       <div class="gd-sec"><h3>시그널 — 종합 결론</h3><dl class="gd-dl">
         <dt>무엇</dt><dd>합성 점수와 결론(위험선호·중립·위험회피), 합성에 쓴 신호 중 판정별 개수, 합성에서 뺀 개수.</dd>
@@ -1338,11 +1363,23 @@
         <dt>흐린 줄</dt><dd>'신호 아님' — MOVE 는 12개월 승률 70% 미만이거나 90% 에 도달하지 않으면 단독 효과가 확인되지 않은 것으로 봅니다.</dd>
         <dt>지금 상태</dt><dd>조건 충족 · 이미 센 구간 · 대기 · 재무장 대기(급등 뒤 아직 기준 아래로 안 내려옴), 마지막 발생일.</dd></dl></div>
     </div>
+    <div class="gd-secs" style="margin-top:12px">
+      <div class="gd-sec"><h3>페어 — 무엇을 묻나</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>"같이 움직이던 두 종목(같은 회사의 보통·우선, 상장 모·자회사, 같은 업종 대형주)의 가격 차이가 평소보다 크게 벌어지면, 비싼 쪽을 팔고 싼 쪽을 사서 되돌아올 때까지 들고 있으면 과거에 어땠나?"</dd>
+        <dt>채택</dt><dd>월말마다 최근 252거래일로 공적분 검정(Engle-Granger 양방향 + 여러 후보를 한꺼번에 본 만큼 깎은 FDR q)과 반감기 5~60일을 통과한 짝만 다음 월말까지 씁니다.</dd>
+        <dt>데이터</dt><dd>Refinitiv 배당 재투자 가격 · 거래대금, 모자회사 지분율은 DART 최신 사업보고서. 평일 16:30 자동 갱신.</dd></dl></div>
+      <div class="gd-sec"><h3>페어 — 읽는 법</h3><dl class="gd-dl">
+        <dt>z</dt><dd>지금 가격 차이가 최근 252일 평균에서 몇 표준편차 떨어졌나. |z| 2 넘으면 진입 신호, 0.5 안쪽으로 오면 정상 청산, 3 넘으면 손절(그 뒤 반감기만큼 재진입 금지), 오래 안 돌아오면 시간 손절.</dd>
+        <dt>상태</dt><dd>진입 신호(오늘 종가 기준, 다음 거래일 종가 체결 가정) · 보유 중 · 미채택 — 보유 중(재검정에서 빠졌지만 규칙상 청산 전) · 쿨다운 · 대기(채택됐지만 아직 덜 벌어짐) · 관찰(양방향 p·반감기는 통과했지만 FDR 에서 빠짐 — 신호 아님, 흐리게 표시·차트 없음) · 미채택(기본은 숨김). 맨 위 결론이 '과거 수익 확인 안 됨'이면 진입 신호도 참고로만 봅니다.</dd>
+        <dt>대차</dt><dd>대차 가능 여부·대차료 원천이 없어 기본 '미확인'입니다. 실제로 빌릴 수 있는지는 따로 확인해야 합니다.</dd>
+        <dt>수익</dt><dd>한 거래의 % = 매일 두 다리 손익의 단순 합(복리 아님). 비용 후 = 체결·슬리피지, 대차료, 매도분 거래세(연도별 세율)를 가정해 뺀 값.</dd></dl></div>
+    </div>
     <div class="gd-myth"><h3>자주 하는 오해</h3><ul class="gd-list">
       <li>"위험회피 = 팔아라" — 아닙니다. 신호를 모은 상태 표시이고, 일부 신호는 극단일수록 오히려 반등 참고(역발상)입니다.</li>
       <li>"승률 90% = 90% 확률로 오른다" — 과거 수 건~수십 건의 비율입니다. 하한과 '최악' 열을 함께 보세요.</li>
       <li>"점수가 클수록 수익이 크다" — 점수는 방향 판정의 평균일 뿐 수익 크기를 예측하지 않습니다.</li>
       <li>"매일 센 수치가 더 정확하다" — 같은 급등을 중복으로 센 과대평가 값이라 비교용으로만 둡니다.</li>
+      <li>"진입 신호 = 지금 사라" — 아닙니다. 과거 규칙이 오늘 무엇을 했을지 보여 줄 뿐이고, 대차 가능 여부·비용은 가정입니다.</li>
     </ul></div>
   </div>
 
@@ -2463,18 +2500,19 @@ document.querySelectorAll('#eqSeg .s').forEach(b => b.onclick = () => {
   if(v === 'uni' && !FUND) loadFund();
   if(!$('chatPanel').hidden) refreshChatContext();
 });
-// ── 마켓타이밍 — 시그널(timing.json)·급등 매수(spikes.json). 숫자는 refresh_all 이 만들고 화면은 읽기만 한다
-let TM = {sig: null, spk: null};
+// ── 마켓타이밍 — 시그널(timing.json)·급등 매수(spikes.json)·페어(pairs.json). 숫자는 refresh_all 이 만들고 화면은 읽기만 한다
+let TM = {sig: null, spk: null, pair: null};
 async function loadTiming(){
-  const [a, b] = await Promise.allSettled([api('/api/timing'), api('/api/timing/spikes')]);
+  const [a, b, c] = await Promise.allSettled([api('/api/timing'), api('/api/timing/spikes'), api('/api/timing/pairs')]);
   if(a.status === 'fulfilled'){ TM.sig = a.value; renderTmSig(); } else $('tmVerdict').innerHTML = `<div class="empty">${esc(a.reason.message)}</div>`;
   if(b.status === 'fulfilled'){ TM.spk = b.value; renderTmSpk(); } else $('spkVerdict').innerHTML = `<div class="empty">${esc(b.reason.message)}</div>`;
+  if(c.status === 'fulfilled'){ TM.pair = c.value; renderTmPair(); } else $('prVerdict').innerHTML = `<div class="empty">${esc(c.reason.message)}</div>`;
   const at = d => d && d.generated_at ? d.generated_at.replace('T', ' ').slice(5, 16) + ' 계산' : '아직 없음';
-  $('tmMeta').textContent = `시그널 ${at(TM.sig)} · 급등 매수 ${at(TM.spk)} · 평일 16:30 자동 갱신 · 매매 지시 아님`; $('tmMeta').title = $('tmMeta').textContent;
+  $('tmMeta').textContent = `시그널 ${at(TM.sig)} · 급등 매수 ${at(TM.spk)} · 페어 ${at(TM.pair)} · 평일 16:30 자동 갱신 · 매매 지시 아님`; $('tmMeta').title = $('tmMeta').textContent;
 }
 document.querySelectorAll('#tmSeg .s').forEach(b => b.onclick = () => {
   document.querySelectorAll('#tmSeg .s').forEach(x => x.classList.toggle('on', x === b));
-  $('tmSig').hidden = b.dataset.v !== 'sig'; $('tmSpk').hidden = b.dataset.v !== 'spk';
+  $('tmSig').hidden = b.dataset.v !== 'sig'; $('tmSpk').hidden = b.dataset.v !== 'spk'; $('tmPair').hidden = b.dataset.v !== 'pair';
   if(!$('chatPanel').hidden) refreshChatContext();
 });
 const TM_ST = {'위험선호': 'ron', '중립': 'rneu', '위험회피': 'roff'};
@@ -2567,6 +2605,169 @@ function renderTmSpk(){
     const stt = c.active ? (c.armed ? '<span class="chip WARN">조건 충족</span>' : '<span class="chip OFF">조건 충족 · 이미 센 구간</span>') : c.armed ? '<span class="chip OFF">대기</span>' : '<span class="chip OFF" data-tip="급등 뒤 아직 기준 아래로 내려오지 않아 새로 세지 않는 상태">재무장 대기</span>';
     return `<tr><td data-tip="${esc(t.rule || '')}"><b>${esc(t.name)}</b><div class="kv">${esc(t.source || '')}</div></td><td class="num">${num(c.value, 2)}<div class="kv">${esc(c.as_of || '')}</div></td><td>${stt}</td><td class="kv">${c.last_event ? `${esc(c.last_event)}<br>${c.days_since_last_event}거래일 전` : '-'}</td></tr>`; }).join('')}</table>`;
   $('spkRules').innerHTML = Object.values(m.definitions || {}).map(t => `<li>${esc(t)}</li>`).join('') + (cp.note ? `<li>${esc(cp.note)}</li>` : '');
+}
+// ── 페어(pairs.json) — 표·백테스트는 /api/timing/pairs, 페어별 최근 3년 z·거래는 /api/timing/pairs/<id>(행을 누를 때 받는다)
+const PR = {kind: '', out: false, req: 0};
+const PR_ST = {'진입 신호': 'pr-sig', '보유 중': 'NORMAL', '미채택 — 보유 중': 'WATCH', '쿨다운': 'OFF', '대기': 'OFF', '관찰': 'OFF', '미채택': 'OFF'};
+const PR_WATCH = '관찰';   // p·반감기는 통과했지만 FDR 탈락 — 신호 아님(차트 없음)
+const prNoSig = () => (((TM.pair || {}).meta || {}).verdict || {}).is_signal === false;   // 결론이 '과거 수익 확인 안 됨'
+const prChipTxt = st => st === PR_WATCH ? '관찰 · 신호 아님' : st === '진입 신호' && prNoSig() ? '진입 신호 · 참고' : st;
+const PR_SHORT = {'미확인': ['OFF', '대차 원천 미확보 — 실제 대차 가능 여부는 확인 필요'], '불가': ['WARN', '오늘은 신규 공매도 금지 구간 — 새로 들어갈 수 없음'],
+  '제한': ['WATCH', '부분 허용기 — 숏 레그가 지수 편입 종목(현재 시총 순위로 근사)이라 허용으로 봄. 실제 대차 가능 여부는 확인 필요']};
+const prNz = v => v !== null && v !== undefined && isFinite(v);
+const prF = (v, d) => prNz(v) ? (+v).toFixed(d) : '-';
+const prN = (v, z = '-') => prNz(v) ? num(v, 0) : z;   // 건수·쌍 수(서버 값은 모두 num/esc 를 거쳐 넣는다)
+const prPv = v => prNz(v) ? (v < 0.001 ? '<0.001' : (+v).toFixed(3)) : '-';   // p·q — 아주 작으면 0.000 대신
+const prPar = () => ((TM.pair || {}).meta || {}).params || {};   // 카탈로그 전체(params·sell_tax·short_regimes·kinds)
+const prZp = () => prPar().params || {};                        // 문턱·비용 숫자
+const prP = r => prNz(r.p_ab) && prNz(r.p_ba) ? Math.max(r.p_ab, r.p_ba) : prNz(r.p_ab) ? r.p_ab : r.p_ba;   // 양방향 중 큰 값 = 채택 판정에 쓴 p
+const prSide = (side, r) => side === '롱 a·숏 b' ? `${r.a.name} 매수 · ${r.b.name} 매도` : side === '숏 a·롱 b' ? `${r.a.name} 매도 · ${r.b.name} 매수` : (side || '');
+const prTs = v => prNz(v) ? Math.ceil(v - 1e-9) : null;   // 시간 손절 = 보유일 ≥ 이 값(소수면 그다음 거래일)
+const prEok = v => prNz(v) ? num(v, v < 10 ? 1 : 0) + '억' : '-';
+function prZ(z, plain){   // plain = 문턱 색 없이(관찰·미채택 — 신호가 아니다)
+  const P = prZp(); if(!prNz(z)) return '<span class="kv">-</span>';
+  const a = Math.abs(z), c = plain ? '' : prNz(P.stop_z) && a >= P.stop_z ? ' st' : prNz(P.entry_z) && a >= P.entry_z ? ' hi' : '';
+  return `<span class="pr-z${c}">${sgf(z, 2)}</span>`;
+}
+const prShort = b => { const x = PR_SHORT[b] || ['OFF', '']; return `<span class="chip ${x[0]}"${x[1] ? ` data-tip="${esc(x[1])}"` : ''}>${esc(b || '-')}</span>`; };
+function prTax(asOf){   // 기준일 매도 거래세(%) — sell_tax 표에서 그날이 속한 구간
+  const t = (prPar().sell_tax || {}).table || [], d = asOf || '';
+  const hit = d && t.find(x => (!x.from || x.from <= d) && (!x.to || d <= x.to)); return hit ? hit.rate : null;
+}
+function renderTmPair(){
+  const d = TM.pair || {}, m = d.meta || {}, rows = d.pairs || [], o = (d.backtest || {}).overall || {}, P = prZp();
+  if(!d.generated_at){ ['prBar', 'prTable', 'prBt', 'prRules'].forEach(k => { $(k).innerHTML = ''; }); $('prVerdict').innerHTML = TM_NONE; return; }
+  const n = st => rows.filter(r => r.state === st).length, nSig = n('진입 신호'), nHold = n('보유 중'), nOut = n('미채택 — 보유 중');
+  const nc = Object.entries(m.n_candidates || {}).map(([k, v]) => `${k} ${v}`).join(' · '), tax = prTax(m.as_of);
+  const cost = `체결·슬리피지 진입·청산 회당 ${num(P.commission_slip_per_side, 2)}% · 대차료 연 ${num(P.borrow_fee_annual, 1)}% · 매도분 거래세 ${tax !== null ? `지금 ${num(tax, 2)}%(연도별)` : '연도별'}`;
+  // 결론(meta.verdict) — 신호로 쓸 수 있나. is_signal false 면 '진입 신호'도 강조하지 않는다(매수·매도 권유처럼 읽히지 않게)
+  const vd = m.verdict || null, sig = !vd || vd.is_signal !== false, vt = vd && vd.text ? String(vd.text) : '', cut = vt.indexOf(' — ');
+  const cnt = `채택 ${prN(m.n_adopted_last, 0)}쌍 · 진입 신호 ${num(nSig, 0)} · 보유 중 ${num(nHold + nOut, 0)}${n(PR_WATCH) ? ` · 관찰 ${num(n(PR_WATCH), 0)}` : ''}`;
+  const headTxt = vt ? (cut > 0 ? vt.slice(0, cut) : vt) : cnt, restTxt = vt && cut > 0 ? vt.slice(cut + 3) : '';
+  $('prVerdict').innerHTML = `<div class="vd-head"><span class="vd-dot${sig ? (nSig ? ' warn' : '') : ''}"></span><div>${esc(headTxt)}</div></div>
+    ${restTxt ? `<div class="vd-sub">${esc(restTxt)}</div>` : ''}
+    <div class="vd-sub">${vt ? `지금 ${esc(cnt)}. ` : ''}마지막 재검정 ${esc(m.last_test || '-')} · 다음 재검정 ${esc(m.next_test || '-')} · 기준일 ${esc(m.as_of || '-')}. 후보 ${esc(nc || '-')}(가격 있는 ${prN(m.n_priced)}쌍 · 마지막 월말 시험 ${prN(m.n_tested_last)}쌍). 비용 가정: ${esc(cost)}.</div>
+    <div class="vtiles" style="--n:4">
+      <div class="vtile"><div class="l">진입 신호${sig ? '' : ' (참고)'}</div><div class="v${sig && nSig ? ' warn' : ''}">${num(nSig, 0)}</div><div class="s">${sig ? `오늘 종가 |z| ${num(P.entry_z, 1)} 넘음 · 다음 거래일 종가 체결 가정` : '규칙상 신호일 뿐 — 과거 수익 확인 안 됨'}</div></div>
+      <div class="vtile"><div class="l">보유 중</div><div class="v">${num(nHold + nOut, 0)}</div><div class="s">${nOut ? `재검정 탈락 ${num(nOut, 0)}쌍 포함` : '규칙상 아직 청산 전'}</div></div>
+      <div class="vtile"><div class="l">채택 대기</div><div class="v">${num(n('대기'), 0)}</div><div class="s">채택됐지만 아직 덜 벌어짐${n('쿨다운') ? ` · 쿨다운 ${num(n('쿨다운'), 0)}쌍` : ''}${n(PR_WATCH) ? ` · 관찰 ${num(n(PR_WATCH), 0)}쌍(신호 아님)` : ''}</div></div>
+      <div class="vtile"><div class="l">백테스트 승률 (비용 후)</div><div class="v">${prNz(o.win) ? num(o.win, 0) + '%' : '-'}</div><div class="s">${o.n ? `${prN(o.n)}건 · 평균 ${sgf(o.mean, 2)}%/건 · 중앙 ${sgf(o.median, 2)}%` : '청산된 거래 없음'}</div></div>
+    </div>
+    <div class="vd-note">${sig ? '과거 자료로 규칙을 돌려 본 점검 결과입니다 — 매매 지시가 아닙니다.' : '과거 수익이 확인되지 않아 이 화면의 신호는 매매 근거로 쓰지 않습니다 — 규칙이 오늘 무엇을 했을지 보여 주는 참고입니다.'} 대차 가능 여부·대차료는 확인하지 못해 가정으로 뺐습니다.</div>`;
+  renderPrTable(); renderPrBt();
+  $('prRules').innerHTML = [...Object.values(m.definitions || {}), ...(m.notes || [])].map(t => `<li>${esc(t)}</li>`).join('');
+}
+function renderPrTable(){
+  const d = TM.pair, m = d.meta || {}, all = d.pairs || [], P = prZp();
+  const kinds = prPar().kinds || [...new Set(all.map(r => r.kind))];
+  if(PR.kind && !kinds.includes(PR.kind)) PR.kind = '';
+  const inKind = all.filter(r => !PR.kind || r.kind === PR.kind), nOut = inKind.filter(r => r.state === '미채택').length;
+  const rows = inKind.filter(r => PR.out || r.state !== '미채택');
+  $('prBar').innerHTML = [['', '전체', all.length], ...kinds.map(k => [k, k, all.filter(r => r.kind === k).length])]
+    .map(([v, l, c]) => `<button type="button" class="fd-chip${PR.kind === v ? ' on' : ''}" data-k="${esc(v)}">${esc(l)} <i>${num(c, 0)}</i></button>`).join('')
+    + `<button type="button" class="fd-chip th${PR.out ? ' on' : ''}" id="prOut" aria-pressed="${PR.out}" style="margin-left:auto" data-tip="${esc(`채택도 보유도 아니지만 최근 ${prN(P.recent_months, 12)}개월 안에 거래가 있던 페어`)}">미채택도 보기 <i>${num(nOut, 0)}</i></button>`;
+  const zTip = `진입 |z| > ${num(P.entry_z, 1)} · 정상 청산 |z| < ${num(P.exit_z, 1)} · 손절 |z| > ${num(P.stop_z, 1)}\n주황 = 진입 문턱 넘음 · 빨강 = 손절 문턱 넘음`;
+  const pTip = `Engle-Granger 공적분 p — 양방향(a~b, b~a) 중 큰 값. 둘 다 ${num(P.p_max, 2)} 미만이어야 채택\nq = 같은 월말에 시험한 후보 전체로 깎은 FDR q — ${num(P.fdr_q, 2)} 이하여야 채택`;
+  const head = `<tr><th>페어</th><th class="num c-mid" data-tip="두 종목 로그 가격 회귀 기울기 — a 1 에 b 몇을 맞추나. 보유 중이면 진입 때 β 고정">β</th><th class="num c-opt" data-tip="${esc(pTip)}">EG p · q</th>
+    <th class="num c-opt" data-tip="벌어진 차이가 절반으로 줄어드는 데 걸린 거래일(마지막 월말 시험)">반감기</th><th class="num" data-tip="${esc(zTip)}">현재 z</th><th>상태</th>
+    <th class="num c-opt" data-tip="보유 거래일 / 시간 손절(보유일이 이만큼 되면 청산)">보유일</th><th class="num c-opt" data-tip="보유 중 거래의 지금까지 수익(%) — 진입 비용·대차료를 뺀 값, 청산 비용은 아직 안 뺌">미실현</th>
+    <th class="num c-mid" data-tip="20거래일 평균 거래대금 — 두 종목 중 작은 쪽">거래대금</th><th class="c-opt" data-tip="숏 레그 대차 상태 — 대차 원천 미확보라 기본 '미확인'">대차</th><th class="c-mid">재검정</th></tr>`;
+  const body = rows.map(r => {
+    const ws = r.warnings || [], pv = prP(r), ts = prTs(r.time_stop_days);
+    const sub = [r.kind === '모자회사' && prNz(r.pct) ? `지분 ${num(r.pct, 1)}%` : '', r.note].filter(Boolean).join(' · ');
+    const mob = `${prNz(r.pnl_net) ? `미실현 ${sgf(r.pnl_net, 2)}% · ` : ''}β ${prF(r.beta, 2)} · 반감기 ${prNz(r.half_life) ? num(r.half_life, 0) + '일' : '-'} · 대차 ${r.short_badge || '-'}`;   // 좁은 화면에서 숨긴 열
+    return `<tr class="pr-r${r.state === '미채택' || r.state === PR_WATCH ? ' off' : ''}" data-id="${esc(r.id)}" tabindex="0">
+      <td class="nm"><b>${esc(r.a.name)}<span class="pr-vs">/</span>${esc(r.b.name)}</b><small class="pr-kind">${esc(r.kind)}</small><span>${esc(sub)}<i class="tm-n">${sub ? ' · ' : ''}${esc(mob)}</i></span>${r.side ? `<div class="tm-ctr">${prNoSig() ? '규칙상 방향: ' : ''}${esc(prSide(r.side, r))}</div>` : ''}${ws.map(w => `<div class="tm-why">${esc(w)}</div>`).join('')}</td>
+      <td class="num c-mid" data-tip="${esc(`쓰는 β ${prF(r.beta, 3)}${r.side ? '(진입 때 β)' : ''}\n마지막 시험 β ${prF(r.beta_test, 3)}`)}">${prF(r.beta, 2)}</td>
+      <td class="num c-opt" data-tip="${esc(`p(a~b) ${prF(r.p_ab, 4)} · p(b~a) ${prF(r.p_ba, 4)}\nFDR q ${prF(r.q, 4)}`)}">${prPv(pv)}<span class="pr-sub">q ${prPv(r.q)}</span></td>
+      <td class="num c-opt">${prNz(r.half_life) ? num(r.half_life, 1) + '일' : '-'}</td>
+      <td class="num">${prZ(r.z, r.state === PR_WATCH || r.state === '미채택')}</td>
+      <td><span class="chip ${PR_ST[r.state] || 'OFF'}"${r.state === PR_WATCH ? ` data-tip="${esc('양방향 p·반감기는 통과했지만 여러 후보를 함께 본 FDR q 에서 탈락 — 채택 아님, 신호로 쓰지 않음')}"` : r.state === '진입 신호' && prNoSig() ? ` data-tip="${esc('규칙상 신호일 뿐 — 과거 수익이 확인되지 않았습니다(위 결론 참고)')}"` : ''}>${r.state === PR_WATCH ? '관찰<span class="c-opt"> · 신호 아님</span>' : esc(prChipTxt(r.state))}</span></td>
+      <td class="num c-opt">${prNz(r.hold_days) ? num(r.hold_days, 0) + '일' : '-'}${ts !== null && (prNz(r.hold_days) || r.state === '진입 신호') ? `<span class="pr-sub">시간 손절 ${num(ts, 0)}일</span>` : ''}</td>
+      <td class="num c-opt"${prNz(r.pnl_net) ? ` data-tip="${esc(`비용 전 ${sgf(r.pnl_gross, 2)}% · 비용 후 ${sgf(r.pnl_net, 2)}%\n${r.entry} 체결 · 청산 비용은 아직 안 뺌`)}"` : ''}>${prNz(r.pnl_net) ? pc(r.pnl_net, 2) : '<span class="kv">-</span>'}${r.entry ? `<span class="pr-sub">${esc(r.entry)} 진입</span>` : ''}</td>
+      <td class="num c-mid">${prEok(r.tv20_min_eok)}</td>
+      <td class="c-opt">${prShort(r.short_badge)}</td>
+      <td class="c-mid kv" style="white-space:nowrap" data-tip="${esc(`다음 재검정 ${r.next_test || '-'}`)}">${esc(r.tested_at || '-')}</td></tr>`; }).join('');
+  const miss = d.missing || [], errs = m.errors || [];
+  const why = {}; miss.forEach(x => { const k = String(x.reason || '').split(/[(—]/)[0].trim() || '기타'; why[k] = (why[k] || 0) + 1; });
+  $('prTable').innerHTML = (rows.length ? `<div class="pr-scroll"><table class="tmt prt">${head}${body}</table></div>`
+      : `<div class="empty">${all.length ? '이 조건에 맞는 페어가 없습니다.' + (nOut && !PR.out ? ` 미채택 ${num(nOut, 0)}쌍은 숨겨져 있습니다.` : '') : `지금 채택·보유 중이거나 최근 ${prN(P.recent_months, 12)}개월 안에 거래한 페어가 없습니다.`}</div>`)
+    + (errs.length ? `<div class="callout warn" style="margin-top:8px">입력 문제: ${errs.map(esc).join(' / ')}</div>` : '')
+    + `<div class="kv" style="margin-top:8px">표 = 지금 채택·보유·관찰 중이거나 최근 ${prN(P.recent_months, 12)}개월 안에 거래한 페어 · 이름 아래 주황 글씨 = 주의 · 대차 '미확인' = 원천이 없어 확인 못 함(실제 대차 가능 여부는 따로 확인)${miss.length ? ` · <span data-tip="${esc(miss.slice(0, 30).map(x => `${x.id}: ${x.reason}`).join('\n') + (miss.length > 30 ? `\n… 외 ${miss.length - 30}건` : ''))}">계산에서 뺀 후보 ${num(miss.length, 0)}쌍(${esc(Object.entries(why).map(([k, v]) => `${k} ${v}`).join(' · '))})</span>` : ''}</div>`;
+  $('prBar').querySelectorAll('.fd-chip[data-k]').forEach(b => b.onclick = () => { PR.kind = b.dataset.k; renderPrTable(); });
+  $('prOut').onclick = () => { PR.out = !PR.out; renderPrTable(); };
+  $('prTable').querySelectorAll('tr.pr-r').forEach(tr => { const go = () => openPair(tr.dataset.id);
+    tr.onclick = go; tr.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } }; });
+}
+function renderPrBt(){
+  const d = TM.pair, m = d.meta || {}, bt = d.backtest || {}, P = prZp(), o = bt.overall || {}, bins = bt.by_pct_bin || [];
+  const ref = bt.reference || null;
+  if(!o.n && !(ref && ref.n) && !bins.some(b => b.n_tests)){ $('prBt').innerHTML = '<div class="empty">청산된 거래가 아직 없습니다.</div>'; return; }
+  const kinds = prPar().kinds || Object.keys(bt.by_kind || {});
+  const rs = s => { const r = s.reasons || {}; return `${prN(r['정상'], 0)} · ${prN(r['손절'], 0)} · ${prN(r['시간 손절'], 0)}`; };
+  const row = (label, s = {}) => !s.n ? `<tr class="off"><td>${label}</td><td class="num">0</td><td colspan="8" class="kv">청산된 거래 없음</td></tr>`
+    : `<tr><td>${label}</td><td class="num">${prN(s.n)}</td><td class="num">${prNz(s.win) ? num(s.win, 1) + '%' : '-'}</td><td class="num">${pc(s.mean, 2)}</td><td class="num">${pc(s.median, 2)}</td>
+      <td class="num c-opt">${pc(s.worst, 1)}</td><td class="num c-opt">${pc(s.best, 1)}</td><td class="num c-opt">${pc(s.mean_gross, 2)}</td><td class="num c-opt">${prNz(s.avg_days) ? num(s.avg_days, 1) + '일' : '-'}</td><td class="num c-opt">${rs(s)}</td></tr>`;
+  const years = Object.keys(bt.by_year || {}).sort();
+  const cs = bt.cost_sens || {}, R = o.reasons || {};
+  const binL = b => !prNz(b.lo) ? esc(b.bin || '-') : !prNz(b.hi) ? `${num(b.lo, 1)}% 이상` : `${num(b.lo, 1)}~${num(b.hi, 1)}% 미만`;
+  $('prBt').innerHTML = `<div class="kv" style="margin:0 0 8px">수익률 = 거래 1건의 %(두 다리 일간 손익을 진입 체결 다음 날부터 청산 체결일까지 단순 합, 복리 아님) · 비용 후 = 체결·슬리피지 진입·청산 회당 ${num(P.commission_slip_per_side, 2)}%, 대차료 연 ${num(P.borrow_fee_annual, 1)}%, 매도분 거래세(체결일 연도 세율)를 <b>가정</b>해 뺀 값 · 기간 ${esc(m.backtest_start || '-')} ~ ${esc(m.as_of || '-')}${m.n_open ? ` · 끝까지 열린 ${prN(m.n_open)}건은 미실현이라 뺌` : ''}.</div>
+    ${o.n || (ref && ref.n) ? `<div class="pr-scroll"><table class="tmt prb"><tr><th>구분</th><th class="num">건수</th><th class="num">승률</th><th class="num">평균</th><th class="num">중앙값</th><th class="num c-opt">최악</th><th class="num c-opt">최선</th><th class="num c-opt" data-tip="비용을 빼기 전 평균">평균(비용 전)</th><th class="num c-opt">평균 보유</th><th class="num c-opt" data-tip="청산 사유별 건수">정상 · 손절 · 시간</th></tr>
+      ${row('<b>전체</b>', o)}
+      ${ref ? `<tr class="tm-g"><td colspan="10" data-tip="${esc(`채택 규칙에서 FDR 문턱(q ≤ ${num(P.fdr_q, 2)})만 뺀 비교 — 양방향 p < ${num(P.p_max, 2)} · 반감기 ${num(P.hl_min, 0)}~${num(P.hl_max, 0)}일 · β 조건은 그대로. 표본을 늘려 보려는 비교용이며 신호에 쓰지 않습니다`)}">참고 — FDR 없이 돌렸을 때 <span class="kv">비교용 · 채택 규칙 아님</span></td></tr>${row('FDR 문턱만 뺌', ref).replace('<tr', '<tr class="pr-ref"')}` : ''}
+      <tr class="tm-g"><td colspan="10">종류별</td></tr>${kinds.map(k => row(esc(k), (bt.by_kind || {})[k])).join('')}
+      ${years.length ? `<tr class="tm-g"><td colspan="10">진입 연도별</td></tr>${years.map(y => row(esc(y), bt.by_year[y])).join('')}` : ''}</table></div>
+    ${ref && ref.n ? `<div class="kv" style="margin-top:8px">참고 줄(FDR 문턱만 뺀 비교, 나머지 조건은 그대로)은 비교용입니다 — 그 규칙이면 마지막 월말 채택 ${prN(ref.n_adopted_last)}쌍이지만, 여러 후보를 한꺼번에 본 만큼 우연히 통과한 짝이 섞여 신호로 쓰지 않습니다.</div>` : ''}
+    <div class="kv"${ref && ref.n ? '' : ' style="margin-top:8px"'}>청산 사유(전체): 정상 ${prN(R['정상'], 0)} · 손절 ${prN(R['손절'], 0)} · 시간 손절 ${prN(R['시간 손절'], 0)}건 · 평균·중앙값·승률은 비용 후 기준.</div>
+    ${cs.n ? `<div class="kv">비용 민감도 — 체결·슬리피지를 회당 ${num(cs.commission_slip_per_side, 2)}%로 올리면: 승률 ${prNz(cs.win) ? num(cs.win, 1) + '%' : '-'} · 평균 ${sgf(cs.mean, 2)}% · 중앙 ${sgf(cs.median, 2)}% (기본 ${num(P.commission_slip_per_side, 2)}%: 승률 ${prNz(o.win) ? num(o.win, 1) + '%' : '-'} · 평균 ${sgf(o.mean, 2)}%)</div>` : ''}` : '<div class="empty">청산된 거래가 아직 없습니다.</div>'}
+    ${bins.length ? `<div class="section-label">모자회사 — 지분율 구간별 채택률</div><div class="pr-scroll"><table class="tmt prb" style="max-width:560px"><tr><th>지분율</th><th class="num">페어</th><th class="num">월말 시험</th><th class="num">채택</th><th class="num">채택률</th></tr>${
+      bins.map(b => `<tr><td>${binL(b)}</td><td class="num">${prN(b.n_pairs, 0)}</td><td class="num">${prN(b.n_tests, 0)}</td><td class="num">${prN(b.n_adopted, 0)}</td><td class="num">${b.n_tests ? (x => num(x, x > 0 && x < 1 ? 2 : 1) + '%')(100 * (b.n_adopted || 0) / b.n_tests) : '-'}</td></tr>`).join('')}</table></div>
+      <div class="kv" style="margin-top:6px">지분율 = 최신 사업보고서 한 시점 · 채택률 = 그 구간 페어들의 월말 시험 중 채택된 비율(과거 시점 지분율이 아니라 생존 편향이 있음).</div>` : ''}`;
+}
+async function openPair(id){
+  const r = ((TM.pair || {}).pairs || []).find(x => x.id === id); if(!r) return;
+  const req = ++PR.req, title = `${r.a.name} / ${r.b.name}`;
+  $('boxTitle').textContent = title; $('boxTitle').style.fontSize = '20px'; $('boxBody').className = '';   // 마크다운 표 스타일을 끈다
+  if(r.state === PR_WATCH){ $('boxBody').innerHTML = prDetailHtml(r, null, '관찰 페어는 채택되지 않아 z 차트·거래 내역을 만들지 않습니다 — 신호로 쓰지 않습니다.'); $('overlay').classList.add('show'); return; }
+  $('boxBody').innerHTML = prDetailHtml(r, null, '차트 불러오는 중…'); $('overlay').classList.add('show');
+  let ch = null, err = null;
+  try { ch = await api('/api/timing/pairs/' + encodeURIComponent(id)); } catch(e){ err = e.message; }
+  if(req !== PR.req || $('boxTitle').textContent !== title || !$('overlay').classList.contains('show')) return;   // 그사이 닫았거나 다른 것을 열었다
+  $('boxBody').innerHTML = prDetailHtml(r, ch, err);
+}
+function prDetailHtml(r, ch, msg){
+  const P = prZp(), ts = prTs(r.time_stop_days);
+  const facts = [['종류', r.kind + (r.kind === '모자회사' && prNz(r.pct) ? ` · 지분 ${num(r.pct, 1)}%` : '')], ['상태', prChipTxt(r.state)], r.side && ['방향', prSide(r.side, r)],
+    ['현재 z', prF(r.z, 2)], ['β', `${prF(r.beta, 3)}${prNz(r.beta_test) && r.beta_test !== r.beta ? ` (시험 β ${prF(r.beta_test, 3)})` : ''}`],
+    ['EG p', `${prF(r.p_ab, 4)} / ${prF(r.p_ba, 4)}`], ['FDR q', prF(r.q, 4)], ['반감기', prNz(r.half_life) ? num(r.half_life, 1) + '일' : '-'],
+    r.entry && ['진입 체결', r.entry], prNz(r.hold_days) && ['보유', `${num(r.hold_days, 0)}일${ts !== null ? ` / 시간 손절 ${num(ts, 0)}일` : ''}`],
+    prNz(r.pnl_net) && ['미실현', `비용 전 ${sgf(r.pnl_gross, 2)}% · 비용 후 ${sgf(r.pnl_net, 2)}%`],
+    ['거래대금(20일·작은 쪽)', prEok(r.tv20_min_eok)], ['대차', r.short_badge || '-'], ['재검정', `${r.tested_at || '-'} → 다음 ${r.next_test || '-'}`]].filter(Boolean);
+  const head = `<div class="kv" style="margin:-6px 0 8px">${esc([r.a.code, r.b.code].filter(Boolean).join(' / '))}${r.note ? ' · ' + esc(r.note) : ''} · 매매 지시 아님</div>
+    <div class="pr-facts">${facts.map(([k, v]) => `<span>${esc(k)} <b>${esc(v)}</b></span>`).join('')}</div>
+    ${(r.warnings || []).length ? `<div class="callout warn" style="margin-bottom:10px">${r.warnings.map(esc).join(' · ')}</div>` : ''}`;
+  if(!ch || (ch.dates || []).length < 2) return head + `<div class="empty">${esc(msg || '차트 이력이 없습니다.')}</div>`;
+  const n = ch.dates.length, at = d => { const i = ch.dates.findIndex(x => x >= d); return i < 0 ? n - 1 : i; }, trs = ch.trades || [];
+  const shades = trs.filter(t => t.entry && t.entry <= ch.dates[n - 1]).map(t => ({from: at(t.entry), to: t.exit ? at(t.exit) : n - 1,
+    cls: !t.exit ? 'pr-open' : t.net > 0 ? 'pr-win' : 'pr-loss',
+    tip: `${prSide(t.side, r)}\n${t.entry} → ${t.exit || '보유 중'}${t.reason ? ' · ' + t.reason : ''}${prNz(t.days) ? ` · ${t.days}일` : ''}\n비용 전 ${prNz(t.gross) ? sgf(t.gross, 2) + '%' : '-'} · 비용 후 ${prNz(t.net) ? sgf(t.net, 2) + '%' : '-'}`}));
+  const hl = [{v: 0, cls: 'base-l'}];
+  [['exit_z', 'pr-hl-exit'], ['entry_z', 'pr-hl-entry'], ['stop_z', 'pr-hl-stop']].forEach(([k, c]) => { if(prNz(P[k])) hl.push({v: P[k], cls: c}, {v: -P[k], cls: c}); });
+  const seen = new Set(shades.map(s => s.cls));
+  const leg = `<div class="legend"><span><i style="background:var(--series-1)"></i>z</span>
+    ${prNz(P.entry_z) ? `<span><i class="pr-dash" style="--c:var(--caution)"></i>진입 ±${num(P.entry_z, 1)}</span>` : ''}${prNz(P.stop_z) ? `<span><i class="pr-dash" style="--c:var(--down)"></i>손절 ±${num(P.stop_z, 1)}</span>` : ''}${prNz(P.exit_z) ? `<span><i class="pr-dash" style="--c:var(--axis)"></i>청산 ±${num(P.exit_z, 1)}</span>` : ''}
+    ${seen.has('pr-win') ? '<span><i class="pr-box" style="--c:color-mix(in srgb, var(--up) 28%, transparent)"></i>거래 — 비용 후 이익</span>' : ''}${seen.has('pr-loss') ? '<span><i class="pr-box" style="--c:color-mix(in srgb, var(--down) 24%, transparent)"></i>거래 — 비용 후 손실</span>' : ''}${seen.has('pr-open') ? '<span><i class="pr-box" style="--c:color-mix(in srgb, var(--flat) 36%, transparent)"></i>보유 중</span>' : ''}
+    <span class="kv">최근 3년 · ${esc(ch.dates[0])}~ · 띠에 마우스를 올리면 거래 정보</span></div>`;
+  const bs = (ch.beta || []).slice(-4).reverse();
+  const tt = trs.slice().reverse();
+  return head + leg + lineChart(ch.dates, [{vals: ch.z, color: 'var(--series-1)', w: 1.5}], {h: 260, hlines: hl, shades, fmt: v => num(v, 1), label: `${r.a.name} / ${r.b.name} 스프레드 z`})
+    + (bs.length ? `<div class="kv" style="margin-top:6px">쓴 β(최근 구간부터): ${bs.map(b => `${esc(b.from)}~${esc(b.to)} ${prF(b.beta, 3)}`).join(' · ')}${(ch.beta || []).length > 4 ? ` 외 ${num(ch.beta.length - 4, 0)}구간` : ''}</div>` : '')
+    + `<div class="section-label">거래 ${num(trs.length, 0)}건 <span class="kv">최근 3년 · 신호는 종가, 체결은 다음 공동 거래일 종가 · 새것부터</span></div>`
+    + (tt.length ? `<div class="pr-scroll"><table class="tmt prb"><tr><th>진입 체결</th><th>청산 체결</th><th>방향</th><th>사유</th><th class="num">보유일</th><th class="num">비용 전</th><th class="num">비용 후</th></tr>${tt.map(t => `<tr>
+      <td data-tip="${esc(`신호 ${t.entry_signal || '-'} · β ${prF(t.beta, 3)} · 반감기 ${prNz(t.half_life) ? num(t.half_life, 1) + '일' : '-'}`)}">${esc(t.entry || '-')}</td>
+      <td${t.exit_signal ? ` data-tip="${esc(`신호 ${t.exit_signal}`)}"` : ''}>${t.exit ? esc(t.exit) : '<span class="kv">보유 중</span>'}</td>
+      <td class="small">${esc(prSide(t.side, r))}</td><td>${esc(t.reason || '-')}</td><td class="num">${prN(t.days)}</td><td class="num">${pc(t.gross, 2)}</td><td class="num">${pc(t.net, 2)}</td></tr>`).join('')}</table></div>`
+      : '<div class="kv">최근 3년 안 거래가 없습니다.</div>');
 }
 // ── 운용사·펀드 — 공모펀드 스크리닝(funds.json). 숫자는 funds.py 가 금투협 전자공시에서 받아 계산하고 화면은 읽기만 한다
 //    분류군(국내 액티브·국내 인덱스·해외) → 분류 칩 · 운용사 · 이름 검색 → 표(기본 1년 백분위 높은 순). 상세 차트는 /api/funds/<코드>
@@ -3006,14 +3207,16 @@ async function runBt(mode){
 }
 // 선 그래프(누적 100 기준) — 축은 최소·중간·최대·연도만, 선 끝에 마지막 값, (선택) 최대 낙폭 구간 옅은 빨강
 // lines: [{vals, color(CSS 값), w, area, end:false, ink}] · opt: {h, base, label, mark:{date,label}, shade:{from,to,label}, fmt}
+//   (선택) hlines:[{v, cls}] = 가로 기준선(축 눈금도 이 값들로) · shades:[{from, to, cls, tip}] = 색 띠 여러 개(from·to = 날짜 인덱스)
 function lineChart(dates, lines, opt = {}){
   const W = 800, H = opt.h || 250, P = {l: 46, r: 58, t: 12, b: 22};
-  const all = lines.flatMap(l => l.vals.filter(v => v !== null && v !== undefined));
+  const all = [...lines.flatMap(l => l.vals.filter(v => v !== null && v !== undefined)), ...(opt.hlines || []).map(h => h.v)];
   let lo = Math.min(...all, opt.base ?? Infinity), hi = Math.max(...all, opt.base ?? -Infinity); const pad = (hi - lo) * 0.06 || 1; lo -= pad; hi += pad;
   const n = dates.length, x = i => P.l + i / Math.max(1, n - 1) * (W - P.l - P.r), y = v => P.t + (hi - v) / (hi - lo) * (H - P.t - P.b);
   const path = vs => vs.map((v, i) => v === null || v === undefined ? '' : `${i && vs[i - 1] !== null && vs[i - 1] !== undefined ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
   const fmt = opt.fmt || (v => num(v, 0));
-  const ticks = [lo + pad, (lo + hi) / 2, hi - pad].map(v => `<line class="grid-l" x1="${P.l}" x2="${W - P.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${P.l - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`).join('');
+  const ticks = opt.hlines ? opt.hlines.map(h => `<line class="${h.cls || 'grid-l'}" x1="${P.l}" x2="${W - P.r}" y1="${y(h.v)}" y2="${y(h.v)}"/><text x="${P.l - 6}" y="${y(h.v) + 4}" text-anchor="end">${fmt(h.v)}</text>`).join('')
+    : [lo + pad, (lo + hi) / 2, hi - pad].map(v => `<line class="grid-l" x1="${P.l}" x2="${W - P.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${P.l - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`).join('');
   let lastY = '', step = Math.max(1, Math.ceil(new Set(dates.map(d => d.slice(0, 4))).size / 8)), k = 0;
   const xt = dates.map((d, i) => { const yy = d.slice(0, 4); if(yy === lastY) return ''; lastY = yy; return (k++ % step) ? '' : `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${yy}</text>`; }).join('');
   const base = opt.base !== undefined ? `<line class="base-l" x1="${P.l}" x2="${W - P.r}" y1="${y(opt.base)}" y2="${y(opt.base)}"/>` : '';
@@ -3025,6 +3228,7 @@ function lineChart(dates, lines, opt = {}){
   if(opt.shade && opt.shade.to > opt.shade.from){ const x0 = x(opt.shade.from), x1 = x(opt.shade.to);
     shade = `<rect class="dd-zone" x="${x0}" y="${P.t}" width="${x1 - x0}" height="${H - P.t - P.b}"/>`
       + (opt.shade.label ? `<text class="dd-t" x="${Math.min(Math.max(x0 + 4, P.l + 4), W - P.r - 120)}" y="${H - P.b - 6}">${esc(opt.shade.label)}</text>` : ''); }
+  shade += (opt.shades || []).map(s => `<rect class="${s.cls || 'dd-zone'}" x="${x(s.from)}" y="${P.t}" width="${Math.max(2, x(s.to) - x(s.from))}" height="${H - P.t - P.b}"${s.tip ? ` data-tip="${esc(s.tip)}"` : ''}/>`).join('');
   const body = lines.map(l => l.area ? `<path d="${path(l.vals)}L${x(n - 1)},${y(opt.base ?? 0)}L${x(0)},${y(opt.base ?? 0)}Z" style="fill:${l.color};fill-opacity:.16"/><path d="${path(l.vals)}" fill="none" style="stroke:${l.color}" stroke-width="1.5"/>`
     : `<path d="${path(l.vals)}" fill="none" style="stroke:${l.color}" stroke-width="${l.w || 2}" stroke-linejoin="round"/>`).join('');
   // 끝 값 — 선 오른쪽에, 겹치면 위아래로 벌린다

@@ -25,6 +25,9 @@ Refinitiv 값이 들어가므로 사내 라이선스 범위 안에서만 전달�
 pip install -r requirements.txt
 setx ANTHROPIC_API_KEY "sk-ant-..."      # (선택) console.anthropic.com 발급, 새 터미널부터 적용
 setx EIKON_APP_KEY "..."                 # Refinitiv Workspace App Key (Eikon Data API)
+                                         # 또는 C:\Users\<사용자>\.claude\reference\refinitiv-workspace\.appkey 파일
+# 페어트레이딩용 외부 키 — data/.api_keys.json(저장소 제외) 또는 같은 이름의 환경변수
+#   {"DART_API_KEY": "...", "DATA_GO_KR_KEY": "<디코딩 키>", "KRX_API_KEY": "..."}
 python web.py                            # → http://127.0.0.1:5101
 python fetch_history.py && python main.py fetch && python equity.py --full && python quant.py --full && python fundamentals.py
 ```
@@ -142,6 +145,23 @@ python analytics.py calc carry --tenor 5   # 즉석 계산: carry · hedge-cost 
 - 대용: KOSPI200·CSI300 은 지수 이력이 공개 데이터에 없어 KODEX 200·CSI300 ETF(510300), 중소형주는 KOSDAQ, 스타일·팩터는 미국 ETF 중심.
 - 미연결(인포맥스 연결 후): VKOSPI, VSTOXX, 배당선물, 국내 팩터 지수, 지수 옵션 내재변동성, 이벤트 일정.
 - 다음 단계(메모 "각 전략별 기대수익과 리스크 — Backtest 필요"): '바로 가능' 전략부터 백테스트해 기대수익·리스크를 채운다.
+
+## 페어트레이딩 (pairs.py — 마켓타이밍 '페어' 칸)
+
+같은 회사의 보통·우선, 상장 모·자회사(DART 지분 ≥7%), 같은 GICS Industry 시총 상위 10 의 짝 가운데 **월말마다 공적분이 확인된 짝**만 골라
+스프레드 z 가 ±2 를 넘으면 되돌림에 거는 규칙을 2016년부터 과거에 돌려 본다. 문턱·비용·공매도 규제 구간은 `universe/pairs.json` 에만 있다.
+- **원천**: 종목 마스터·GICS·시총·보통/우선 짝·발행주식 수·일별 총수익·거래대금 = Refinitiv(`pair_universe.py`).
+  모·자 지분 = OpenDART 타법인출자 현황(`dart_src.py` — Refinitiv 주주 필드가 이 계정에서 빈 값이라 예외). 국문 종목명만 KRX OPEN API.
+  DART 는 출자 대상을 이름으로만 주므로 상장사 이름으로 잇고, **보유 주식 수 ÷ 발행주식 수**가 공시 지분율과 맞는 것만 남긴다
+  (이름만 같은 비상장 자회사 거르기, 결산 뒤 분할·병합 배수는 허용). 못 맞춘 이름·뺄 페어는 `universe/pairs_overrides.json`.
+- **채택**: Engle-Granger 양방향 p<0.05 + 같은 날 전체 후보 BH-FDR q≤0.05 + 반감기 5~60일 + β>0. 진입 β 고정, t 종가 신호·t+1 체결,
+  청산 |z|<0.5 · 손절 |z|>3(뒤 반감기 동안 재진입 금지) · 시간 손절 min(2×반감기, 60일). 20일 거래대금 작은 쪽 ≥10억.
+  비용 = 다리·방향마다 0.15%(가정) + 매도분 거래세(연도별) + 대차료 연 3%(가정). 공매도 전면 금지 구간은 진입 금지, 부분 허용 구간(2021-05~2023-11)은 숏 레그가 KOSPI200·KOSDAQ150 일 때만 진입(지수 편입은 현재 시총 순위 근사).
+- **결과(2026-10-28)**: 이 기준으로는 10년 동안 거래 1건 — 화면 맨 위에 '과거 수익 확인 안 됨'. 비교로 FDR 문턱만 빼고 돌리면 308건 · 승률 44.5% · 비용 전 평균 +0.2%, 비용 후 −0.4%.
+  그래서 **관찰 목록**(양방향 p·반감기는 통과, FDR 탈락 — 신호 아님)을 함께 보여 준다(사용자 결정 2026-10-28).
+- **갱신**: `refresh_all` 의 '페어트레이딩' 단계(20시간 지났을 때). 가격은 `data/history/pairs_ret_daily.csv`·`pairs_tv_daily.csv` 증분(처음 약 20분),
+  DART 는 `data/_raw/dart/` 캐시(사업연도마다 한 번). 직접: `python pairs.py`(받아서) · `python pairs.py --offline`(저장된 이력만).
+- 대차 가능 여부 원천이 없어 숏 레그 배지는 '미확인'(금지 구간이면 '불가', 부분 허용기 지수 근사 종목이면 '제한').
 
 ## 백테스트 (backtest.py — 사이드바 '내 담당 → 백테스트')
 

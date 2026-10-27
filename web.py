@@ -748,6 +748,25 @@ def api_timing_spikes():
     return jsonify(spikes.load() or {"generated_at": None, "meta": {}, "triggers": {}, "studies": [], "missing": []})
 
 
+@app.get("/api/timing/pairs")
+def api_timing_pairs():
+    """페어트레이딩 표·백테스트(pairs.py — refresh_all 이 만든다, 스프레드 차트는 /api/timing/pairs/<id>) — 없으면 빈 pairs."""
+    import pairs
+    d = pairs.load() or {"generated_at": None, "meta": {}, "pairs": [], "backtest": {}, "missing": []}
+    meta = d.get("meta")
+    if not _is_local() and isinstance(meta, dict) and meta.get("errors"):   # 원격 응답의 오류 문장에는 파일 이름만(/api/timing 과 같음)
+        meta["errors"] = [_QUOTED_PATH.sub(lambda m: "'" + re.split(r"[\\/]+", m.group(1))[-1] + "'", str(x)) for x in meta["errors"]]
+    return jsonify(d)
+
+
+@app.get("/api/timing/pairs/<path:pid>")
+def api_timing_pair(pid):
+    """페어 하나의 최근 3년 z·스프레드·거래 — 없는 id 는 404."""
+    import pairs
+    d = pairs.load_chart(pid)
+    return jsonify(d) if d else _err("차트가 없는 페어입니다.", 404)
+
+
 @app.post("/api/equity/fund/refresh")
 def api_equity_fund_refresh():
     import fundamentals

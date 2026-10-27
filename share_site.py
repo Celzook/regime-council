@@ -132,8 +132,10 @@ def collect():
 
     for p in ["/api/overview", "/api/room", "/api/alerts", "/api/log?limit=150", "/api/book", "/api/quant", "/api/strategy",
               "/api/equity", "/api/equity/fund", "/api/equity/valhist", "/api/universe/spark", "/api/backtest/catalog", "/api/macro",
-              "/api/timing", "/api/timing/spikes", "/api/funds"]:
+              "/api/timing", "/api/timing/spikes", "/api/timing/pairs", "/api/funds"]:
         take(p)
+    for r in (snap.get("/api/timing/pairs") or {}).get("pairs") or []:   # 페어 상세(z 차트·거래) — 표에 있는 페어만
+        take("/api/timing/pairs/" + q(r["id"]))
     take("/api/funds/charts")   # 펀드 상세 차트(/api/funds/<code>)는 공유본에서 이 문서로 화면이 만든다(SHIM) — 펀드별로 담으면 약 3.4MB
     for a in ("bond", "equity", "fx"):
         take(f"/api/analog?asset={a}")
