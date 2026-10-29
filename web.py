@@ -673,6 +673,16 @@ def api_universe_spark():
     return jsonify(equity.sparks())
 
 
+@app.get("/api/mtscore")
+def api_mtscore():
+    """마켓타이밍 점수(mtscore) 최신 결과 — 읽기 전용. 연결 설정은 universe/mtscore.json."""
+    import mtscore_view
+    try:
+        return jsonify(mtscore_view.view())
+    except FileNotFoundError as e:
+        return _err(str(e) if _is_local() else "마켓타이밍 점수 결과가 없습니다.", 404)
+
+
 @app.post("/api/equity/refresh")
 def api_equity_refresh():
     import equity

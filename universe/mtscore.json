@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "마켓타이밍 점수(mtscore) 연결",
+    "note": "mtscore(../../_project/mtscore)가 만든 최신 결과 JSON(outputs/phase2/result_YYYY-MM-DD.json)을 읽기만 한다. 점수 계산은 mtscore 쪽에서 한다. 기술 점수(quant.tech_score)와 나란히 보여 주고 합치지 않는다. 임계값 이벤트 방식은 보류(2026-10-29).",
+    "result_dir": "../../../../_project/mtscore/outputs/phase2",
+    "as_of_note": "1단계: mtscore 10개 자산 중 대시보드 점수판과 겹치는 7개 + 크레딧 3개(표에만). 나머지 33개 자산은 아직 없음(mtscore docs/dashboard_universe.md)."
+  },
+  "map": {
+    "eq:kospi200": {"asset": "KOSPI200"},
+    "eq:kospi": {"asset": "KOSPI200", "proxy": "KOSPI200 점수 대용"},
+    "q:kospi": {"asset": "KOSPI200", "proxy": "KOSPI200 점수 대용"},
+    "eq:sp500": {"asset": "SP500"},
+    "q:sp500": {"asset": "SP500"},
+    "q:ktb_10y": {"asset": "KTB10Y"},
+    "q:ust_10y_cmt": {"asset": "UST10Y"},
+    "q:usdkrw": {"asset": "USDKRW", "proxy": "원화 매수 관점(달러/원 하락이 유리)"},
+    "q:gold": {"asset": "GOLD"},
+    "q:wti": {"asset": "WTI"}
+  },
+  "names": {
+    "KOSPI200": "코스피200", "SP500": "S&P500", "KTB10Y": "국고10년", "UST10Y": "미국채10년",
+    "USDKRW": "달러/원(원화 매수)", "GOLD": "금", "WTI": "WTI", "US_HY": "미국 하이일드", "US_IG": "미국 투자등급", "KR_CORP": "국내 회사채 AA-"
+  },
+  "order": ["KOSPI200", "SP500", "KTB10Y", "UST10Y", "USDKRW", "GOLD", "WTI", "US_HY", "US_IG", "KR_CORP"]
+}

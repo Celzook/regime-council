@@ -607,6 +607,13 @@
   .sb-sc b { font-size:12px; font-weight:700; color:var(--ink2); }
   .sb-tile.up .sb-sc b { color:var(--up-ink); } .sb-tile.down .sb-sc b { color:var(--down-ink); }
   .sb-note { font-size:12px; color:var(--muted); margin-top:8px; }
+  /* 마켓타이밍 점수(mtscore) — 기술 점수와 나란히, 합치지 않음 */
+  .sb-mt { display:block; font-size:10px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .mt-tbl { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; font-variant-numeric:tabular-nums; }
+  .mt-tbl th, .mt-tbl td { padding:4px 6px; border-bottom:1px solid var(--line, #e5e5e5); text-align:right; white-space:nowrap; }
+  .mt-tbl th:first-child, .mt-tbl td:first-child, .mt-tbl td.l, .mt-tbl th.l { text-align:left; }
+  .mt-tbl .up { color:var(--up); } .mt-tbl .down { color:var(--down); }
+  .mt-wrap { overflow-x:auto; }
   /* 홈 · 점수 순위 — 점수판 전체를 높은 순으로. 판정 구간(강세…매우 약세)마다 머리줄, 세로로 읽는 다단(열 폭 ≥ 330px) */
   #rankCard h2 .seg .s { padding:2px 10px; font-size:12px; }
   .rk-list { column-width:330px; column-gap:28px; column-rule:1px solid var(--hair); }
@@ -2134,12 +2141,13 @@ document.addEventListener('keydown', e => { const r = e.target.closest && e.targ
 
 // ── 홈 · 유니버스 점수판 — 주식 유니버스(/api/equity groups)와 정량 스캐너(/api/quant scanner)의 기술 점수 ──
 // 주식 쪽은 시작 때 loadEquity 가 받아 오는 것을 같이 쓰고, 정량 쪽만 따로 받는다(둘 중 하나가 실패해도 나머지는 그린다)
-const SB = {eq: null, q: null, eqErr: null, qErr: null, qAt: 0, items: {}};
+const SB = {eq: null, q: null, eqErr: null, qErr: null, qAt: 0, items: {}, mt: null, mtErr: null};
 const SB_EQ_GROUPS = ['국내', '선진국', '신흥국', '스타일·팩터', '섹터·테마', '우선주'];
 const SB_Q_GROUPS = [['주가지수', null], ['환율', ['dxy', 'usdkrw', 'usdjpy', 'eurusd', 'usdcny']], ['채권(가격)', ['ktb_10y', 'ktb_3y', 'ust_10y_cmt', 'ust_2y']], ['원자재', ['wti', 'gold']]];
 async function loadScoreboard(){
   SB.qAt = Date.now();
   try { SB.q = await api('/api/quant'); SB.qErr = null; } catch(e){ SB.qErr = e.message; }
+  try { SB.mt = await api('/api/mtscore'); SB.mtErr = null; } catch(e){ SB.mt = null; SB.mtErr = e.message; }   // 없어도 점수판은 그린다
   renderScoreboard();
 }
 // 판정은 화면에 보이는 정수로(toFixed(0) — 0.5 는 0 에서 멀어지게, quant.tech_label 과 같음): −9.5 는 '−10' 으로 보이므로 약세 쪽
@@ -2153,11 +2161,41 @@ function sbGauge(score){   // 반원: 왼쪽 끝 −100, 꼭대기 0, 오른쪽 
     + `<circle class="nd" cx="${x}" cy="${y}" r="3.6"/></svg>`;
 }
 const sbNum = (v, d = 1, u = '') => v === null || v === undefined || !isFinite(v) ? '-' : sgf(v, d) + u;
+// ── 마켓타이밍 점수(mtscore): universe/mtscore.json 의 키 대응으로 점수판 항목에 붙인다. 점수는 mtscore 가 계산(여기선 표시만)
+function mtFor(it){
+  const m = SB.mt && SB.mt.map && SB.mt.map[`${it.src}:${it.key}`];
+  const a = m && SB.mt.assets[m.asset];
+  return a ? {...a, proxy: m.proxy || ''} : null;
+}
+const mtTrend = t => !t || t.sign === null || t.sign === undefined ? '-' : `${t.sign > 0 ? '▲' : '▼'}${t.basis ? ' ' + t.basis : ''}`;
+const mtNum = v => v === null || v === undefined || !isFinite(v) ? '-' : (+v).toFixed(0);
+const mtDiff = d => d && d.n_available ? `${d.n_high}/${d.n_low}/${d.n_available}` : '-';
+function mtPop(a){   // 팝오버 칸
+  if(!a) return '';
+  const b = a.blocks || {}, se = a.staged_entry && a.staged_entry.flag;
+  return `<div class="pp-h"><span>마켓타이밍(역발상) 점수</span><span class="kv">${esc(a.date || '')}${a.stale ? ' · 오래된 자료' : ''}</span></div>`
+    + `<div class="kv" style="font-size:12px;line-height:1.5"><b>${esc((a.regime && a.regime.display) || '-')}</b>${se ? ' · 분할 진입 신호' : ''}<br>`
+    + `과매도 ${mtNum(b.oversold)} · 밸류 ${mtNum(b.valuation)} · 펀더 ${mtNum(b.fundamental)} <span title="0~100, 높을수록 매수 쪽(싸다·과매도). 50 = 자기 과거 중간">(0~100)</span><br>`
+    + `추세 ${esc(mtTrend(a.trend))} · 과매도 지표 중 극단 ${esc(mtDiff(a.diffusion))} <span title="80점 이상 개수 / 20점 이하 개수 / 계산된 지표 수">(≥80/≤20/전체)</span>`
+    + `${a.proxy ? `<br>※ ${esc(a.proxy)}` : ''}</div>`;
+}
+function mtTable(){   // 점수판 아래 요약 표 — 크레딧처럼 점수판 타일이 없는 자산도 여기 보인다
+  if(!SB.mt) return SB.mtErr ? `<div class="sb-note">마켓타이밍 점수: ${esc(SB.mtErr)}</div>` : '';
+  const M = SB.mt, rows = (M.order || Object.keys(M.assets)).filter(k => M.assets[k]).map(k => {
+    const a = M.assets[k], b = a.blocks || {}, t = a.trend || {};
+    return `<tr><td>${esc(M.names[k] || k)}</td><td class="l">${esc((a.regime && a.regime.display) || '-')}${a.staged_entry && a.staged_entry.flag ? ' · 분할 진입' : ''}</td>`
+      + `<td>${mtNum(b.oversold)}</td><td>${mtNum(b.valuation)}</td><td>${mtNum(b.fundamental)}</td>`
+      + `<td class="l ${t.sign > 0 ? 'up' : t.sign < 0 ? 'down' : ''}">${esc(mtTrend(t))}</td><td>${esc(mtDiff(a.diffusion))}</td></tr>`; }).join('');
+  return `<div class="sb-fh" style="margin-top:14px"><b>마켓타이밍 점수</b><span>mtscore · 기준일 ${esc(M.as_of || '-')} · 기술 점수와 따로 봅니다(합치지 않음)</span></div>`
+    + `<div class="mt-wrap"><table class="mt-tbl"><thead><tr><th>자산</th><th class="l">국면</th><th>과매도</th><th>밸류</th><th>펀더</th><th class="l">추세(12개월)</th><th title="과매도 지표 중 80점 이상 / 20점 이하 / 전체">극단 개수</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<div class="sb-note">블록 점수 0~100: 높을수록 매수 쪽(과매도·저평가·펀더 양호), 50 = 자기 과거 중간 · 국면 = 세 블록 조합 · 참고 지표이며 매매 신호(임계값 이벤트)는 쓰지 않습니다 · ${esc(M.note || '')}</div>`;
+}
 function sbTile(it){
   const t = it.t, sc = +t.score, tone = sbTone(sc), id = `${it.src}:${it.key}`;
   SB.items[id] = it;
   return `<button type="button" class="sb-tile ${tone}" data-id="${esc(id)}" data-tab="${it.src === 'eq' ? 'equity' : 'quant'}" aria-label="${esc(`${it.name} 기술 점수 ${sbNum(sc, 0)}, ${t.label || ''} — 누르면 ${it.src === 'eq' ? '주식' : '정량분석'} 탭`)}">`
-    + `${sbGauge(sc)}<span class="sb-nm">${esc(it.short)}</span><span class="sb-sc"><b>${sbNum(sc, 0)}</b>${esc(t.label || '')}</span></button>`;
+    + `${sbGauge(sc)}<span class="sb-nm">${esc(it.short)}</span><span class="sb-sc"><b>${sbNum(sc, 0)}</b>${esc(t.label || '')}</span>`
+    + (mtFor(it) ? `<span class="sb-mt" title="마켓타이밍 국면(mtscore)">${esc(mtFor(it).regime.display || '')}</span>` : '') + `</button>`;
 }
 function sbGroup(name, items){
   if(!items.length) return '';
@@ -2186,7 +2224,8 @@ function renderScoreboard(){
   box.innerHTML = fams.map(f => { const n = f.groups.reduce((a, [, its]) => a + its.length, 0);
       return `<div class="sb-fam"><div class="sb-fh"><i class="sb-fk ${f.fam}"></i><b>${f.name}</b><span>${f.groups.length}개 카테고리 · ${n}개${f.fam === 'q' ? ' · 정량분석 탭 스캐너' : ''}</span></div>`
         + `<div class="sb-wrap">${f.groups.map(([g, its]) => sbGroup(g, its)).join('')}</div></div>`; }).join('')
-    + `<div class="sb-note">강세 ≥ +30 · 우호 ≥ +10 · 중립 ±10 · 약세 ≤ −10 · 매우 약세 ≤ −30 · 채권은 금리를 가격으로 환산${err.length ? ` · ⚠ ${esc(err.join(' · '))}` : ''}</div>`;
+    + `<div class="sb-note">강세 ≥ +30 · 우호 ≥ +10 · 중립 ±10 · 약세 ≤ −10 · 매우 약세 ≤ −30 · 채권은 금리를 가격으로 환산${err.length ? ` · ⚠ ${esc(err.join(' · '))}` : ''}</div>`
+    + mtTable();
   SB.fams = fams; renderRank();
 }
 // ── 홈 · 점수 순위 — 점수판 항목 전체를 높은 순으로. 판정이 바뀌는 곳마다 머리줄, 행 = 순위 · 이름 · 카테고리 · 발산 막대(0 중심 ±100) · 점수
@@ -2452,6 +2491,7 @@ function sbPopHtml(it){
     : `<div class="pp-h"><span>밸류에이션 위치</span><span class="kv" title="값은 과거 시계열과 같은 기준(구성 상위 90%)">자기 과거 ${vhWin()[1]} 최저 ↔ 최고 · 눈금 = 중앙값</span></div>${sbVal(it)}`;
   return `<div class="pp-top"><div class="pp-nm"><b>${esc(it.name)}</b><span class="kv">${esc([it.ticker, it.as_of].filter(Boolean).join(' · '))}</span></div>`
     + (hasT ? `<span class="pp-score ${tone}"><i></i><b>${sbNum(sc, 0)}</b>${esc(t.label || '')}</span>` : '') + '</div>'
+    + mtPop(mtFor(it))
     + `<div class="pp-h"><span>1년 흐름 <i class="lk px"></i>가격 <i class="lk ma"></i>200일선 <i class="lk dd"></i>고점 대비</span></div>`
     + `<div class="pp-read kv">${sp ? sbSparkRead(sp, sp.v.length - 1) : '&nbsp;'}</div>${sbSpark(it, sp)}`
     + `<div class="pp-cols"><div><div class="pp-h"><span>기간 수익률</span></div>${hbars(rets.map(([l, v]) => [l, v, sbNum(v, 1, '%')]), 140, 34, 42, dom)}</div>`

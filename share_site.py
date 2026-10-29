@@ -130,7 +130,7 @@ def collect():
             print(f"  건너뜀 {path}: {e}")
         return snap.get(path)
 
-    for p in ["/api/overview", "/api/room", "/api/alerts", "/api/log?limit=150", "/api/book", "/api/quant", "/api/strategy",
+    for p in ["/api/overview", "/api/room", "/api/alerts", "/api/log?limit=150", "/api/book", "/api/quant", "/api/mtscore", "/api/strategy",
               "/api/equity", "/api/equity/fund", "/api/equity/valhist", "/api/universe/spark", "/api/backtest/catalog", "/api/macro",
               "/api/timing", "/api/timing/spikes", "/api/timing/pairs", "/api/funds", "/api/els"]:
         take(p)
