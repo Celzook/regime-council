@@ -639,7 +639,8 @@
   .sb-rrow .sc { font-weight:700; text-align:right; color:var(--ink2); } .sb-rrow.up .sc { color:var(--up-ink); } .sb-rrow.down .sc { color:var(--down-ink); }
   .rk-note { font-size:12px; color:var(--muted); margin-top:8px; }
   /* 점수판 차트 팝오버 — 고정 크기, 텍스트는 글자 토큰만(데이터 색은 막대·선에만) */
-  #sbPop { position:fixed; z-index:72; width:340px; max-width:calc(100vw - 16px); height:352px; padding:10px 12px; overflow:hidden; background:var(--surface); border-radius:var(--r-sm);
+  /* 높이는 내용만큼(자산마다 칸 구성이 달라 고정 높이면 아래가 잘린다), 화면보다 길면 안에서 스크롤 */
+  #sbPop { position:fixed; z-index:72; width:340px; max-width:calc(100vw - 16px); max-height:calc(100vh - 16px); padding:10px 12px; overflow-x:hidden; overflow-y:auto; background:var(--surface); border-radius:var(--r-sm);
            box-shadow:var(--shadow-lg); font-size:12px; color:var(--ink); animation:fadeUp .12s ease both; }
   #sbPop[hidden] { display:none; }
   #sbPop svg { display:block; max-width:100%; overflow:visible; }
@@ -654,6 +655,9 @@
   .pp-h .lk { display:inline-block; width:10px; height:2px; margin:0 3px 3px 6px; vertical-align:middle; border-radius:1px; background:var(--series-1); }
   .pp-h .lk.ma { background:var(--series-bench); } .pp-h .lk.dd { height:8px; margin-bottom:0; background:color-mix(in srgb, var(--down) 18%, transparent); }
   .pp-read { font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; height:15px; font-variant-numeric:tabular-nums; }
+  .pp-mt { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:5px; margin:2px 0; font-size:11px; line-height:1.45; }
+  .pp-mt b { font-size:12px; }
+  .pp-mtx { display:flex; flex-direction:column; margin-top:3px; font-size:11px; line-height:1.45; white-space:nowrap; font-variant-numeric:tabular-nums; }
   .pp-cols { display:grid; grid-template-columns:140px 1fr; gap:8px; }
   .pp-cols > div { min-width:0; }
   .pp-rsi svg { width:80px; height:auto; } .pp-rsi { display:flex; align-items:center; gap:5px; margin-top:3px; font-size:11px; color:var(--muted); white-space:nowrap; } .pp-rsi b { color:var(--ink); font-variant-numeric:tabular-nums; }
@@ -2173,14 +2177,18 @@ const mtRegime = a => { const r = (a && a.regime) || {}, d = r.display || '-';
 const mtTrend = t => !t || t.sign === null || t.sign === undefined ? '-' : `${t.sign > 0 ? '▲' : '▼'}${t.basis ? ' ' + t.basis : ''}`;
 const mtNum = v => v === null || v === undefined || !isFinite(v) ? '-' : (+v).toFixed(0);
 const mtDiff = d => d && d.n_available ? `${d.n_high}/${d.n_low}/${d.n_available}` : '-';
-function mtPop(a){   // 팝오버 칸
+function mtPop(a){   // 팝오버 머리 — 국면 한 줄. 블록 점수는 오른쪽 '점수 구성' 칸(mtComp)
   if(!a) return '';
-  const b = a.blocks || {}, se = a.staged_entry && a.staged_entry.flag;
-  return `<div class="pp-h"><span>마켓타이밍(역발상) 점수</span><span class="kv">${esc(a.date || '')}${a.stale ? ' · 오래된 자료' : ''}</span></div>`
-    + `<div class="kv" style="font-size:12px;line-height:1.5"><b>${esc(mtRegime(a))}</b>${se ? ' · 분할 진입 신호' : ''}<br>`
-    + `과매도 ${mtNum(b.oversold)} · 밸류 ${mtNum(b.valuation)} · 펀더 ${mtNum(b.fundamental)} <span title="0~100, 높을수록 매수 쪽(싸다·과매도). 50 = 자기 과거 중간">(0~100)</span><br>`
-    + `추세 ${esc(mtTrend(a.trend))} · 과매도 지표 중 극단 ${esc(mtDiff(a.diffusion))} <span title="80점 이상 개수 / 20점 이하 개수 / 계산된 지표 수">(≥80/≤20/전체)</span>`
-    + `${a.proxy ? `<br>※ ${esc(a.proxy)}` : ''}</div>`;
+  const se = a.staged_entry && a.staged_entry.flag, uv = SB.mt && (SB.mt.unverified || []).includes(a.asset_id);
+  return `<div class="pp-mt kv"><span>마켓타이밍 국면</span><b>${esc(mtRegime(a))}</b>${se ? '<span>· 분할 진입 신호</span>' : ''}`
+    + `${uv ? '<span>· 검증 전</span>' : ''}<span>· ${esc(a.date || '')}${a.stale ? ' 오래된 자료' : ''}</span>${a.proxy ? `<span>※ ${esc(a.proxy)}</span>` : ''}</div>`;
+}
+function mtComp(a){   // 점수 구성 = mtscore 블록 점수 0~100(50 = 자기 과거 중간, 높을수록 매수 쪽). 막대는 50 에서 좌우로
+  const b = a.blocks || {}, d = a.diffusion || {}, v = x => x === null || x === undefined || !isFinite(x) ? null : x - 50;
+  const rows = [['과매도', b.oversold], ['밸류', b.valuation], ['펀더', b.fundamental]].map(([l, x]) => [l, v(x), mtNum(x)]);
+  return hbars(rows, 168, 40, 26, 50)
+    + `<div class="pp-mtx kv"><span>추세 <b>${esc(mtTrend(a.trend))}</b></span>`
+    + `<span title="과매도 블록 지표 중 80점 이상 / 20점 이하 / 계산된 지표 수">극단 ≥80 <b>${d.n_available ? d.n_high : '-'}</b> · ≤20 <b>${d.n_available ? d.n_low : '-'}</b> / ${d.n_available || '-'}</span></div>`;
 }
 function mtTable(){   // 점수판 아래 요약 표 — 크레딧처럼 점수판 타일이 없는 자산도 여기 보인다
   if(!SB.mt) return SB.mtErr ? `<div class="sb-note">마켓타이밍 점수: ${esc(SB.mtErr)}</div>` : '';
@@ -2487,18 +2495,21 @@ function sbHist(t){
   return svgE(W, H, b);
 }
 function sbPopHtml(it){
-  const t = it.t || {}, sp = sbSparkData(it), sc = +t.score, hasT = isFinite(sc), tone = hasT ? sbTone(sc) : '';
+  const t = it.t || {}, sp = sbSparkData(it), sc = +t.score, hasT = isFinite(sc), tone = hasT ? sbTone(sc) : '', mt = mtFor(it);
+  const comp = mt   // mtscore 가 있으면 그 블록 점수, 없으면(팩터·섹터·우선주 등) 기존 기술 점수 구성
+    ? `<div class="pp-h"><span>점수 구성</span><span class="kv" title="마켓타이밍(mtscore) 블록 점수 0~100 · 50 = 자기 과거 중간 · 높을수록 매수 쪽(과매도·저평가·펀더 양호)">마켓타이밍 0~100</span></div>${mtComp(mt)}`
+    : `<div class="pp-h"><span>점수 구성</span><span class="kv" title="기술 점수 = 추세·6개월·1개월 모멘텀·RSI 역추세 합성. 합 = 네 항목 원값 합의 반올림(항목별 반올림을 더하면 ±1 다를 수 있음)">${hasT ? `기술 · 합 ${sbNum(sc, 0)}` : ''}</span></div>${hasT ? sbComp(t) : '<div class="pp-empty">기술 점수 없음</div>'}`;
   const rets = sbReturns(it, sp), dom = Math.max(5, ...rets.map(r => Math.abs(r[1] ?? 0)));
   const bottom = it.src === 'q'
     ? `<div class="pp-h"><span>비슷한 국면 6개월 뒤</span><span class="kv">중앙값 <b>${sbNum(t.analog_6m_median_pct, 1, '%')}</b> · 오른 비율 ${t.analog_6m_up_pct ?? '-'}%${t.analog_6m_sample ? ` · 표본 ${t.analog_6m_sample.length}` : ''}</span></div>${sbHist(t)}`
     : `<div class="pp-h"><span>밸류에이션 위치</span><span class="kv" title="값은 과거 시계열과 같은 기준(구성 상위 90%)">자기 과거 ${vhWin()[1]} 최저 ↔ 최고 · 눈금 = 중앙값</span></div>${sbVal(it)}`;
   return `<div class="pp-top"><div class="pp-nm"><b>${esc(it.name)}</b><span class="kv">${esc([it.ticker, it.as_of].filter(Boolean).join(' · '))}</span></div>`
     + (hasT ? `<span class="pp-score ${tone}"><i></i><b>${sbNum(sc, 0)}</b>${esc(t.label || '')}</span>` : '') + '</div>'
-    + mtPop(mtFor(it))
+    + mtPop(mt)
     + `<div class="pp-h"><span>1년 흐름 <i class="lk px"></i>가격 <i class="lk ma"></i>200일선 <i class="lk dd"></i>고점 대비</span></div>`
     + `<div class="pp-read kv">${sp ? sbSparkRead(sp, sp.v.length - 1) : '&nbsp;'}</div>${sbSpark(it, sp)}`
     + `<div class="pp-cols"><div><div class="pp-h"><span>기간 수익률</span></div>${hbars(rets.map(([l, v]) => [l, v, sbNum(v, 1, '%')]), 140, 34, 42, dom)}</div>`
-    + `<div><div class="pp-h"><span>점수 구성</span><span class="kv" title="합 = 네 항목 원값 합의 반올림(항목별 반올림을 더하면 ±1 다를 수 있음)">${hasT ? `합 ${sbNum(sc, 0)}` : ''}</span></div>${hasT ? sbComp(t) : '<div class="pp-empty">기술 점수 없음</div>'}</div></div>${bottom}`;
+    + `<div>${comp}</div></div>${bottom}`;
 }
 async function sbLoadSpark(){
   if(SBP.sparkReq || (SBP.spark && Date.now() - SBP.sparkAt < 1800000)) return;
@@ -2532,6 +2543,7 @@ function sbFill(){
       let b = 0; pts.forEach((p, i) => { if(Math.abs(p[0] - x) < Math.abs(pts[b][0] - x)) b = i; }); at(b); });
     hit.addEventListener('pointerleave', () => at(n));
   }
+  if(SBP.tile && !pop.hidden) sbPlace(SBP.tile);   // 차트·밸류가 늦게 들어와 높이가 바뀌면 자리를 다시 잡는다
 }
 function sbPlace(tile){
   const pop = $('sbPop'), r = tile.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight, m = 8;
