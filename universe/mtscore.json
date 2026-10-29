@@ -3,7 +3,7 @@
     "title": "마켓타이밍 점수(mtscore) 연결",
     "note": "mtscore(../../_project/mtscore)가 만든 최신 결과 JSON(outputs/phase2/result_YYYY-MM-DD.json)을 읽기만 한다. 점수 계산은 mtscore 쪽에서 한다. 기술 점수(quant.tech_score)와 나란히 보여 주고 합치지 않는다. 임계값 이벤트 방식은 보류(2026-10-29).",
     "result_dir": "../../../../_project/mtscore/outputs/phase2",
-    "as_of_note": "2단계 ①(2026-10-29): 해외·국내 지수 10개와 환율 3개를 추가했습니다. 이 13개는 과매도 블록만 계산합니다(가격만). 국면은 부분판정이고 과거 검증은 하지 않았습니다(검증 전). 팩터·섹터·우선주 20개는 아직 없습니다."
+    "as_of_note": "2단계(2026-10-29): 지수·ETF·환율·팩터·섹터·우선주 33개를 추가했습니다. 이 33개는 과매도 블록만 계산합니다(가격만). 국면은 부분판정이고, 과거 검증은 하지 않았습니다(검증 전)."
   },
   "map": {
     "eq:kospi200": {
@@ -96,6 +96,66 @@
     "q:nasdaq": {
       "asset": "NDX",
       "proxy": "나스닥100 점수 대용"
+    },
+    "eq:f_div": {
+      "asset": "F_DIV"
+    },
+    "eq:f_minvol": {
+      "asset": "F_MINVOL"
+    },
+    "eq:f_quality": {
+      "asset": "F_QUALITY"
+    },
+    "eq:f_value": {
+      "asset": "F_VALUE"
+    },
+    "eq:f_growth": {
+      "asset": "F_GROWTH"
+    },
+    "eq:f_mom": {
+      "asset": "F_MOM"
+    },
+    "eq:kr_div": {
+      "asset": "KR_DIV"
+    },
+    "eq:s_fin_us": {
+      "asset": "S_FIN_US"
+    },
+    "eq:s_hc_us": {
+      "asset": "S_HC_US"
+    },
+    "eq:s_tech_us": {
+      "asset": "S_TECH_US"
+    },
+    "eq:s_semi_us": {
+      "asset": "S_SEMI_US"
+    },
+    "eq:s_energy_us": {
+      "asset": "S_ENERGY_US"
+    },
+    "eq:t_clean": {
+      "asset": "T_CLEAN"
+    },
+    "eq:t_infra": {
+      "asset": "T_INFRA"
+    },
+    "eq:s_bank_kr": {
+      "asset": "S_BANK_KR"
+    },
+    "eq:s_semi_kr": {
+      "asset": "S_SEMI_KR"
+    },
+    "eq:s_hc_kr": {
+      "asset": "S_HC_KR"
+    },
+    "eq:samsung": {
+      "asset": "SAMSUNG"
+    },
+    "eq:samsung_pref": {
+      "asset": "SAMSUNG_PREF"
+    },
+    "eq:pff": {
+      "asset": "PFF"
     }
   },
   "names": {
@@ -121,7 +181,27 @@
     "EEM": "신흥국 전체",
     "USDJPY": "USD/JPY",
     "EURUSD": "EUR/USD",
-    "DXY": "달러인덱스"
+    "DXY": "달러인덱스",
+    "F_DIV": "배당(SCHD)",
+    "F_MINVOL": "저변동성(USMV)",
+    "F_QUALITY": "퀄리티(QUAL)",
+    "F_VALUE": "가치(VLUE)",
+    "F_GROWTH": "성장(IWF)",
+    "F_MOM": "모멘텀(MTUM)",
+    "KR_DIV": "국내 고배당",
+    "S_FIN_US": "미국 금융",
+    "S_HC_US": "미국 헬스케어",
+    "S_TECH_US": "미국 기술",
+    "S_SEMI_US": "미국 반도체",
+    "S_ENERGY_US": "미국 에너지",
+    "T_CLEAN": "클린에너지",
+    "T_INFRA": "미국 인프라",
+    "S_BANK_KR": "국내 은행",
+    "S_SEMI_KR": "국내 반도체",
+    "S_HC_KR": "국내 헬스케어",
+    "SAMSUNG": "삼성전자",
+    "SAMSUNG_PREF": "삼성전자우",
+    "PFF": "미국 우선주(PFF)"
   },
   "order": [
     "KOSPI200",
@@ -144,6 +224,26 @@
     "USDJPY",
     "EURUSD",
     "DXY",
+    "F_DIV",
+    "F_MINVOL",
+    "F_QUALITY",
+    "F_VALUE",
+    "F_GROWTH",
+    "F_MOM",
+    "KR_DIV",
+    "S_FIN_US",
+    "S_HC_US",
+    "S_TECH_US",
+    "S_SEMI_US",
+    "S_ENERGY_US",
+    "T_CLEAN",
+    "T_INFRA",
+    "S_BANK_KR",
+    "S_SEMI_KR",
+    "S_HC_KR",
+    "SAMSUNG",
+    "SAMSUNG_PREF",
+    "PFF",
     "US_HY",
     "US_IG",
     "KR_CORP"
@@ -161,6 +261,26 @@
     "EEM",
     "USDJPY",
     "EURUSD",
-    "DXY"
+    "DXY",
+    "F_DIV",
+    "F_MINVOL",
+    "F_QUALITY",
+    "F_VALUE",
+    "F_GROWTH",
+    "F_MOM",
+    "KR_DIV",
+    "S_FIN_US",
+    "S_HC_US",
+    "S_TECH_US",
+    "S_SEMI_US",
+    "S_ENERGY_US",
+    "T_CLEAN",
+    "T_INFRA",
+    "S_BANK_KR",
+    "S_SEMI_KR",
+    "S_HC_KR",
+    "SAMSUNG",
+    "SAMSUNG_PREF",
+    "PFF"
   ]
 }
