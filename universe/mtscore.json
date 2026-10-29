@@ -3,23 +3,164 @@
     "title": "마켓타이밍 점수(mtscore) 연결",
     "note": "mtscore(../../_project/mtscore)가 만든 최신 결과 JSON(outputs/phase2/result_YYYY-MM-DD.json)을 읽기만 한다. 점수 계산은 mtscore 쪽에서 한다. 기술 점수(quant.tech_score)와 나란히 보여 주고 합치지 않는다. 임계값 이벤트 방식은 보류(2026-10-29).",
     "result_dir": "../../../../_project/mtscore/outputs/phase2",
-    "as_of_note": "1단계: mtscore 10개 자산 중 대시보드 점수판과 겹치는 7개 + 크레딧 3개(표에만). 나머지 33개 자산은 아직 없음(mtscore docs/dashboard_universe.md)."
+    "as_of_note": "2단계 ①(2026-10-29): 해외·국내 지수 10개와 환율 3개를 추가했습니다. 이 13개는 과매도 블록만 계산합니다(가격만). 국면은 부분판정이고 과거 검증은 하지 않았습니다(검증 전). 팩터·섹터·우선주 20개는 아직 없습니다."
   },
   "map": {
-    "eq:kospi200": {"asset": "KOSPI200"},
-    "eq:kospi": {"asset": "KOSPI200", "proxy": "KOSPI200 점수 대용"},
-    "q:kospi": {"asset": "KOSPI200", "proxy": "KOSPI200 점수 대용"},
-    "eq:sp500": {"asset": "SP500"},
-    "q:sp500": {"asset": "SP500"},
-    "q:ktb_10y": {"asset": "KTB10Y"},
-    "q:ust_10y_cmt": {"asset": "UST10Y"},
-    "q:usdkrw": {"asset": "USDKRW", "proxy": "원화 매수 관점(달러/원 하락이 유리)"},
-    "q:gold": {"asset": "GOLD"},
-    "q:wti": {"asset": "WTI"}
+    "eq:kospi200": {
+      "asset": "KOSPI200"
+    },
+    "eq:kospi": {
+      "asset": "KOSPI200",
+      "proxy": "KOSPI200 점수 대용"
+    },
+    "q:kospi": {
+      "asset": "KOSPI200",
+      "proxy": "KOSPI200 점수 대용"
+    },
+    "eq:sp500": {
+      "asset": "SP500"
+    },
+    "q:sp500": {
+      "asset": "SP500"
+    },
+    "q:ktb_10y": {
+      "asset": "KTB10Y"
+    },
+    "q:ust_10y_cmt": {
+      "asset": "UST10Y"
+    },
+    "q:usdkrw": {
+      "asset": "USDKRW",
+      "proxy": "원화 매수 관점(달러/원 하락이 유리)"
+    },
+    "q:gold": {
+      "asset": "GOLD"
+    },
+    "q:wti": {
+      "asset": "WTI"
+    },
+    "eq:kosdaq": {
+      "asset": "KOSDAQ"
+    },
+    "q:kosdaq": {
+      "asset": "KOSDAQ"
+    },
+    "eq:ndx": {
+      "asset": "NDX"
+    },
+    "eq:sx5e": {
+      "asset": "SX5E"
+    },
+    "q:stoxx50": {
+      "asset": "SX5E"
+    },
+    "eq:nikkei": {
+      "asset": "NIKKEI"
+    },
+    "q:nikkei": {
+      "asset": "NIKKEI"
+    },
+    "eq:csi300": {
+      "asset": "CSI300"
+    },
+    "eq:hsi": {
+      "asset": "HSI"
+    },
+    "eq:nifty": {
+      "asset": "NIFTY"
+    },
+    "eq:taiex": {
+      "asset": "TAIEX"
+    },
+    "eq:aaxj": {
+      "asset": "AAXJ"
+    },
+    "eq:eem": {
+      "asset": "EEM"
+    },
+    "q:eem": {
+      "asset": "EEM"
+    },
+    "q:usdjpy": {
+      "asset": "USDJPY",
+      "proxy": "달러 매수 관점(USD/JPY 상승이 유리)"
+    },
+    "q:eurusd": {
+      "asset": "EURUSD",
+      "proxy": "유로 매수 관점(EUR/USD 상승이 유리)"
+    },
+    "q:dxy": {
+      "asset": "DXY",
+      "proxy": "달러 매수 관점"
+    },
+    "q:nasdaq": {
+      "asset": "NDX",
+      "proxy": "나스닥100 점수 대용"
+    }
   },
   "names": {
-    "KOSPI200": "코스피200", "SP500": "S&P500", "KTB10Y": "국고10년", "UST10Y": "미국채10년",
-    "USDKRW": "달러/원(원화 매수)", "GOLD": "금", "WTI": "WTI", "US_HY": "미국 하이일드", "US_IG": "미국 투자등급", "KR_CORP": "국내 회사채 AA-"
+    "KOSPI200": "코스피200",
+    "SP500": "S&P500",
+    "KTB10Y": "국고10년",
+    "UST10Y": "미국채10년",
+    "USDKRW": "달러/원(원화 매수)",
+    "GOLD": "금",
+    "WTI": "WTI",
+    "US_HY": "미국 하이일드",
+    "US_IG": "미국 투자등급",
+    "KR_CORP": "국내 회사채 AA-",
+    "KOSDAQ": "코스닥",
+    "NDX": "나스닥100",
+    "SX5E": "유로스톡스50",
+    "NIKKEI": "닛케이225",
+    "CSI300": "중국 CSI300",
+    "HSI": "홍콩 항셍",
+    "NIFTY": "인도 Nifty50",
+    "TAIEX": "대만 가권",
+    "AAXJ": "아시아(일본 제외)",
+    "EEM": "신흥국 전체",
+    "USDJPY": "USD/JPY",
+    "EURUSD": "EUR/USD",
+    "DXY": "달러인덱스"
   },
-  "order": ["KOSPI200", "SP500", "KTB10Y", "UST10Y", "USDKRW", "GOLD", "WTI", "US_HY", "US_IG", "KR_CORP"]
+  "order": [
+    "KOSPI200",
+    "SP500",
+    "KTB10Y",
+    "UST10Y",
+    "USDKRW",
+    "GOLD",
+    "WTI",
+    "KOSDAQ",
+    "NDX",
+    "SX5E",
+    "NIKKEI",
+    "CSI300",
+    "HSI",
+    "NIFTY",
+    "TAIEX",
+    "AAXJ",
+    "EEM",
+    "USDJPY",
+    "EURUSD",
+    "DXY",
+    "US_HY",
+    "US_IG",
+    "KR_CORP"
+  ],
+  "unverified": [
+    "KOSDAQ",
+    "NDX",
+    "SX5E",
+    "NIKKEI",
+    "CSI300",
+    "HSI",
+    "NIFTY",
+    "TAIEX",
+    "AAXJ",
+    "EEM",
+    "USDJPY",
+    "EURUSD",
+    "DXY"
+  ]
 }

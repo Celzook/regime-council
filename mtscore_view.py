@@ -51,6 +51,6 @@ def view(cfg: dict | None = None) -> dict:
     out = {"as_of": r.get("as_of"), "schema_version": r.get("schema_version"), "file": f.name,
            "assets": {a["asset_id"]: _slim(a) for a in r.get("assets", [])},
            "map": cfg["map"], "names": cfg.get("names", {}), "order": cfg.get("order", []),
-           "note": cfg["meta"].get("as_of_note", "")}
+           "note": cfg["meta"].get("as_of_note", ""), "unverified": cfg.get("unverified", [])}
     _CACHE.update(key=key, d=out)
     return out

@@ -2167,6 +2167,9 @@ function mtFor(it){
   const a = m && SB.mt.assets[m.asset];
   return a ? {...a, proxy: m.proxy || ''} : null;
 }
+// 부분판정 '축약:O高' 같은 내부 라벨은 말로 바꾼다(밸류·펀더 블록이 없는 자산)
+const mtRegime = a => { const r = (a && a.regime) || {}, d = r.display || '-';
+  return d.startsWith('축약:') ? `과매도 ${r.states && r.states.o === 'high' ? '높음' : '낮음'}(밸류·펀더 없음)` : d; };
 const mtTrend = t => !t || t.sign === null || t.sign === undefined ? '-' : `${t.sign > 0 ? '▲' : '▼'}${t.basis ? ' ' + t.basis : ''}`;
 const mtNum = v => v === null || v === undefined || !isFinite(v) ? '-' : (+v).toFixed(0);
 const mtDiff = d => d && d.n_available ? `${d.n_high}/${d.n_low}/${d.n_available}` : '-';
@@ -2174,7 +2177,7 @@ function mtPop(a){   // 팝오버 칸
   if(!a) return '';
   const b = a.blocks || {}, se = a.staged_entry && a.staged_entry.flag;
   return `<div class="pp-h"><span>마켓타이밍(역발상) 점수</span><span class="kv">${esc(a.date || '')}${a.stale ? ' · 오래된 자료' : ''}</span></div>`
-    + `<div class="kv" style="font-size:12px;line-height:1.5"><b>${esc((a.regime && a.regime.display) || '-')}</b>${se ? ' · 분할 진입 신호' : ''}<br>`
+    + `<div class="kv" style="font-size:12px;line-height:1.5"><b>${esc(mtRegime(a))}</b>${se ? ' · 분할 진입 신호' : ''}<br>`
     + `과매도 ${mtNum(b.oversold)} · 밸류 ${mtNum(b.valuation)} · 펀더 ${mtNum(b.fundamental)} <span title="0~100, 높을수록 매수 쪽(싸다·과매도). 50 = 자기 과거 중간">(0~100)</span><br>`
     + `추세 ${esc(mtTrend(a.trend))} · 과매도 지표 중 극단 ${esc(mtDiff(a.diffusion))} <span title="80점 이상 개수 / 20점 이하 개수 / 계산된 지표 수">(≥80/≤20/전체)</span>`
     + `${a.proxy ? `<br>※ ${esc(a.proxy)}` : ''}</div>`;
@@ -2183,7 +2186,7 @@ function mtTable(){   // 점수판 아래 요약 표 — 크레딧처럼 점수�
   if(!SB.mt) return SB.mtErr ? `<div class="sb-note">마켓타이밍 점수: ${esc(SB.mtErr)}</div>` : '';
   const M = SB.mt, rows = (M.order || Object.keys(M.assets)).filter(k => M.assets[k]).map(k => {
     const a = M.assets[k], b = a.blocks || {}, t = a.trend || {};
-    return `<tr><td>${esc(M.names[k] || k)}</td><td class="l">${esc((a.regime && a.regime.display) || '-')}${a.staged_entry && a.staged_entry.flag ? ' · 분할 진입' : ''}</td>`
+    return `<tr><td>${esc(M.names[k] || k)}${(M.unverified || []).includes(k) ? ' <span class="kv">(검증 전)</span>' : ''}</td><td class="l">${esc(mtRegime(a))}${a.staged_entry && a.staged_entry.flag ? ' · 분할 진입' : ''}</td>`
       + `<td>${mtNum(b.oversold)}</td><td>${mtNum(b.valuation)}</td><td>${mtNum(b.fundamental)}</td>`
       + `<td class="l ${t.sign > 0 ? 'up' : t.sign < 0 ? 'down' : ''}">${esc(mtTrend(t))}</td><td>${esc(mtDiff(a.diffusion))}</td></tr>`; }).join('');
   return `<div class="sb-fh" style="margin-top:14px"><b>마켓타이밍 점수</b><span>mtscore · 기준일 ${esc(M.as_of || '-')} · 기술 점수와 따로 봅니다(합치지 않음)</span></div>`
@@ -2195,7 +2198,7 @@ function sbTile(it){
   SB.items[id] = it;
   return `<button type="button" class="sb-tile ${tone}" data-id="${esc(id)}" data-tab="${it.src === 'eq' ? 'equity' : 'quant'}" aria-label="${esc(`${it.name} 기술 점수 ${sbNum(sc, 0)}, ${t.label || ''} — 누르면 ${it.src === 'eq' ? '주식' : '정량분석'} 탭`)}">`
     + `${sbGauge(sc)}<span class="sb-nm">${esc(it.short)}</span><span class="sb-sc"><b>${sbNum(sc, 0)}</b>${esc(t.label || '')}</span>`
-    + (mtFor(it) ? `<span class="sb-mt" title="마켓타이밍 국면(mtscore)">${esc(mtFor(it).regime.display || '')}</span>` : '') + `</button>`;
+    + (mtFor(it) ? `<span class="sb-mt" title="마켓타이밍 국면(mtscore)">${esc(mtRegime(mtFor(it)))}</span>` : '') + `</button>`;
 }
 function sbGroup(name, items){
   if(!items.length) return '';
