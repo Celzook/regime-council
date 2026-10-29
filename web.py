@@ -754,7 +754,7 @@ def api_els():
 
 @app.get("/api/timing/spikes")
 def api_timing_spikes():
-    """급등 매수 이벤트 스터디(spikes.py — refresh_all 이 만든다) — 없으면 빈 studies. 과거 데이터 점검 자료(매매 지시 아님)."""
+    """변동성 급등 이벤트 스터디(spikes.py — refresh_all 이 만든다) — 없으면 빈 studies. 과거 데이터 점검 자료(매매 지시 아님)."""
     import spikes
     return jsonify(spikes.load() or {"generated_at": None, "meta": {}, "triggers": {}, "studies": [], "missing": []})
 

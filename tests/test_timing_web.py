@@ -120,13 +120,13 @@ def test_agent_contexts_do_not_read_timing_files():
 def test_refresh_steps_order():
     names = [n for n, _ in refresh_all.steps(False)]
     i = names.index
-    assert i("밸류에이션 이력") < i("급등 매수") < i("마켓타이밍 시그널")
+    assert i("밸류에이션 이력") < i("변동성 급등") < i("마켓타이밍 시그널")
     assert i("시장 스냅샷") < i("마켓타이밍 시그널") and i("주식 대시보드") < i("마켓타이밍 시그널")
-    assert i("급등 매수") < i("옵션 풋/콜·미결제약정") < i("마켓타이밍 시그널") and i("증시자금(금투협)") < i("마켓타이밍 시그널")
+    assert i("변동성 급등") < i("옵션 풋/콜·미결제약정") < i("마켓타이밍 시그널") and i("증시자금(금투협)") < i("마켓타이밍 시그널")
     assert i("과거 시계열") < i("위탁운용사 펀드") and i("주식 대시보드") < i("위탁운용사 펀드")   # BM 이력(kofia·equity_daily) 갱신 뒤
     assert i("인포맥스·매크로") < i("외국인 선물(인포맥스)") < i("마켓타이밍 시그널")   # 숨김 엑셀은 한 번에 하나(순서대로)
     quick = [n for n, _ in refresh_all.steps(True)]
-    assert not {"급등 매수", "마켓타이밍 시그널", "위탁운용사 펀드", "옵션 풋/콜·미결제약정", "증시자금(금투협)",
+    assert not {"변동성 급등", "마켓타이밍 시그널", "위탁운용사 펀드", "옵션 풋/콜·미결제약정", "증시자금(금투협)",
                 "외국인 선물(인포맥스)"} & set(quick)
 
 
@@ -147,13 +147,13 @@ def test_timing_step_reports_composite(monkeypatch):
 
 
 def test_refresh_failure_does_not_stop_later_steps(monkeypatch, tmp_path):
-    """급등 매수 단계가 실패해도 시그널 단계는 돈다(기존 동작)."""
+    """변동성 급등 단계가 실패해도 시그널 단계는 돈다(기존 동작)."""
     import refinitiv_src
     ran = []
 
     def boom():
         raise RuntimeError("x")
-    monkeypatch.setattr(refresh_all, "steps", lambda quick: [("급등 매수", boom), ("마켓타이밍 시그널", lambda: ran.append(1) or "합성 중립")])
+    monkeypatch.setattr(refresh_all, "steps", lambda quick: [("변동성 급등", boom), ("마켓타이밍 시그널", lambda: ran.append(1) or "합성 중립")])
     monkeypatch.setattr(refresh_all, "LOG_DIR", tmp_path)
     monkeypatch.setattr(refresh_all, "STATUS", tmp_path / "refresh_status.json")
     monkeypatch.setattr(refresh_all, "notify", lambda *a: None)
@@ -161,7 +161,7 @@ def test_refresh_failure_does_not_stop_later_steps(monkeypatch, tmp_path):
     monkeypatch.setattr(sys, "argv", ["refresh_all.py"])
     assert refresh_all.main() == 1 and ran == [1]
     st = json.loads((tmp_path / "refresh_status.json").read_text(encoding="utf-8"))
-    assert st["failed"] == ["급등 매수"] and st["steps"][1]["ok"]
+    assert st["failed"] == ["변동성 급등"] and st["steps"][1]["ok"]
 
 
 def test_share_snapshot_collects_timing_screens(monkeypatch, tmp_path):

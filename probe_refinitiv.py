@@ -136,7 +136,7 @@ def probe_equities():
 
 
 def probe_spikes():
-    """C — 급등 매수·공통기간: VKOSPI 시작일, MOVE·VIX3M·NDX TR, KOSPI200 TR·국고10년 시작일."""
+    """C — 변동성 급등·공통기간: VKOSPI 시작일, MOVE·VIX3M·NDX TR, KOSPI200 TR·국고10년 시작일."""
     P("C1_vkospi_ts", lambda: R._ek().get_timeseries(".KSVKOSPI", fields=["CLOSE"], start_date="2000-01-01",
                                                       end_date="2010-12-31", interval="daily"))
     try:

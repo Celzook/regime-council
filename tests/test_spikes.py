@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""급등 매수 이벤트 스터디(spikes) 회귀 테스트 — 합성 데이터, Refinitiv·네트워크 없이 돈다.
+"""변동성 급등 이벤트 스터디(spikes) 회귀 테스트 — 합성 데이터, Refinitiv·네트워크 없이 돈다.
 실행: python -m pytest tests   (Windows 파이썬)
 """
 import json

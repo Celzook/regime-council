@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""급등 매수 이벤트 스터디 — '공포 지표가 튀었을 때 대표 자산을 사면, 몇 개월 보유부터 승률 90% 이상인가?'
+"""변동성 급등 이벤트 스터디 — '공포 지표가 튀었을 때 대표 자산을 사면, 몇 개월 보유부터 승률 90% 이상인가?'
 
 출처(일별 종가, 현지 통화):
   트리거  VIX ^VIX(yfinance — 이 계정 Refinitiv 권한 없음), MOVE ^MOVE(Refinitiv .MOVE, 2002-11~),
@@ -40,7 +40,7 @@
            지표별 최장 기간(그 트리거·대상의 원자료 첫 유효일 중 늦은 날부터)은 보조 표(longest).
   국고 10년 총수익(근사) 일간 r(%) = y_{t−1}(%) ÷ 252 − D·Δy(%p) + ½·C·Δy(%p)², D = 8, C = 0.8(%p 단위 — 소수 단위로는 80).
            만기 10년 고정(constant maturity) 가정이고 D·C 는 금리 수준과 무관하게 고정한 근사다. 관측일마다 이자 1/252.
-출력: data/spikes.json — 마켓타이밍 '급등 매수' 화면(W4 연결 예정). 매매 지시가 아니라 과거 데이터 점검 자료다.
+출력: data/spikes.json — 마켓타이밍 '변동성 급등' 화면(W4 연결 예정). 매매 지시가 아니라 과거 데이터 점검 자료다.
 
 사용법: python spikes.py            # 받아서 계산·저장
         python spikes.py --offline  # 받지 않고 기존 timing_daily.csv 로만 계산
@@ -330,7 +330,7 @@ def compute(series: dict, cost: float = COST, cost_sens: float = COST_SENS, tran
         s[KTB_TR] = ktb_tr(s[KTB])
     start, firsts = common_start(s)
     if start is None:
-        raise RuntimeError("급등 매수 계산에 쓸 트리거·대상 시계열이 없습니다 — timing_daily.csv 를 먼저 받으세요(python spikes.py).")
+        raise RuntimeError("변동성 급등 계산에 쓸 트리거·대상 시계열이 없습니다 — timing_daily.csv 를 먼저 받으세요(python spikes.py).")
     fx = s.get("KRW=X")
     trig_out, studies, missing = {}, [], []
     for tk, (name, col, trig, rearm, rule, warm) in TRIGGERS.items():   # 대상이 없어도 '지금 상태'는 보여 준다

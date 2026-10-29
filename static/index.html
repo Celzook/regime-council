@@ -147,6 +147,7 @@
   .ngrp.fold { display:flex; align-items:center; justify-content:space-between; width:100%; border:0; background:none; font-family:inherit; text-align:left;
                cursor:pointer; border-radius:9px; text-transform:none; }
   .ngrp.fold:hover { color:var(--ink2); background:var(--fill-2); }
+  .spk-g { margin:14px 0 6px; font-size:13px; font-weight:700; color:var(--ink); } .spk-g:first-child { margin-top:0; } .spk-g .kv { font-weight:500; margin-left:6px; }
   .ngrp.fold:focus-visible { outline:2px solid var(--brand); outline-offset:1px; }
   .ngrp.fold svg { width:14px; height:14px; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s; }
   .ngrp.fold[aria-expanded="true"] svg { transform:rotate(90deg); }
@@ -1153,12 +1154,12 @@
   </div>
 </section>
 
-<!-- 마켓타이밍 — 시그널(timing.py) · 급등 매수(spikes.py) · 페어(pairs.py). 모두 자동 갱신(refresh_all)이 만든 파일을 읽기만 한다 -->
+<!-- 마켓타이밍 — 시그널(timing.py) · 변동성 급등(spikes.py) · 페어(pairs.py). 모두 자동 갱신(refresh_all)이 만든 파일을 읽기만 한다 -->
 <section class="page" id="page-timing">
   <div class="bhead">
     <div><div class="ptitle">마켓타이밍</div><div class="kv" id="tmMeta"></div></div>
     <span class="spacer"></span>
-    <span class="seg" id="tmSeg"><span class="s on" data-v="sig">시그널</span><span class="s" data-v="spk">급등 매수</span><span class="s" data-v="pair">페어</span></span>
+    <span class="seg" id="tmSeg"><span class="s on" data-v="sig">시그널</span><span class="s" data-v="spk">변동성 급등</span><span class="s" data-v="pair">페어</span></span>
   </div>
   <div id="tmSig">
     <div class="card sverdict" id="tmVerdict"><div class="empty">불러오는 중…</div></div>
@@ -1167,7 +1168,7 @@
   </div>
   <div id="tmSpk" hidden>
     <div class="card sverdict" id="spkVerdict"><div class="empty">불러오는 중…</div></div>
-    <div class="card"><h2>지표·대상별 <span class="sub">누르면 보유기간별 표 · 흐린 줄 = 신호로 쓰지 않음</span></h2><div id="spkList"></div></div>
+    <div class="card"><h2>지표·대상별 <span class="sub">주식 · 채권으로 나눔 · 누르면 보유기간별 표 · 흐린 줄 = 신호로 쓰지 않음</span></h2><div id="spkList"></div></div>
     <div class="card"><h2>지금 상태 <span class="sub">공포 지표의 오늘 값 · 마지막 발생</span></h2><div id="spkNow"></div></div>
     <div class="card"><details class="rules"><summary>어떻게 계산했나요?</summary><ul id="spkRules"></ul></details></div>
   </div>
@@ -1340,7 +1341,7 @@
       <div class="gd-sec"><h3>변동성</h3><dl class="gd-dl">
         <dt>무엇</dt><dd>VIX(5년 중앙값·1개월 변화), VXN·VKOSPI·VSTOXX(1년 중 위치), KOSPI200 실제 60일 변동성(5년 중 위치). 막대 = VIX 의 지난 1년 중 위치.</dd>
         <dt>읽는 법</dt><dd>파란 안내 줄 = 옵션 보험료(VIX)와 S&amp;P500 실제 60일 변동성의 차이. 4%p 이상 높으면 보험(풋 매수)이 비싼 편, 0 이하면 싼 편.</dd>
-        <dt>주의</dt><dd>변동성이 높다고 곧 하락한다는 뜻은 아닙니다. 급등 뒤의 과거 결과는 마켓타이밍 '급등 매수'에서 봅니다.</dd></dl></div>
+        <dt>주의</dt><dd>변동성이 높다고 곧 하락한다는 뜻은 아닙니다. 급등 뒤의 과거 결과는 마켓타이밍 '변동성 급등'에서 봅니다.</dd></dl></div>
       <div class="gd-sec"><h3>우선주</h3><dl class="gd-dl">
         <dt>무엇</dt><dd>삼성전자우 ÷ 삼성전자 가격비와 1년 최저~최고 사이 위치, 해외 우선주 ETF(PFF) 흐름.</dd>
         <dt>읽는 법</dt><dd>위치 70% 이상 = 우선주가 상대적으로 비싼 편, 30% 이하 = 싼 편.</dd></dl></div>
@@ -1363,9 +1364,9 @@
 
   <!-- 마켓타이밍 -->
   <div class="card" id="gd-timing">
-    <div class="gd-hd"><h2>마켓타이밍 <span class="sub">시그널 · 급등 매수 · 페어</span></h2>
+    <div class="gd-hd"><h2>마켓타이밍 <span class="sub">시그널 · 변동성 급등 · 페어</span></h2>
       <button class="btn sm primary" onclick="showTab('timing');document.querySelector('#tmSeg .s[data-v=sig]').click();scrollTo(0,0)">이 화면 열기</button>
-      <button class="btn sm" onclick="showTab('timing');document.querySelector('#tmSeg .s[data-v=spk]').click();scrollTo(0,0)">급등 매수 열기</button>
+      <button class="btn sm" onclick="showTab('timing');document.querySelector('#tmSeg .s[data-v=spk]').click();scrollTo(0,0)">변동성 급등 열기</button>
       <button class="btn sm" onclick="showTab('timing');document.querySelector('#tmSeg .s[data-v=pair]').click();scrollTo(0,0)">페어 열기</button></div>
     <p class="gd-lead">여러 위험 신호를 정해진 규칙으로 판정해 '지금 위험선호인가 위험회피인가'를 한 줄로 모으고, 공포 지표가 튀었을 때 샀다면 과거에 어땠는지, 같이 움직이던 두 종목의 가격 차이가 벌어졌을 때 되돌림에 걸었다면 어땠는지 보여 줍니다.</p>
     <div class="gd-secs">
@@ -1398,11 +1399,11 @@
       <li><span class="kv">준비 중(원천 미확정)</span> — 프로그램 차익잔고.</li>
     </ul>
     <div class="gd-secs" style="margin-top:12px">
-      <div class="gd-sec"><h3>급등 매수 — 무엇을 묻나</h3><dl class="gd-dl">
+      <div class="gd-sec"><h3>변동성 급등 — 무엇을 묻나</h3><dl class="gd-dl">
         <dt>무엇</dt><dd>"공포 지표가 튀었을 때 대표 자산을 한 번 사서 들고 있으면, 몇 개월 보유부터 승률 90% 이상이었나?" — 조합마다 발생 건수, 12개월 승률, 90% 도달 보유기간. 누르면 1~36개월 표.</dd>
-        <dt>조합</dt><dd>VIX ≥ 30 · ≥ 40 → 나스닥100(QQQ) · VKOSPI ≥ 40 이면서 1년 상위 10% → KOSPI200(KODEX 200) · MOVE ≥ 120 · 140 · 160 → 미국 장기국채(TLT)·국고 10년.</dd>
+        <dt>조합</dt><dd><b>주식</b> — VIX ≥ 30 → 나스닥100(QQQ) · VKOSPI ≥ 40 이면서 1년 상위 10% → KOSPI200(KODEX 200). <b>채권</b> — MOVE ≥ 120 → 미국 장기국채(TLT)·국고 10년. VIX ≥ 40 · MOVE ≥ 140 · 160 은 계산만 하고 화면에서는 숨깁니다.</dd>
         <dt>데이터</dt><dd>VIX 는 yfinance, 나머지 Refinitiv(배당 재투자 가격). 국고 10년은 금리로 총수익을 근사 재구성. 20시간 지나면 다시 계산.</dd></dl></div>
-      <div class="gd-sec"><h3>급등 매수 — 읽는 법</h3><dl class="gd-dl">
+      <div class="gd-sec"><h3>변동성 급등 — 읽는 법</h3><dl class="gd-dl">
         <dt>세는 법</dt><dd>종가가 기준을 넘으면 1건. 그 뒤 재무장 기준 아래로 내려오고 20거래일이 지나야 다음 건을 셉니다(같은 급등을 여러 번 세지 않게).</dd>
         <dt>체결</dt><dd>신호 다음 거래일 종가에 1회 매수, 왕복 비용 0.1% 차감(0.3% 로 올린 결과는 펼쳐서).</dd>
         <dt>하한</dt><dd>표본이 적은 만큼 깎은 승률(Wilson 하한, 단측 90%). 건수가 적을수록 승률과 차이가 큽니다.</dd>
@@ -2594,7 +2595,7 @@ document.querySelectorAll('#eqSeg .s').forEach(b => b.onclick = () => {
   if(v === 'uni' && !FUND) loadFund();
   if(!$('chatPanel').hidden) refreshChatContext();
 });
-// ── 마켓타이밍 — 시그널(timing.json)·급등 매수(spikes.json)·페어(pairs.json). 숫자는 refresh_all 이 만들고 화면은 읽기만 한다
+// ── 마켓타이밍 — 시그널(timing.json)·변동성 급등(spikes.json)·페어(pairs.json). 숫자는 refresh_all 이 만들고 화면은 읽기만 한다
 let TM = {sig: null, spk: null, pair: null};
 async function loadTiming(){
   const [a, b, c] = await Promise.allSettled([api('/api/timing'), api('/api/timing/spikes'), api('/api/timing/pairs')]);
@@ -2602,7 +2603,7 @@ async function loadTiming(){
   if(b.status === 'fulfilled'){ TM.spk = b.value; renderTmSpk(); } else $('spkVerdict').innerHTML = `<div class="empty">${esc(b.reason.message)}</div>`;
   if(c.status === 'fulfilled'){ TM.pair = c.value; renderTmPair(); } else $('prVerdict').innerHTML = `<div class="empty">${esc(c.reason.message)}</div>`;
   const at = d => d && d.generated_at ? d.generated_at.replace('T', ' ').slice(5, 16) + ' 계산' : '아직 없음';
-  $('tmMeta').textContent = `시그널 ${at(TM.sig)} · 급등 매수 ${at(TM.spk)} · 페어 ${at(TM.pair)} · 평일 16:30 자동 갱신 · 매매 지시 아님`; $('tmMeta').title = $('tmMeta').textContent;
+  $('tmMeta').textContent = `시그널 ${at(TM.sig)} · 변동성 급등 ${at(TM.spk)} · 페어 ${at(TM.pair)} · 평일 16:30 자동 갱신 · 매매 지시 아님`; $('tmMeta').title = $('tmMeta').textContent;
 }
 document.querySelectorAll('#tmSeg .s').forEach(b => b.onclick = () => {
   document.querySelectorAll('#tmSeg .s').forEach(x => x.classList.toggle('on', x === b));
@@ -2665,9 +2666,12 @@ function spkTable(tab, reach){
     (tab || []).map(r => `<tr class="${r.h === reach ? 'hit' : ''}"><td>${hKo(r.h)}</td><td class="num">${r.n}</td><td class="num">${r.win === null || r.win === undefined ? '-' : num(r.win, 1) + '%'}</td><td class="num">${r.lb === null || r.lb === undefined ? '-' : num(r.lb, 1) + '%'}</td><td class="num">${pc(r.median, 1)}</td><td class="num">${pc(r.worst, 1)}</td></tr>`).join('')}</table>`;
 }
 const r12 = tab => (tab || []).find(r => r.h === '12M') || {};
+// 화면에 보일 조합 — VIX ≥ 30 · MOVE ≥ 120 만(≥ 40 · ≥ 140/160 은 spikes.py 가 계산은 하고 화면에서만 숨김, 2026-10-29 사용자 결정). VKOSPI 는 그대로
+const SPK_HIDE = new Set(['vix40', 'move140', 'move160']);
+const SPK_BOND = new Set(['TLT', 'KTB10TR']);   // 대상이 채권이면 '채권' 묶음, 나머지는 '주식'
 const sigTag = (ok, vd) => ok === false ? `<span class="chip OFF">신호 아님(${esc(vd || '')})</span>` : '';
 function renderTmSpk(){
-  const d = TM.spk, st = d.studies || [], m = d.meta || {};
+  const d = TM.spk, st = (d.studies || []).filter(s => !SPK_HIDE.has(s.trigger)), m = d.meta || {};
   if(!d.generated_at || !st.length){ $('spkVerdict').innerHTML = TM_NONE; $('spkList').innerHTML = ''; $('spkNow').innerHTML = ''; $('spkRules').innerHTML = ''; return; }
   const sigs = st.filter(s => s.is_signal), hits = sigs.filter(s => s.reach_90);
   const lbl = {}; st.forEach(s => { lbl[s.target] = s.target_name; }); Object.values(d.triggers || {}).forEach(t => { lbl[t.series] = lbl[t.series] || t.name.split(' ')[0]; });
@@ -2676,7 +2680,7 @@ function renderTmSpk(){
     <div class="vd-sub">${hits.length ? hits.map(s => `${esc(s.trigger_name)} → ${esc(s.target_name)}: ${hKo(s.reach_90)} 이상 보유`).join(' · ') + '. ' : ''}공포 지표가 튀면 다음 거래일 종가에 한 번 사서 들고 있었을 때의 과거 결과입니다.
       공통 기간 ${esc(cp.start || '-')}부터${(cp.binding || []).length ? `(가장 늦게 시작한 ${cp.binding.map(k => esc(lbl[k] || k)).join(', ')} 기준)` : ''} · 왕복 비용 ${num(cost.round_trip, 1)}% 차감(민감도 ${num(cost.sensitivity, 1)}%는 펼쳐서).</div>
     <div class="vd-note">${(m.notes || []).map(esc).join(' ')}</div>`;
-  $('spkList').innerHTML = st.map(s => {
+  const spkCard = s => {
     const a = r12(s.table), cs = s.cost_sens || {}, ed = s.every_day || {}, lg = s.longest, kr = s.krw;
     const aux = (t, title) => !t ? '' : t.skipped ? `<div class="kv">${esc(title)}: ${esc(t.reason || '생략')}</div>`
       : `<details><summary>${esc(title)} — ${esc(t.start || '')}부터 ${t.n_events}건 · ${esc(t.verdict || '')}${t.is_signal === false ? ' · 신호 아님' : ''}</summary>${spkTable(t.table, t.reach_90)}</details>`;
@@ -2692,9 +2696,13 @@ function renderTmSpk(){
         <div class="kv">비용 ${num(cs.cost, 1)}%로 올려도 12개월 승률 ${r12(cs.table).win === undefined ? '-' : num(r12(cs.table).win, 0) + '%'} · 90% 도달 ${cs.reach_90 ? hKo(cs.reach_90) : '안 함'}
           · 조건이 참인 모든 날을 세면 ${ed.n ?? '-'}일, 12개월 승률 ${r12(ed.table).win === undefined ? '-' : num(r12(ed.table).win, 0) + '%'}(${esc(ed.label || '중복 포함·과대평가')}, 비교용)</div>
         ${aux(lg, '보조 — 최장 기간')}${aux(kr, '보조 — ' + ((kr && kr.label) || '원화 환산'))}
-      </div></details>`; }).join('')
+      </div></details>`; };
+  const grp = (g, sub, list) => list.length ? `<h4 class="spk-g">${g} <span class="kv">${sub}</span></h4>${list.map(spkCard).join('')}` : '';
+  $('spkList').innerHTML = grp('주식', 'VIX · VKOSPI → 나스닥100 · KOSPI200', st.filter(s => !SPK_BOND.has(s.target)))
+    + grp('채권', 'MOVE → 미국 장기국채 · 국고 10년', st.filter(s => SPK_BOND.has(s.target)))
+    + `<div class="kv" style="margin-top:8px">VIX ≥ 40 · MOVE ≥ 140 · ≥ 160 조합은 계산은 하지만 화면에서는 숨깁니다.</div>`
     + ((d.missing || []).length ? `<div class="kv" style="margin-top:8px">생략: ${d.missing.map(x => `${esc(x.trigger)} → ${esc(x.target)}(${esc(x.reason)})`).join(' · ')}</div>` : '');
-  const trs = Object.values(d.triggers || {});
+  const trs = Object.entries(d.triggers || {}).filter(([k]) => !SPK_HIDE.has(k)).map(([, t]) => t);
   $('spkNow').innerHTML = !trs.length ? '<div class="empty">지표 이력이 없습니다.</div>' : `<table><tr><th>지표 조건</th><th class="num">오늘 값</th><th>상태</th><th>마지막 발생</th></tr>${trs.map(t => { const c = t.current || {};
     const stt = c.active ? (c.armed ? '<span class="chip WARN">조건 충족</span>' : '<span class="chip OFF">조건 충족 · 이미 센 구간</span>') : c.armed ? '<span class="chip OFF">대기</span>' : '<span class="chip OFF" data-tip="급등 뒤 아직 기준 아래로 내려오지 않아 새로 세지 않는 상태">재무장 대기</span>';
     return `<tr><td data-tip="${esc(t.rule || '')}"><b>${esc(t.name)}</b><div class="kv">${esc(t.source || '')}</div></td><td class="num">${num(c.value, 2)}<div class="kv">${esc(c.as_of || '')}</div></td><td>${stt}</td><td class="kv">${c.last_event ? `${esc(c.last_event)}<br>${c.days_since_last_event}거래일 전` : '-'}</td></tr>`; }).join('')}</table>`;
