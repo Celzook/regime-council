@@ -132,7 +132,7 @@ def collect():
 
     for p in ["/api/overview", "/api/room", "/api/alerts", "/api/log?limit=150", "/api/book", "/api/quant", "/api/strategy",
               "/api/equity", "/api/equity/fund", "/api/equity/valhist", "/api/universe/spark", "/api/backtest/catalog", "/api/macro",
-              "/api/timing", "/api/timing/spikes", "/api/timing/pairs", "/api/funds"]:
+              "/api/timing", "/api/timing/spikes", "/api/timing/pairs", "/api/funds", "/api/els"]:
         take(p)
     for r in (snap.get("/api/timing/pairs") or {}).get("pairs") or []:   # 페어 상세(z 차트·거래) — 표에 있는 페어만
         take("/api/timing/pairs/" + q(r["id"]))

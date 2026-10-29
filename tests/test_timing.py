@@ -28,6 +28,7 @@ def _no_local_options(tmp_path, monkeypatch):
     monkeypatch.setattr(T, "PC_HIST", tmp_path / "putcall_daily.csv")
     monkeypatch.setattr(T, "OI_HIST", tmp_path / "futures_oi_daily.csv")
     monkeypatch.setattr(T, "KOFIA_FREE_HIST", tmp_path / "kofia_free_daily.csv")
+    monkeypatch.setattr(T, "FF_HIST", tmp_path / "foreign_futures_daily.csv")
 
 
 def _days(n: int, end: str = "2026-10-23") -> pd.DatetimeIndex:
@@ -49,7 +50,8 @@ def _inputs(n: int = 1500, seed: int = 3) -> dict:
             "spread_aa": pd.Series(0.6 + np.cumsum(rng.normal(0, 0.005, n)), index=idx),
             "spread_bbb": pd.Series(6.5 + np.cumsum(rng.normal(0, 0.01, n)), index=idx),
             "usdkrw": walk(0, 0.004, 1350), "ks200_basis": pd.Series(rng.normal(0.2, 0.3, n), index=idx),
-            "credit_balance": walk(0, 0.005, 2e7), "customer_deposits": walk(0, 0.008, 5e7)}
+            "credit_balance": walk(0, 0.005, 2e7), "customer_deposits": walk(0, 0.008, 5e7),
+            "foreign_fut_net": pd.Series(rng.normal(0, 2000, n), index=idx)}
 
 
 def _valhist_doc(pe=None, pb=None) -> dict:
@@ -155,12 +157,12 @@ def test_catalog_valid_and_covers_implemented_and_phase2():
     keys = set(SPEC)
     implemented = {"vkospi", "vix", "vix_term", "trend_200d", "mom_6m", "mom_12m", "credit_aa", "credit_bbb",
                    "usdkrw", "valuation_pe", "valuation_pb", "ks200_basis", "futures_oi", "put_call", "put_call_oi",
-                   "credit_balance", "customer_deposits"}
+                   "credit_balance", "customer_deposits", "foreign_futures"}
     assert implemented <= keys
     rows = T.compute(_inputs(), CAT, _valhist_doc())["signals"]
     assert {r["key"] for r in rows} == {k for k, s in SPEC.items() if s["status"] in T.IMPLEMENTED}
     phase2 = [s for s in CAT["signals"] if s["status"] == T.PHASE2]
-    assert {s["key"] for s in phase2} == {"foreign_futures", "arbitrage_balance"}
+    assert {s["key"] for s in phase2} == {"arbitrage_balance"}
     assert {k for k, s in SPEC.items() if s["status"] == T.ACCUM} == {"put_call", "put_call_oi"}
     assert {s["status"] for s in CAT["signals"]} == {"구현", T.ACCUM, T.PHASE2}
     for s in phase2:
@@ -508,6 +510,40 @@ def test_futures_oi_shows_value_without_direction():
     assert row["ok"] and row["value"] == pytest.approx(round((oi.iloc[-1] / oi.iloc[-21] - 1) * 100, 2))
     assert row["judged"] is False and row["state"] is None and "방향 판정 안 함" in row["reason"]
     assert "판정 없음" in row["say"] and not SPEC["futures_oi"]["in_composite"]
+
+
+def test_foreign_futures_20d_sum_z_5d_and_quadrant():
+    """외국인 순매수 20일 누적의 1년 z 로 판정, 5일 누적·z 는 표시만, 미결제약정 20일 변화와 부호 4분면 — 합성 값."""
+    rng = np.random.default_rng(7)
+    net = _s(np.r_[rng.normal(0, 1000, 400), np.full(20, 3000.0)])      # 마지막 20일 하루 3,000계약씩 순매수
+    oi = _s([100000.0 + 50 * i for i in range(420)])                    # 꾸준히 증가
+    d = T.compute({"foreign_fut_net": net, "ks200_oi": oi}, CAT)
+    row = next(r for r in d["signals"] if r["key"] == "foreign_futures")
+    assert row["ok"] and row["value"] == 60000 and isinstance(row["value"], int)
+    assert row["sum_5d"] == 15000 and row["z_5d"] is not None
+    assert row["z_1y"] >= 1.5 and row["state"] == "위험선호" and not row["in_composite"]
+    assert row["quadrant"]["flow"] == "순매수" and row["quadrant"]["oi"] == "증가" and "신규 매수" in row["say"]
+    assert "5일 누적 +15,000계약" in row["say"] and "60,000 계약" in row["say"]
+    sell = T.compute({"foreign_fut_net": -net, "ks200_oi": oi[::-1].set_axis(oi.index)}, CAT)
+    r2 = next(r for r in sell["signals"] if r["key"] == "foreign_futures")
+    assert r2["state"] == "위험회피" and r2["quadrant"]["label"].startswith("순매도·미결제약정 감소")
+    alone = T.signal_row(SPEC["foreign_futures"], {"foreign_fut_net": net})
+    assert alone["ok"] and "quadrant" not in alone                      # 미결제약정이 없으면 4분면 없음
+
+
+def test_load_inputs_reads_foreign_futures(tmp_path, monkeypatch):
+    s = _inputs(30)
+    monkeypatch.setattr(analytics, "load_panel", lambda: pd.DataFrame({"kospi200": s["kospi200"]}))
+    ff = pd.DataFrame({"fgn_net_qty": [-1476.0, 670.0], "fgn_net_amt": [-3.7e11, 1.5e11]}, index=_days(2))
+    ff.index.name = "date"
+    ff.to_csv(tmp_path / "foreign_futures_daily.csv")
+    for name, p in (("EQ_HIST", "equity_daily.csv"), ("TIMING_HIST", "timing_daily.csv")):
+        monkeypatch.setattr(T, name, tmp_path / p)
+    monkeypatch.setattr(T.config, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(valhist, "load", lambda: None)
+    inputs, _, as_of, _ = T.load_inputs()
+    assert inputs["foreign_fut_net"].tolist() == [-1476.0, 670.0]
+    assert as_of["foreign_futures_daily"] == "2026-10-23"
 
 
 def test_validator_rule_less_and_accumulating_requirements():

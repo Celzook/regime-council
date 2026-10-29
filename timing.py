@@ -13,8 +13,12 @@
                             KOSPI200 선물 미결제약정(KSc1+KSc2, ks200_oi).
   data/history/kofia_free_daily.csv(kofia_free.py) : 금투협 FreeSIS 증시자금추이 — 투자자예탁금(customer_deposits)·신용융자 잔고
                             (credit_balance, 백만원 — 결제 T+2 라 최신 행이 전 영업일).
+  data/history/foreign_futures_daily.csv(foreign_futures.py) : 인포맥스 IMDH 외국인합 KOSPI200 선물 순매수(fgn_net_qty, 계약 — 2010~).
 계산(CODE, 네트워크 없음 — compute() 는 순수 함수):
-  변환: level(×scale) · ratio(a ÷ b ×scale, window 면 a·b 각각 N개 합의 비) · ma_gap(종가 ÷ N일 이동평균 − 1, %) · ret(lag 거래일 전 → skip 거래일 전 수익률, %) · chg_pct(lag 거래일 변화율, %).
+  변환: level(×scale) · ratio(a ÷ b ×scale, window 면 a·b 각각 N개 합의 비) · ma_gap(종가 ÷ N일 이동평균 − 1, %) · ret(lag 거래일 전 → skip 거래일 전 수익률, %) · chg_pct(lag 거래일 변화율, %)
+        · roll_sum(최근 N거래일 합 — 외국인 선물 순매수 누적).
+  외국인 선물(foreign_futures): 판정은 20일 누적의 1년 z, 5일 누적과 그 z 는 sum_5d·z_5d 로 함께 보여 준다. 미결제약정 20일 변화(futures_oi)와
+        부호로 4분면(quadrant)을 붙인다 — 순매수·OI↑ 신규 매수, 순매도·OI↑ 신규 매도, 순매수·OI↓ 매도 청산(환매수), 순매도·OI↓ 매수 청산.
   입력 후보가 여럿이면(KOSPI200 → KOSPI) 규칙이 쓰는 지표를 모두 계산할 만큼 이력이 있는 첫 후보를 쓴다.
   백분위 = mid-rank(창 안에서 지금보다 낮은 날 + 같은 날 ½) ÷ 창 길이 — valhist.position·spikes.pct_1y·equity.level_stats 와 같은 정의.
            창은 모든 신호에서 관측치 개수: 1년 = 최근 252개(252개가 차야 — spikes.pct_1y 와 같음), 5년 = 최근 1260개(60개 초과면 계산,
@@ -58,6 +62,7 @@ PC_HIST = config.DATA_DIR / "history" / "putcall_daily.csv"       # options_pc.P
 OI_HIST = config.DATA_DIR / "history" / "futures_oi_daily.csv"    # options_pc.OI_HIST
 KOFIA_FREE_HIST = config.DATA_DIR / "history" / "kofia_free_daily.csv"   # kofia_free.OUT
 KOFIA_FREE_COLS = ("customer_deposits", "credit_balance")
+FF_HIST = config.DATA_DIR / "history" / "foreign_futures_daily.csv"   # foreign_futures.HIST — 인포맥스 브리지를 끌어오지 않게 import 하지 않는다
 PC_COLS = ("put_vol", "call_vol", "put_oi", "call_oi")
 ACCUM = "이력 축적 중"
 IMPLEMENTED = ("구현", ACCUM)
@@ -66,7 +71,7 @@ STATES = ("위험선호", "중립", "위험회피")
 DIRECTIONS = ("high_risk_off", "high_risk_on")
 METRICS = ("value", "pct_1y", "pct_5y", "z_1y", "chg_20d")
 OPS = {"gte": operator.ge, "gt": operator.gt, "lte": operator.le, "lt": operator.lt}
-KINDS = ("level", "ratio", "ma_gap", "ret", "chg_pct", "valhist")
+KINDS = ("level", "ratio", "ma_gap", "ret", "chg_pct", "roll_sum", "valhist")
 PANEL_COLS = ("spread_aa", "spread_bbb", "usdkrw", "kospi200", "kospi", "ks200_basis", "vix")
 EQ_COLS = {".KSVKOSPI": "vkospi", "^VIX3M": "vix3m", "^VIX": "vix"}   # equity_daily.csv 열 → 입력 이름(vix 는 패널에 없을 때만)
 MIN_PCT, MIN_Z = 60, 20     # analytics.stats 와 같은 최소 개수(초과)
@@ -233,6 +238,8 @@ def transform(spec: dict, series: list[pd.Series]) -> pd.Series:
         return (s.shift(spec.get("skip", 0)) / s.shift(spec["lag"]) - 1) * 100
     if kind == "chg_pct":
         return (s / s.shift(spec["lag"]) - 1) * 100
+    if kind == "roll_sum":
+        return s.rolling(spec["window"]).sum().dropna()
     raise ValueError(f"알 수 없는 transform {kind}")
 
 
@@ -308,6 +315,10 @@ def _say(spec: dict, row: dict) -> str:
         text += f" 기준일 {row['as_of']} 지연 — 합성 제외."
     if row.get("contrarian_note"):
         text += " " + row["contrarian_note"]
+    if row.get("sum_5d") is not None:
+        text += f" 5일 누적 {row['sum_5d']:+,.0f}{u}" + (f"(z {row['z_5d']:+.2f})" if row.get("z_5d") is not None else "") + "."
+    if row.get("quadrant"):
+        text += f" 4분면: {row['quadrant']['label']}."
     return text
 
 
@@ -382,9 +393,11 @@ def signal_row(spec: dict, inputs: dict, valhist_doc: dict | None = None) -> dic
                 row["history_from"] = hist_from
                 return fail(f"이력 축적 중({row['history_rows']}/{spec['min_rows']}일)" if spec.get("status") == ACCUM
                             else "이력이 짧아 변환값 없음")
-        d = 1 if spec["unit"] == "bp" else 3 if spec["unit"] == "배" and tr["kind"] == "ratio" else 2
+        d = 1 if spec["unit"] == "bp" else 3 if spec["unit"] == "배" and tr["kind"] == "ratio" else 0 if spec["unit"] == "계약" else 2
         shown = {"value": _r(st["value"], d), "pct_1y": _r(st["pct_1y"], 0), "pct_5y": _r(st["pct_5y"], 0),
                  "z_1y": _r(st["z_1y"], 2), "chg_20d": _r(st["chg_20d"], d)}
+        if d == 0:   # 계약 수는 정수로 보여 준다(-1,476.0 계약 대신 -1,476 계약)
+            shown.update({k: int(shown[k]) for k in ("value", "chg_20d") if shown[k] is not None})
         state = judge(spec["rule"], shown) if "rule" in spec and not _accumulating(spec, row) else None
         row.update(ok=True, judged=state is not None, state=state, input_used=name, as_of=st["as_of"],
                    history_from=hist_from, pct_5y_from=st["pct_5y_from"], **shown)
@@ -393,6 +406,9 @@ def signal_row(spec: dict, inputs: dict, valhist_doc: dict | None = None) -> dic
         if spec["key"] == "trend_200d" and tr["kind"] == "ma_gap":
             gap = _clean(transform(tr, ss)).tail(22)    # 최근 21거래일 각 날 vs 전날 → 22개
             row["flips_1m"] = int((gap.gt(0).astype(int).diff().abs() > 0).sum()) if len(gap) > 1 else None
+        if spec["key"] == "foreign_futures" and tr["kind"] == "roll_sum":
+            st5 = series_stats(transform({"kind": "roll_sum", "window": 5}, ss))   # 정의의 5일 누적 — 판정은 20일
+            row["sum_5d"], row["z_5d"] = (round(st5["value"]), _r(st5["z_1y"], 2)) if st5 else (None, None)
         if "rule" not in spec:
             row["reason"] = "방향 판정 안 함(참고 지표)"
         elif _accumulating(spec, row):
@@ -405,6 +421,26 @@ def signal_row(spec: dict, inputs: dict, valhist_doc: dict | None = None) -> dic
         row = {**empty, "reason": f"계산 오류: {type(e).__name__}: {e}"}
         row["say"] = f"{spec.get('name') or spec.get('key')}: 계산 못 함 — {row['reason']}."
         return row
+
+
+def add_quadrant(rows: list[dict], specs: list[dict]) -> None:
+    """외국인 선물 순매수(20일 누적) × 미결제약정 20일 변화의 부호 4분면(제자리 수정). 미결제약정은 시장 전체 합계(외국인 몫 아님)이고
+    만기 전후 20일 변화는 음수로 치우친다(futures_oi threshold_note). 둘 중 하나라도 값이 없거나 0 이면 붙이지 않는다."""
+    by = {r["key"]: (i, r) for i, r in enumerate(rows)}
+    if "foreign_futures" not in by or "futures_oi" not in by:
+        return
+    i, ff = by["foreign_futures"]
+    oi = by["futures_oi"][1]
+    if not (ff["ok"] and oi["ok"] and ff["value"] and oi["value"]):
+        return
+    buy, up = ff["value"] > 0, oi["value"] > 0
+    label = {(True, True): "순매수·미결제약정 증가 — 신규 매수 우위(강세)", (False, True): "순매도·미결제약정 증가 — 신규 매도 우위(약세)",
+             (True, False): "순매수·미결제약정 감소 — 매도 포지션 청산(환매수)", (False, False): "순매도·미결제약정 감소 — 매수 포지션 청산"}[(buy, up)]
+    if ff["as_of"] != oi["as_of"]:
+        label += f" · 기준일 다름(순매수 {ff['as_of']}, 미결제약정 {oi['as_of']})"
+    ff["quadrant"] = {"flow": "순매수" if buy else "순매도", "oi": "증가" if up else "감소", "oi_chg_20d": oi["value"],
+                      "oi_as_of": oi["as_of"], "label": label}
+    ff["say"] = _say(specs[i], ff)
 
 
 def mark_stale(rows: list[dict], cat: dict, specs: list[dict] | None = None) -> None:
@@ -466,6 +502,7 @@ def compute(inputs: dict, cat: dict, valhist_doc: dict | None = None, as_of: dic
     now = now or datetime.datetime.now()
     impl = [s for s in cat["signals"] if s["status"] in IMPLEMENTED]
     rows = [signal_row(s, inputs, valhist_doc) for s in impl]
+    add_quadrant(rows, impl)
     mark_stale(rows, cat, impl)
     gen = now.isoformat(timespec="seconds")
     return {"generated_at": gen,
@@ -486,7 +523,8 @@ def compute(inputs: dict, cat: dict, valhist_doc: dict | None = None, as_of: dic
                       "역발상 신호(VKOSPI·VIX)는 높을 때 '위험회피' 국면이지만, 극단이면 역발상 매수 참고 문구를 붙입니다.",
                       "VIX 는 yfinance(Refinitiv 권한 없음, 예외 원천). 그 밖(VIX3M 포함)은 Refinitiv.",
                       "신용융자 잔고 비율은 시가총액 이력을 받을 수 없어 KOSPI 지수로 나눈 대용치(1년 백분위로만 판정).",
-                      "출처: Refinitiv(LSEG)·yfinance·금융투자협회 FreeSIS · 사내 공유 한정 · 외부 재배포 금지 · 매매 지시 아님."]}
+                      "외국인 KOSPI200 선물 순매수는 인포맥스(엑셀 애드인 IMDH, 상품 전체·외국인합) — 미결제약정(Refinitiv)과 4분면으로 봅니다.",
+                      "출처: Refinitiv(LSEG)·yfinance·금융투자협회 FreeSIS·인포맥스 · 사내 공유 한정 · 외부 재배포 금지 · 매매 지시 아님."]}
 
 
 # ── 읽기(저장소 안 파일만, 네트워크 없음) ──
@@ -526,7 +564,8 @@ def load_inputs() -> tuple[dict, dict | None, dict, list]:
     except Exception as e:  # noqa: BLE001
         errors.append(f"equity·timing_daily 합치기: {e}")
     for path, cols in ((PC_HIST, {c: c for c in PC_COLS}), (OI_HIST, {"total": "ks200_oi"}),     # options_pc.py
-                       (KOFIA_FREE_HIST, {c: c for c in KOFIA_FREE_COLS})):                       # kofia_free.py — 없으면 그 신호만 '입력 없음'
+                       (KOFIA_FREE_HIST, {c: c for c in KOFIA_FREE_COLS}),                        # kofia_free.py — 없으면 그 신호만 '입력 없음'
+                       (FF_HIST, {"fgn_net_qty": "foreign_fut_net"})):                            # foreign_futures.py(인포맥스)
         try:
             if path.exists():
                 f = pd.read_csv(path, index_col=0, parse_dates=True)

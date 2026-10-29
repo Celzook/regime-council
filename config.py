@@ -84,7 +84,7 @@ LAN_GET_ALLOW: list[str] = [
     "/api/checks", "/api/checks/*", "/api/mp", "/api/mp/*", "/api/analog",
     "/api/discussions", "/api/discussions/*", "/api/report/*",
     "/api/quant", "/api/strategy", "/api/equity", "/api/equity/fund", "/api/equity/valhist",
-    "/api/backtest/catalog", "/api/macro", "/api/timing", "/api/timing/spikes", "/api/timing/pairs", "/api/timing/pairs/*", "/api/funds", "/api/funds/*",
+    "/api/backtest/catalog", "/api/macro", "/api/timing", "/api/timing/spikes", "/api/timing/pairs", "/api/timing/pairs/*", "/api/funds", "/api/funds/*", "/api/els",
 ]
 # 매크로 화면을 보고 있을 때 인포맥스 값을 다시 받는 주기(분) — 한 번에 숨김 엑셀이 약 10초 떴다 닫힌다.
 INFOMAX_REFRESH_MIN = 5

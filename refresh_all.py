@@ -2,9 +2,10 @@
 """장 마감 뒤 자동 갱신 — Windows 작업 스케줄러가 평일 16:30 에 부른다(register_refresh_task.ps1).
 
 순서: Workspace 연결 확인 → 과거 시계열 → 시장 스냅샷 → 인포맥스·매크로 → 주식 대시보드 → 정량 → 밸류에이션(12시간 지났을 때) → 밸류에이션 이력(7일 지났을 때)
-     → 위탁운용사 펀드(funds.py — 금투협, 20시간 지났을 때) → 급등 매수(spikes.py, 20시간 지났을 때 — 약 70초, timing_daily.csv 도 받는다)
+     → 위탁운용사 펀드(funds.py — 금투협, 20시간 지났을 때) → 공모 ELS(els.py — 금투협 청약중·청약종료 목록, 20시간 지났을 때) → 급등 매수(spikes.py, 20시간 지났을 때 — 약 70초, timing_daily.csv 도 받는다)
      → 페어트레이딩(pairs.py — 20시간 지났을 때, 종목 가격 증분·DART 지분 캐시)
      → 옵션 풋/콜·미결제약정(options_pc.py — 하루 한 줄씩 쌓음) → 증시자금(kofia_free.py — 금투협 FreeSIS 예탁금·신용융자 증분)
+     → 외국인 선물(foreign_futures.py — 인포맥스 IMDH, 인포맥스가 꺼져 있으면 건너뜀)
      → 마켓타이밍 시그널(timing.py — 앞 단계 파일만 읽음) → 시험 포트 평가 → 전략 보드 → 백테스트 요약 → 데이터 점검(datahealth.py — 찾은 이상은 실패로 치지 않는다).
 한 단계가 실패해도 나머지는 계속한다. 결과는 data/log/refresh_status.json(화면용)과 data/log/refresh_YYYYMMDD.log 에 남는다.
 Workspace 가 꺼져 있거나 로그아웃돼 있으면(무인 실행 중 세션 타임아웃 포함) 아무것도 덮어쓰지 않고 Windows 알림을 띄운 뒤 끝낸다.
@@ -80,6 +81,11 @@ def _funds():
     return funds.run()
 
 
+def _els():
+    import els
+    return els.run()
+
+
 def _options_pc():
     import options_pc
     return options_pc.run()
@@ -88,6 +94,11 @@ def _options_pc():
 def _kofia_free():
     import kofia_free
     return kofia_free.run()
+
+
+def _foreign_futures():
+    import foreign_futures
+    return foreign_futures.run()
 
 
 def _timing():
@@ -134,10 +145,12 @@ def steps(quick: bool):
         ("밸류에이션", _fund_if_stale),
         ("밸류에이션 이력", _valhist_if_stale),
         ("위탁운용사 펀드", _funds),                # BM 이 equity_daily·kofia_daily 를 읽으므로 그 갱신 뒤(fund_bm_daily.csv — ACWI·VN Index 는 funds.run 이 계산 전에 직접 갱신)
+        ("공모 ELS(금투협)", _els),               # 금투협 공시만 읽는다(다른 단계와 무관)
         ("급등 매수", _spikes_if_stale),           # timing_daily.csv(^VIX3M)를 받으므로 시그널보다 먼저
         ("페어트레이딩", _pairs_if_stale),         # pairs_ret·tv_daily.csv 증분 + DART 지분(캐시) — 20시간 지났을 때
         ("옵션 풋/콜·미결제약정", _options_pc),     # putcall_daily·futures_oi_daily.csv — 시그널보다 먼저
         ("증시자금(금투협)", _kofia_free),          # kofia_free_daily.csv(예탁금·신용융자) — 시그널보다 먼저
+        ("외국인 선물(인포맥스)", _foreign_futures),  # foreign_futures_daily.csv — 시그널보다 먼저, 인포맥스 꺼져 있으면 건너뜀
         ("마켓타이밍 시그널", _timing),             # 밸류에이션 이력·시장 스냅샷·주식 대시보드·위 세 단계 결과를 읽는다
         ("시험 포트 평가", _book),
         ("전략 보드", lambda: strategy.build() and "갱신"),

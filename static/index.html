@@ -802,6 +802,19 @@
   @container main (max-width:640px){ table.fdt .c-opt, table.fdr .c-opt, table.fdm .c-opt { display:none; } .fd-n { display:inline; } .fd-grid { grid-template-columns:1fr; }
     .fd-dist { grid-template-columns:minmax(0,92px) minmax(0,1fr) 78px; gap:2px 6px; } .fd-flow { grid-template-columns:1fr; }
     .fd-bar input[type=search] { width:100%; flex:1 1 140px; } .fd-bar select { flex:1 1 140px; max-width:none; } .fd-bar .fd-cnt { margin-left:0; } }
+  /* ── ELS — 공모 ELS 목록(표·필터는 운용사·펀드의 fd-bar·fd-chip·table.fdt 를 그대로 쓴다) ── */
+  .el-sum { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px 18px; }
+  .el-sum h4 { margin:0 0 4px; font-size:12px; color:var(--muted); font-weight:600; }
+  .el-sum .big { font-size:22px; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.25; } .el-sum .big span { font-size:12px; font-weight:500; color:var(--muted); margin-left:3px; letter-spacing:0; }
+  .el-sum ol { list-style:none; margin:0; padding:0; font-size:12.5px; }
+  .el-sum li { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; padding:2px 0; border-top:1px solid var(--hair); } .el-sum li:first-child { border-top:none; }
+  .el-sum li span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .el-sum li b { font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; } .el-sum li b i { font-style:normal; font-weight:500; color:var(--muted); margin-left:4px; }
+  table.elt td.st { min-width:180px; max-width:320px; } table.elt td.st b { font-weight:600; white-space:nowrap; }
+  .el-st { font-size:11px; color:var(--muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  table.elt td.un { min-width:110px; font-size:12px; } table.elt td.nm { min-width:150px; } table.elt td.dt { white-space:nowrap; }
+  table.elt td.lk { white-space:nowrap; font-size:12px; } table.elt td.lk a + a { margin-left:8px; }
+  @container main (max-width:900px){ .el-sum { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @container main (max-width:640px){ .el-sum { grid-template-columns:1fr; } table.elt td.st { min-width:140px; } }
   /* ── 백테스트 — macOS 설정 앱처럼: 왼쪽 전략 목록 · 오른쪽 상세(이름 → 설정 묶음 → 기간 묶음 → 실행) ── */
   .btlayout { display:grid; grid-template-columns:minmax(200px,236px) minmax(0,1fr); gap:var(--gap); align-items:start; } .btlayout > * { min-width:0; } .btlayout[hidden] { display:none; }
   .btlist { position:sticky; top:60px; padding:8px 6px; max-height:calc(100vh - 80px); overflow-y:auto; scrollbar-width:thin; }
@@ -950,7 +963,7 @@
   @keyframes shimmer { from { background-position:100% 0; } to { background-position:-150% 0; } }
   @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
   @keyframes pop { from { opacity:0; transform:scale(.97) translateY(8px); } to { opacity:1; transform:none; } }
-  /* 화면 안내 — Main Screen 네 화면의 데이터·읽는 법(정적 글, API 없음) */
+  /* 화면 안내 — Main Screen 다섯 화면의 데이터·읽는 법(정적 글, API 없음) */
   #page-guide { overflow-wrap:anywhere; }
   .gd-toc { display:flex; flex-wrap:wrap; gap:6px; }
   .gd-hd { display:flex; align-items:center; gap:8px 12px; flex-wrap:wrap; margin-bottom:6px; } .gd-hd h2 { margin:0; flex:1 1 220px; }
@@ -1013,6 +1026,7 @@
     <div class="tab on" data-t="equity"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5l5.5-5.5 4 4 7.5-7.5"/><path d="M15 8.5h5.5V14"/></svg><span>주식</span></div>
     <div class="tab" data-t="timing"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12.5h4l2.5-6 4.5 11 2.5-5H21"/></svg><span>마켓타이밍</span></div>
     <div class="tab" data-t="funds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h16v10.5H4z"/><path d="M9 8.5V6h6v2.5"/><path d="M4 13h16"/></svg><span>운용사·펀드</span></div>
+    <div class="tab" data-t="els"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18.5h16"/><path d="M5 15l4-4.5 3 2.5 3.5-5.5L19 10"/><path d="M5.5 4.5v3M4 6h3"/></svg><span>ELS</span></div>
     <div class="tab" data-t="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l3.5-4"/></svg><span>대시보드</span></div>
     <div class="ngrp">Strategy</div>
     <div class="tab" data-t="bt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 12.5a8 8 0 1 0 2.3-6.2"/><path d="M4 4.5v4.2h4.2"/><path d="M12 8v4.3l2.8 1.7"/></svg><span>백테스트</span></div>
@@ -1177,6 +1191,28 @@
   <div class="card"><details class="rules"><summary>대상·분류·계산 방법</summary><ul id="fdRules"></ul></details></div>
 </section>
 
+<!-- ELS — 공모 ELS 목록(els.py — 금투협 전자공시 파생결합증권 청약중·청약종료 상품의 ELS 탭). 자동 갱신(refresh_all)이 만든 파일을 읽기만 한다 -->
+<section class="page" id="page-els">
+  <div class="bhead">
+    <div><div class="ptitle">ELS</div><div class="kv" id="elMeta"></div></div>
+    <span class="spacer"></span>
+    <span class="seg" id="elList"></span>
+  </div>
+  <div class="card">
+    <div class="fd-bar" id="elUnder"></div>
+    <div class="fd-bar">
+      <select id="elIss" aria-label="발행사"></select>
+      <select id="elKi" aria-label="낙인"><option value="">낙인 전체</option><option value="ki">낙인 있음</option><option value="noki">노낙인</option><option value="na">확인 불가</option></select>
+      <input id="elQ" type="search" placeholder="상품명·기초자산·코드 검색" aria-label="상품 검색">
+      <button class="btn sm" id="elReset" type="button" hidden>필터 지우기</button>
+      <span class="fd-cnt" id="elCnt"></span>
+    </div>
+  </div>
+  <div class="card"><h2>요약 <span class="sub">지금 고른 조건의 상품 · 수익률 = 조건 충족시 연 수익률(세전)</span></h2><div id="elSum"></div></div>
+  <div class="card"><h2>상품별 <span class="sub">기본 정렬 = 수익률 높은 순 · 머리글을 누르면 정렬 · 구조 첫 줄은 상품유형 글에서 읽은 조기상환 주기 · 배리어 · 낙인(빈칸 = 글에서 못 읽음)</span></h2><div id="elTable"><div class="empty">불러오는 중…</div></div></div>
+  <div class="card"><details class="rules"><summary>대상·출처·읽는 법</summary><ul id="elRules"></ul></details></div>
+</section>
+
 <!-- 백테스트 — 왼쪽 전략 목록 · 오른쪽 설정·기간·실행·결과 (macOS 설정 앱 모양) -->
 <section class="page" id="page-bt">
   <div class="bhead">
@@ -1226,11 +1262,11 @@
   </div>
 </section>
 
-<!-- 화면 안내 — Main Screen(주식·마켓타이밍·위탁운용사·대시보드)의 데이터·읽는 법. 정적 글이라 공유본에서도 그대로 보인다.
+<!-- 화면 안내 — Main Screen(주식·마켓타이밍·위탁운용사·ELS·대시보드)의 데이터·읽는 법. 정적 글이라 공유본에서도 그대로 보인다.
      숫자 기준은 코드(equity.py·valhist.py·fundamentals.py·quant.py·timing.py + universe/timing.json·spikes.py·limits.py·datahealth.py) 기준 — 그쪽을 바꾸면 여기도 고친다 -->
 <section class="page" id="page-guide">
   <div class="bhead">
-    <div><div class="ptitle">화면 안내</div><div class="kv">Main Screen 네 화면 — 무엇을 보여 주고 어떻게 읽는지 · 매매 지시 아님</div></div>
+    <div><div class="ptitle">화면 안내</div><div class="kv">Main Screen 다섯 화면 — 무엇을 보여 주고 어떻게 읽는지 · 매매 지시 아님</div></div>
   </div>
   <div class="card">
     <div class="gd-toc">
@@ -1238,17 +1274,18 @@
       <button class="btn sm" onclick="$('gd-equity').scrollIntoView({behavior:'smooth'})">주식</button>
       <button class="btn sm" onclick="$('gd-timing').scrollIntoView({behavior:'smooth'})">마켓타이밍</button>
       <button class="btn sm" onclick="$('gd-funds').scrollIntoView({behavior:'smooth'})">운용사·펀드</button>
+      <button class="btn sm" onclick="$('gd-els').scrollIntoView({behavior:'smooth'})">ELS</button>
       <button class="btn sm" onclick="$('gd-home').scrollIntoView({behavior:'smooth'})">대시보드</button>
     </div>
   </div>
 
   <!-- 공통 -->
   <div class="card" id="gd-common">
-    <h2>먼저 알아 둘 것 <span class="sub">네 화면 공통</span></h2>
+    <h2>먼저 알아 둘 것 <span class="sub">다섯 화면 공통</span></h2>
     <ul class="gd-list">
       <li><b>매매 지시가 아닙니다.</b> 모든 숫자는 과거 시세를 코드로 계산한 점검 자료입니다. 판단은 운용역이 합니다.</li>
       <li><b>갱신</b> — 평일 16:30(국내 장 마감 뒤) 자동 갱신. 대부분 <b>종가 기준</b>이고, 화면 위 'Refinitiv 연결 · 날짜 시각 갱신'이 마지막 갱신입니다. 장중 값이 아닙니다.</li>
-      <li><b>원천</b> — 기본은 Refinitiv(LSEG) Workspace. 예외: <b>VIX 는 yfinance</b>(이 계정에 Refinitiv 권한 없음), 펀드·투자자예탁금·신용융자는 <b>금융투자협회</b> 공시.</li>
+      <li><b>원천</b> — 기본은 Refinitiv(LSEG) Workspace. 예외: <b>VIX 는 yfinance</b>(이 계정에 Refinitiv 권한 없음), 펀드·ELS·투자자예탁금·신용융자는 <b>금융투자협회</b> 공시.</li>
       <li><b>통화</b> — 주가·지수 수익률은 <b>현지 통화 기준</b>(환율 효과 제외), 주식·ETF 는 배당 재투자 가격입니다. 원화로 투자한 결과와 다릅니다.</li>
       <li><b>기준일이 항목마다 다릅니다</b> — 해외 시장은 시차로 하루 늦을 수 있고, 금투협 증시자금(예탁금·신용융자)은 결제 T+2 라 전 영업일 값입니다. 각 줄의 기준일을 함께 보세요(금리 줄 등은 5일 넘게 지난 값을 흐리게 표시).</li>
       <li><b>'데이터 점검 N' 배지</b>(화면 위) — 자동 점검이 찾은 이상: 지연(기준일이 같은 시장보다 늦음) · 급변(하루 변화가 평소의 약 10배 이상) · 정지(값이 며칠째 그대로) · 누락. 배지를 누르면 목록이 열립니다.</li>
@@ -1348,7 +1385,8 @@
       <li><b>신용융자 잔고(KOSPI 지수 대비)</b> <span class="kv">역발상 · 합성 제외</span> — 1년 상위 10% 회피 · 하위 10% 선호. 시가총액 대신 지수로 나눈 대용치라 값 자체는 뜻이 없고 위치만 봅니다.</li>
       <li><b>투자자 예탁금 20일 증가율</b> <span class="kv">동행 · 합성 제외</span> — 1년 상위 10% 선호 · 하위 10% 회피.</li>
       <li><b>KOSPI200 옵션 풋/콜 비율(거래량 5일 · 미결제약정)</b> <span class="kv">역발상 · 이력 축적 중</span> — 60일 쌓인 뒤, 쌓인 기간 상위 10% 회피 · 하위 10% 선호.</li>
-      <li><span class="kv">준비 중(원천 미확정)</span> — 외국인 선물 순매수, 프로그램 차익잔고.</li>
+      <li><b>외국인 KOSPI200 선물 순매수(20일 누적)</b> <span class="kv">동행 · 합성 제외</span> — 선호: 1년 z ≥ +1.5 · 회피: ≤ −1.5. 5일 누적을 함께 보고, 미결제약정 20일 변화와 4분면으로 봅니다. 인포맥스.</li>
+      <li><span class="kv">준비 중(원천 미확정)</span> — 프로그램 차익잔고.</li>
     </ul>
     <div class="gd-secs" style="margin-top:12px">
       <div class="gd-sec"><h3>급등 매수 — 무엇을 묻나</h3><dl class="gd-dl">
@@ -1413,6 +1451,33 @@
     </ul></div>
   </div>
   <!-- ▲ 위탁운용사 안내 끝 -->
+
+  <!-- ▼ ELS 안내 — 실제 화면(static/index.html renderEls·els.py) 기준. 그쪽을 바꾸면 이 블록(▼~▲)만 고친다 -->
+  <div class="card" id="gd-els">
+    <div class="gd-hd"><h2>ELS <span class="sub">공모 ELS 목록</span></h2><button class="btn sm primary" onclick="showTab('els');scrollTo(0,0)">이 화면 열기</button></div>
+    <p class="gd-lead">지금 청약 중인 공모 ELS 와 최근 3개월 안에 발행된(청약이 끝난) ELS 를 한 표로 모아, 기초자산·발행사·낙인 조건별로 수익률을 비교합니다.</p>
+    <div class="gd-secs">
+      <div class="gd-sec"><h3>대상과 데이터</h3><dl class="gd-dl">
+        <dt>대상</dt><dd>금융투자협회 전자공시 '파생결합증권 — 청약중인 상품 · 청약종료 상품'의 ELS 탭에 발행사가 올린 공모 ELS 전부(원금부분지급형 포함). DLS·ELB·DLB 는 뺍니다.</dd>
+        <dt>청약종료</dt><dd>발행일 기준 최근 3개월. 청약은 끝났고 아직 발행 전인 상품도 들어갑니다. 같은 상품이 청약중 목록에도 있으면 청약중에만 둡니다.</dd>
+        <dt>갱신</dt><dd>평일 16:30 자동 갱신, 하루 1회. 청약중은 매번 새로, 청약종료는 지난달까지 받아 둔 것을 다시 쓰고 최근 달만 다시 받습니다.</dd></dl></div>
+      <div class="gd-sec"><h3>화면 구성</h3><dl class="gd-dl">
+        <dt>맨 위</dt><dd>청약중 · 청약종료(최근 3개월) 고르기 → 기초자산 칩(지수별 · 개별종목이 하나라도 든 상품) · 발행사 · 낙인(있음 · 노낙인 · 확인 불가) · 검색.</dd>
+        <dt>요약</dt><dd>고른 조건의 상품 수 · 수익률 중앙값과 범위 · 낙인 분포(낙인 수준 중앙값) · 기초자산 조합 상위 · 발행사별 상품 수(괄호 = 그 묶음의 수익률 중앙값).</dd>
+        <dt>상품 표</dt><dd>기본은 수익률 높은 순, 머리글을 누르면 정렬. 구조 첫 줄 = 상품유형 글에서 읽은 조기상환 주기 · 배리어 · 낙인, 아래 작은 글씨 = 발행사가 쓴 상품유형 원문(마우스를 올리면 전체). 링크 = 발행사 상품 페이지 · 간이투자설명서(PDF).</dd></dl></div>
+      <div class="gd-sec"><h3>숫자 기준</h3><dl class="gd-dl">
+        <dt>수익률</dt><dd>공시의 '조건 충족시 수익률(연, %)' — 조기상환·만기 조건을 채웠을 때의 세전 연 환산. 조건을 못 채우면 받지 못합니다.</dd>
+        <dt>최대손실률</dt><dd>공시 값. −100% 는 원금 전액 손실 가능, −10% 등은 원금부분지급형.</dd>
+        <dt>낙인</dt><dd>KI 45 = 기초자산 중 하나라도 최초기준가격의 45% 아래로 내려간 적이 있으면 만기에 손실 구간. 노낙인 = 낙인 없이 만기 배리어만 봄. 확인 불가 = 상품유형 글에 낙인·노낙인 표시가 없음.</dd>
+        <dt>배리어</dt><dd>85-85-80-75-70-55 처럼 차수별 조기상환 기준(최초기준가격 대비 %). 첫 숫자가 높을수록 첫 조기상환이 어렵습니다.</dd></dl></div>
+    </div>
+    <div class="gd-myth"><h3>주의</h3><ul class="gd-list">
+      <li>투자 권유가 아닙니다. 발행사 공시를 모아 보여 줄 뿐이고, 정확한 조건은 반드시 간이투자설명서로 확인하세요.</li>
+      <li>구조(주기·배리어·낙인)는 발행사마다 다르게 쓴 글을 코드로 읽은 것이라 빈칸이나 잘못 읽은 값이 있을 수 있습니다. 리자드·월지급·더미 쿠폰 같은 조건은 원문에만 있습니다.</li>
+      <li>수익률이 높을수록 대개 기초자산 변동성이 크거나(개별종목) 낙인·배리어 조건이 불리합니다 — 수익률만으로 비교하지 마세요.</li>
+    </ul></div>
+  </div>
+  <!-- ▲ ELS 안내 끝 -->
 
   <!-- 대시보드 -->
   <div class="card" id="gd-home">
@@ -1587,6 +1652,7 @@ function showTab(t){
   if(t === 'equity') loadEquity();
   if(t === 'timing') loadTiming();
   if(t === 'funds') loadFunds();
+  if(t === 'els') loadEls();
   if(t === 'bt') loadBt();
   if(t === 'home' && Date.now() - SB.qAt > 600000) loadScoreboard();
   if(!$('chatPanel').hidden) refreshChatContext();  // 대화창이 열려 있으면 '화면 공유' 대상도 바뀐다
@@ -2963,6 +3029,122 @@ function renderFdRules(){
     gs.length ? `분류별 비교 지수: ${gs.join(' · ')}.` : '',
     m.flow_base ? `자금 기준일: 1개월 ${m.flow_base['1m'] || '-'} · 3개월 ${m.flow_base['3m'] || '-'} → ${m.as_of || '-'}. 이력은 ${m.hist_from || '-'}부터.` : '',
     ...(m.notes || []),
+    (m.errors || []).length ? `받기 문제: ${m.errors.join(' / ')}` : '',
+  ].filter(Boolean).map(t => `<li>${esc(t)}</li>`).join('');
+}
+// ── ELS — 공모 ELS 목록(els.json). 목록은 els.py 가 금투협 전자공시에서 받고 화면은 거르기·정렬·요약만 한다
+//    청약중 · 청약종료(최근 3개월) → 기초자산 칩 · 발행사 · 낙인 · 검색 → 요약 + 표(기본 수익률 높은 순)
+const EL = {d: null, list: 'subscribing', und: '', iss: '', ki: '', q: '', sort: {k: 'coupon', dir: -1}, show: 50};
+const EL_LIST = [['subscribing', '청약중'], ['ended', '청약종료 · 최근 3개월']];
+const EL_STOCK = '개별종목';
+const elRows0 = () => ((EL.d && EL.d[EL.list]) || []);
+const elIdx = x => (x.under || []).filter(u => !(x.stocks || []).includes(u));
+const elKi = x => x.no_ki ? '노낙인' : x.ki !== null && x.ki !== undefined ? `KI ${x.ki}` : '';
+const elMd = s => s ? s.slice(5).replace('-', '.') : '-';
+const elMed = v => { const a = v.filter(fdNz).sort((x, y) => x - y), n = a.length; return n ? (n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2) : null; };
+async function loadEls(){
+  try { EL.d = await api('/api/els'); renderEls(); }
+  catch(e){ $('elTable').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+function elRows(){
+  const q = EL.q.trim().toLowerCase();
+  return elRows0().filter(x => (!EL.und || (EL.und === EL_STOCK ? (x.stocks || []).length > 0 : elIdx(x).includes(EL.und)))
+    && (!EL.iss || x.issuer === EL.iss)
+    && (!EL.ki || (EL.ki === 'noki' ? x.no_ki : EL.ki === 'ki' ? fdNz(x.ki) : !x.no_ki && !fdNz(x.ki)))
+    && (!q || [x.name, x.issuer, x.code, ...(x.under || [])].some(s => (s || '').toLowerCase().includes(q))));
+}
+function elKey(x){
+  const k = EL.sort.k;
+  return k === 'coupon' ? x.coupon : k === 'loss' ? x.max_loss : k === 'ki' ? (x.no_ki ? 0 : x.ki) : k === 'fb' ? x.first_barrier
+    : k === 'sub' ? x.sub_end : k === 'issue' ? x.issue : k === 'mat' ? x.maturity : k === 'iss' ? x.issuer : x.name;
+}
+function elSort(k){
+  const s = EL.sort;
+  if(s.k === k) s.dir = -s.dir; else EL.sort = {k, dir: ['iss', 'name', 'ki', 'fb', 'sub', 'mat'].includes(k) ? 1 : -1};
+  EL.show = 50; renderElTable();
+}
+function renderEls(){
+  const d = EL.d || {}, m = d.meta || {}, w = m.window || {};
+  $('elMeta').textContent = d.generated_at ? `청약중 ${m.n_subscribing ?? '-'}개 · 청약종료 ${m.n_ended ?? '-'}개(발행 ${w.from || '-'} ~) · ${d.generated_at.replace('T', ' ').slice(5, 16)} 받음 · 출처 ${(m.sources || []).join(', ')} · 투자 권유 아님` : '아직 없음';
+  $('elMeta').title = $('elMeta').textContent;
+  renderElRules();
+  if(!d.generated_at){
+    $('elTable').innerHTML = '<div class="empty">아직 받은 목록이 없습니다 — 자동 갱신(평일 16:30)을 기다리거나 운영 PC 에서 python -X utf8 els.py 를 실행하세요.</div>';
+    ['elList', 'elUnder', 'elSum'].forEach(k => $(k).innerHTML = ''); $('elIss').innerHTML = ''; $('elCnt').textContent = ''; return;
+  }
+  $('elList').innerHTML = EL_LIST.map(([k, l]) => `<span class="s${k === EL.list ? ' on' : ''}" data-v="${k}">${l} <span class="kv">${(d[k] || []).length}</span></span>`).join('');
+  $('elList').querySelectorAll('.s').forEach(b => b.onclick = () => { EL.list = b.dataset.v; EL.show = 50; renderEls(); });
+  renderElFilters(); renderElTable();
+}
+function renderElFilters(){
+  const rs = elRows0(), cu = {}, ci = {};
+  rs.forEach(x => { elIdx(x).forEach(u => cu[u] = (cu[u] || 0) + 1); ci[x.issuer] = (ci[x.issuer] || 0) + 1; });
+  const ns = rs.filter(x => (x.stocks || []).length).length;
+  if(EL.und && !(EL.und === EL_STOCK ? ns : cu[EL.und])) EL.und = '';      // 다른 목록으로 바꿔 그 칩이 없으면 전체로
+  if(EL.iss && !ci[EL.iss]) EL.iss = '';
+  const chip = (v, l, n, cls = '') => `<button type="button" class="fd-chip${cls}${EL.und === v ? ' on' : ''}" data-u="${esc(v)}">${esc(l)} <i>${n}</i></button>`;
+  $('elUnder').innerHTML = chip('', '전체', rs.length) + '<span class="fd-sep">지수</span>'
+    + Object.entries(cu).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([u, n]) => chip(u, u, n)).join('')
+    + (ns ? '<span class="fd-sep">종목</span>' + chip(EL_STOCK, '개별종목 포함', ns, ' th') : '');
+  $('elUnder').querySelectorAll('.fd-chip').forEach(b => b.onclick = () => { EL.und = b.dataset.u; EL.show = 50; renderElFilters(); renderElTable(); });
+  $('elIss').innerHTML = '<option value="">발행사 전체</option>' + Object.entries(ci).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([k, n]) => `<option value="${esc(k)}"${k === EL.iss ? ' selected' : ''}>${esc(k)} (${n})</option>`).join('');
+  $('elKi').value = EL.ki; $('elQ').value = EL.q;
+  $('elReset').hidden = !(EL.und || EL.iss || EL.ki || EL.q);
+}
+$('elIss').onchange = () => { EL.iss = $('elIss').value; EL.show = 50; renderElFilters(); renderElTable(); };
+$('elKi').onchange = () => { EL.ki = $('elKi').value; EL.show = 50; renderElFilters(); renderElTable(); };
+$('elQ').oninput = () => { EL.q = $('elQ').value; EL.show = 50; renderElTable(); $('elReset').hidden = !(EL.und || EL.iss || EL.ki || EL.q); };
+$('elReset').onclick = () => { EL.und = ''; EL.iss = ''; EL.ki = ''; EL.q = ''; EL.show = 50; renderElFilters(); renderElTable(); };
+function renderElSum(rows){
+  if(!rows.length){ $('elSum').innerHTML = '<div class="empty">조건에 맞는 상품이 없습니다.</div>'; return; }
+  const cs = rows.map(x => x.coupon).filter(fdNz), md = elMed(cs);
+  const kis = rows.filter(x => fdNz(x.ki)), nk = rows.filter(x => x.no_ki).length, na = rows.length - kis.length - nk;
+  const top = (key, n) => { const g = {}; rows.forEach(x => { const k = key(x); if(k) (g[k] = g[k] || []).push(x.coupon); });
+    return Object.entries(g).sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0])).slice(0, n)
+      .map(([k, v]) => `<li><span title="${esc(k)}">${esc(k)}</span><b>${v.length}<i>${fdNz(elMed(v)) ? num(elMed(v), 1) + '%' : '-'}</i></b></li>`).join(''); };
+  $('elSum').innerHTML = `<div class="el-sum">
+    <div><h4>상품 · 수익률(연)</h4><div class="big">${num(rows.length, 0)}<span>개</span></div><div class="kv">중앙값 <b>${fdNz(md) ? num(md, 2) + '%' : '-'}</b> · 범위 ${cs.length ? `${num(Math.min(...cs), 2)} ~ ${num(Math.max(...cs), 2)}%` : '-'}</div></div>
+    <div><h4>낙인</h4><ol><li><span>낙인 있음</span><b>${kis.length}<i>KI 중앙값 ${kis.length ? num(elMed(kis.map(x => x.ki)), 0) : '-'}</i></b></li><li><span>노낙인</span><b>${nk}</b></li><li><span>확인 불가</span><b>${na}</b></li></ol></div>
+    <div><h4>기초자산 조합 상위 <span class="kv">(수익률 중앙값)</span></h4><ol>${top(x => (x.under || []).join(' + '), 5)}</ol></div>
+    <div><h4>발행사별 <span class="kv">(수익률 중앙값)</span></h4><ol>${top(x => x.issuer, 6)}</ol></div></div>`;
+}
+function renderElTable(){
+  const s = EL.sort, rows = elRows(), ing = EL.list === 'subscribing', today = new Date().toLocaleDateString('sv-SE');
+  renderElSum(rows);
+  rows.sort((a, b) => { const x = elKey(a), y = elKey(b);
+    if(x === null || x === undefined) return y === null || y === undefined ? 0 : 1;
+    if(y === null || y === undefined) return -1;
+    return (typeof x === 'string' ? x.localeCompare(y) : x - y) * s.dir; });
+  $('elCnt').textContent = `${rows.length}개${rows.length > EL.show ? ` 중 ${EL.show}개 표시` : ''}`;
+  if(!rows.length){ $('elTable').innerHTML = '<div class="empty">조건에 맞는 상품이 없습니다.</div>'; return; }
+  const th = (k, label, cls = '') => k ? `<th class="srt ${cls}${s.k === k ? ' on' : ''}" data-k="${k}" data-dir="${s.dir < 0 ? '▼' : '▲'}">${label}</th>` : `<th class="${cls}">${label}</th>`;
+  const dday = e => { if(!ing || !e) return ''; const n = Math.round((Date.parse(e) - Date.parse(today)) / 864e5);
+    return `<div class="fd-sub">${n < 0 ? '마감' : n === 0 ? '오늘 마감' : `D-${n}`}</div>`; };
+  $('elTable').innerHTML = `<div class="tscroll"><table class="fdt elt"><tr>${th('iss', '발행사')}${th('', '등급', 'c-opt')}${th('name', '상품명')}${th('', '기초자산')}${th('fb', '구조')}${th('coupon', '수익률<br><span class="kv">연 %</span>', 'num')}${th('loss', '최대<br>손실', 'num c-opt')}${th('sub', '청약')}${th('issue', '발행일', 'c-mid')}${th('mat', '만기')}${th('', '링크')}</tr>${
+    rows.slice(0, EL.show).map(x => { const ki = elKi(x), parsed = [fdNz(x.period_m) ? `${x.period_m}개월` : '', x.barriers || '', ki].filter(Boolean).join(' · ');
+      return `<tr><td class="dt">${esc(x.issuer)}</td><td class="c-opt">${esc(x.rating || '-')}</td>
+        <td class="nm"><b>${esc(x.name)}</b><span>${esc(x.code || '')}${x.years ? ` · ${x.years}년` : ''}</span></td>
+        <td class="un">${(x.under || []).map(u => (x.stocks || []).includes(u) ? `<b>${esc(u)}</b>` : esc(u)).join('<br>') || '-'}</td>
+        <td class="st" data-tip="${esc(x.structure || '')}">${parsed ? `<b>${esc(parsed)}</b>` : '<span class="kv">-</span>'}<div class="el-st">${esc(x.structure || '')}</div></td>
+        <td class="num"><b>${fdNz(x.coupon) ? x.coupon.toFixed(2) : '-'}</b></td>
+        <td class="num c-opt">${fdNz(x.max_loss) ? num(x.max_loss, 0) + '%' : '-'}</td>
+        <td class="dt">${elMd(x.sub_start)}~${elMd(x.sub_end)}${dday(x.sub_end)}</td>
+        <td class="dt c-mid">${esc(x.issue || '-')}</td>
+        <td class="dt">${esc(x.maturity || '-')}</td>
+        <td class="lk">${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" data-tip="발행사 상품 페이지">상품</a>` : ''}${x.doc ? `<a href="${esc(x.doc)}" target="_blank" rel="noopener" data-tip="간이투자설명서 PDF(금투협 내려받기)">설명서</a>` : ''}${x.url || x.doc ? '' : '-'}</td></tr>`; }).join('')}</table></div>
+    ${rows.length > EL.show ? `<div class="fd-more"><button class="btn sm" type="button" id="elMore">${Math.min(50, rows.length - EL.show)}개 더 보기</button><button class="btn sm" type="button" id="elAll">전부 보기(${rows.length})</button></div>` : ''}
+    <div class="kv" style="margin-top:8px">기초자산의 굵은 글씨 = 개별종목 · 구조 첫 줄은 코드가 읽은 값(빈칸 = 못 읽음), 아래는 발행사 원문 · 정확한 조건은 간이투자설명서로</div>`;
+  $('elTable').querySelectorAll('th.srt').forEach(h => h.onclick = () => elSort(h.dataset.k));
+  if($('elMore')) $('elMore').onclick = () => { EL.show += 50; renderElTable(); };
+  if($('elAll')) $('elAll').onclick = () => { EL.show = rows.length; renderElTable(); };
+}
+function renderElRules(){
+  const d = EL.d || {}, m = d.meta || {}, cs = m.chunks || [];
+  $('elRules').innerHTML = [
+    d.method,
+    ...(m.notes || []),
+    cs.length ? `청약종료 원본(발행일 달별): ${cs.map(c => `${c.month.slice(0, 4)}-${c.month.slice(4)} ${num(c.n, 0)}건${c.cached ? '(보관본)' : ''}`).join(' · ')} — 지난달까지는 한 번 받은 것을 다시 쓴다.` : '',
     (m.errors || []).length ? `받기 문제: ${m.errors.join(' / ')}` : '',
   ].filter(Boolean).map(t => `<li>${esc(t)}</li>`).join('');
 }
