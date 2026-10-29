@@ -571,21 +571,29 @@
   .hm-vol { display:flex; flex-wrap:wrap; align-items:center; gap:6px 18px; font-size:13px; margin:0 0 8px; padding-bottom:8px; border-bottom:1px solid var(--hair); }
   .hm-vx { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-variant-numeric:tabular-nums; } .hm-vx b { font-weight:700; }
   /* ── 홈 · 유니버스 점수판 (기술 점수 반원 게이지) — 음수 빨강 · 양수 초록 · ±10 안 회색 ── */
-  .sb-wrap { --tw:96px; display:flex; flex-wrap:wrap; gap:10px 22px; }
-  .sb-grp { flex:0 1 auto; width:max(calc(var(--n) * (var(--tw) + 6px) - 6px), 236px); max-width:100%; min-width:0; }   /* 236px = 이름·정량·평균 머리줄이 겹치지 않는 폭 */
-  .sb-gh { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); margin:0 0 4px; white-space:nowrap; }
-  .sb-gh > b { color:var(--ink2); font-weight:700; letter-spacing:.02em; }
-  .sb-gh .sb-src { font-size:11px; padding:0 6px; border-radius:99px; background:var(--fill-2); }
-  .sb-avg { display:inline-flex; align-items:center; gap:5px; margin-left:auto; font-variant-numeric:tabular-nums; }   /* 그룹 폭 = 타일 폭이라 오른쪽 끝이 곧 마지막 타일 끝 */
+  /* 두 묶음(주식 유니버스 · 정량 스캐너)은 이름 띠 + 머리선으로 나누고, 그 안의 카테고리는 각자 옅은 판(fill-1) 하나씩 */
+  .sb-fam + .sb-fam { margin-top:12px; }
+  .sb-fh { display:flex; align-items:center; gap:8px; margin:0 0 6px; font-size:12px; color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .sb-fh > b { font-size:13px; font-weight:700; color:var(--ink); letter-spacing:-.01em; }
+  .sb-fh::after { content:''; flex:1; height:1px; background:var(--line); }
+  .sb-fk { width:10px; height:10px; border-radius:3px; flex:none; background:var(--fill-4); }   /* 묶음 표지 — 순위표의 카테고리 칩과 같은 모양(채움 = 주식, 테두리 = 정량) */
+  .sb-fk.q { background:transparent; box-shadow:inset 0 0 0 1.5px var(--fill-4); }
+  .sb-wrap { --tw:80px; display:flex; flex-wrap:wrap; gap:8px; }
+  .sb-grp { flex:0 1 auto; width:max(calc(var(--n) * (var(--tw) + 4px) + 8px), 196px); max-width:100%; min-width:0; padding:5px 6px 6px; border-radius:var(--r-sm);
+            background:var(--fill-1); box-shadow:inset 0 0 0 1px var(--hair); }   /* 폭 = 타일 n개(+4px 간격) + 판 안쪽 여백 12px · 196px = 이름·개수·평균 머리줄이 겹치지 않는 폭 */
+  .sb-gh { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); margin:0 0 5px; padding:0 2px; white-space:nowrap; }
+  .sb-gh > b { color:var(--ink); font-weight:700; letter-spacing:-.01em; font-size:13px; }
+  .sb-gh .sb-cnt { font-size:11px; font-weight:600; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .sb-avg { display:inline-flex; align-items:center; gap:5px; margin-left:auto; font-variant-numeric:tabular-nums; }   /* 오른쪽 끝 = 판 안쪽 끝 */
   .sb-avg .ab { position:relative; width:40px; height:4px; border-radius:2px; background:var(--fill-3); }
   .sb-avg .ab::after { content:''; position:absolute; left:50%; top:-2px; width:1px; height:8px; background:var(--axis); }
   .sb-avg .ab i { position:absolute; top:0; bottom:0; border-radius:2px; background:var(--flat); }
   .sb-avg .ab i.up { background:var(--up); } .sb-avg .ab i.down { background:var(--down); }
   .sb-avg b { font-weight:700; color:var(--ink2); } .sb-avg b.up { color:var(--up-ink); } .sb-avg b.down { color:var(--down-ink); }
-  .sb-tiles { display:grid; grid-template-columns:repeat(auto-fill, minmax(var(--tw), 1fr)); gap:6px; }
-  .sb-tile { display:flex; flex-direction:column; align-items:center; min-width:0; padding:6px 6px 5px; border:none; border-radius:var(--r-sm); background:var(--fill-1);
-             font:inherit; color:inherit; cursor:pointer; transition:background .15s, box-shadow .15s; }
-  .sb-tile:hover { background:var(--fill-2); box-shadow:inset 0 0 0 1px var(--line); }
+  .sb-tiles { display:grid; grid-template-columns:repeat(auto-fill, minmax(var(--tw), 1fr)); gap:4px; }
+  .sb-tile { display:flex; flex-direction:column; align-items:center; min-width:0; padding:6px 2px 5px; border:none; border-radius:8px; background:var(--surface);
+             box-shadow:0 0 0 .5px var(--hair); font:inherit; color:inherit; cursor:pointer; transition:box-shadow .15s, transform .15s; }   /* 판(fill-1) 위의 흰 타일 */
+  .sb-tile:hover { box-shadow:0 0 0 1px var(--line), var(--shadow); transform:translateY(-1px); }
   .sb-tile:focus-visible { outline:2px solid var(--brand); outline-offset:1px; }
   .sb-tile svg { width:64px; height:36px; flex:none; overflow:visible; }
   .sb-tile .trk { fill:none; stroke:var(--fill-3); stroke-width:6; stroke-linecap:round; }
@@ -594,11 +602,35 @@
   .sb-tile .nd { fill:var(--flat); stroke:var(--surface); stroke-width:1.5; }
   .sb-tile.up .arc { stroke:var(--up); } .sb-tile.up .nd { fill:var(--up); }
   .sb-tile.down .arc { stroke:var(--down); } .sb-tile.down .nd { fill:var(--down); }
-  .sb-nm { max-width:100%; margin-top:1px; font-size:12px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sb-nm { max-width:100%; margin-top:1px; font-size:12px; font-weight:600; letter-spacing:-.02em; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .sb-sc { display:flex; align-items:baseline; gap:4px; font-size:11px; color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
   .sb-sc b { font-size:12px; font-weight:700; color:var(--ink2); }
   .sb-tile.up .sb-sc b { color:var(--up-ink); } .sb-tile.down .sb-sc b { color:var(--down-ink); }
   .sb-note { font-size:12px; color:var(--muted); margin-top:8px; }
+  /* 홈 · 점수 순위 — 점수판 전체를 높은 순으로. 판정 구간(강세…매우 약세)마다 머리줄, 세로로 읽는 다단(열 폭 ≥ 330px) */
+  #rankCard h2 .seg .s { padding:2px 10px; font-size:12px; }
+  .rk-list { column-width:330px; column-gap:28px; column-rule:1px solid var(--hair); }
+  .rk-tier { display:flex; align-items:center; gap:6px; break-after:avoid; margin:0 0 2px; padding:6px 4px 3px; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; border-bottom:1px solid var(--hair); }
+  .rk-tier:not(:first-child) { margin-top:8px; }
+  .rk-tier > i { width:7px; height:7px; border-radius:50%; background:var(--flat); flex:none; }
+  .rk-tier.up > i { background:var(--up); } .rk-tier.down > i { background:var(--down); }
+  .rk-tier > b { font-size:12px; font-weight:700; color:var(--ink); } .rk-tier .n { margin-left:auto; }
+  .sb-rrow { display:grid; grid-template-columns:22px minmax(0,1fr) auto 84px 30px; align-items:center; gap:8px; width:100%; min-height:26px; padding:2px 4px; break-inside:avoid;
+             border:none; border-radius:6px; background:transparent; font:inherit; font-size:12px; color:var(--ink); text-align:left; cursor:pointer; font-variant-numeric:tabular-nums; }
+  .sb-rrow:hover { background:var(--fill-1); }
+  .sb-rrow:focus-visible { outline:2px solid var(--brand); outline-offset:-1px; }
+  .sb-rrow .rk { font-size:11px; font-weight:600; color:var(--muted); text-align:right; }
+  .sb-rrow .nm { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rk-gc { justify-self:end; font-size:11px; line-height:16px; padding:0 6px; border-radius:4px; color:var(--ink2); background:var(--fill-2); white-space:nowrap; }   /* 카테고리 칩: 채움 = 주식 유니버스 */
+  .rk-gc.q { background:transparent; box-shadow:inset 0 0 0 1px var(--fill-4); }                                                                           /* 테두리 = 정량 스캐너 */
+  .rk-bar { position:relative; height:8px; border-radius:2px; background:var(--fill-1); }
+  .rk-bar::before { content:''; position:absolute; left:45%; width:10%; top:0; bottom:0; background:var(--fill-2); }   /* ±10 중립 구간 */
+  .rk-bar::after { content:''; position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:var(--axis); }
+  .rk-bar i { position:absolute; top:0; bottom:0; background:var(--flat); }
+  .rk-bar i.r { left:50%; border-radius:0 2px 2px 0; } .rk-bar i.l { right:50%; border-radius:2px 0 0 2px; }
+  .sb-rrow.up .rk-bar i { background:var(--up); } .sb-rrow.down .rk-bar i { background:var(--down); }
+  .sb-rrow .sc { font-weight:700; text-align:right; color:var(--ink2); } .sb-rrow.up .sc { color:var(--up-ink); } .sb-rrow.down .sc { color:var(--down-ink); }
+  .rk-note { font-size:12px; color:var(--muted); margin-top:8px; }
   /* 점수판 차트 팝오버 — 고정 크기, 텍스트는 글자 토큰만(데이터 색은 막대·선에만) */
   #sbPop { position:fixed; z-index:72; width:340px; max-width:calc(100vw - 16px); height:352px; padding:10px 12px; overflow:hidden; background:var(--surface); border-radius:var(--r-sm);
            box-shadow:var(--shadow-lg); font-size:12px; color:var(--ink); animation:fadeUp .12s ease both; }
@@ -657,7 +689,9 @@
   #sbPop .vcur { fill:var(--flat); stroke:var(--surface); stroke-width:2; } #sbPop .vcur.cheap { fill:var(--cheap); } #sbPop .vcur.rich { fill:var(--rich); }
   #sbPop .vhd { fill:var(--series-1); stroke:var(--surface); stroke-width:2; }
   @container main (max-width:600px){   /* 폰: 한 줄 4개 — 게이지·여백을 줄인다 */
-    .sb-wrap { --tw:74px; gap:8px 14px; } .sb-tile { padding:5px 3px 4px; } .sb-tile svg { width:54px; height:31px; }
+    .sb-wrap { --tw:74px; gap:6px; } .sb-grp { width:100%; padding:6px 6px 6px; } .sb-tiles { grid-template-columns:repeat(4, minmax(0,1fr)); gap:5px; }
+    .sb-tile { padding:5px 3px 4px; } .sb-tile svg { width:54px; height:31px; }
+    .sb-rrow { grid-template-columns:20px minmax(0,1fr) 96px 30px; gap:6px; min-height:30px; } .rk-gc { display:none; }
     .sb-sc { gap:3px; letter-spacing:-.02em; }
     .sb-nm { font-size:11px; line-height:1.2; text-align:center; white-space:normal; word-break:keep-all;   /* '미국 헬스케어' 같은 긴 이름 — 두 줄까지 */
              display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; } }
@@ -1262,6 +1296,9 @@
   <div id="sampleNotice" class="notice" style="display:none"></div>
   <div class="card" id="scoreCard"><h2>유니버스 점수판 <span class="sub">기술 점수 −100(약세) ~ +100(강세) = 추세·6개월·1개월 모멘텀·RSI 합성 · 마우스를 올리면(폰은 한 번 누르면) 차트, 누르면 해당 탭</span></h2>
     <div id="scoreBoard"><div class="empty">불러오는 중…</div></div></div>
+  <div class="card" id="rankCard"><h2>점수 순위 <span class="sub" id="rankSub">점수판 전체를 기술 점수 높은 순으로 · 마우스를 올리면 차트, 누르면 해당 탭</span><span class="spacer"></span>
+    <span class="seg" id="rankSeg" role="group" aria-label="순위 범위"><button type="button" class="s on" data-rf="all" aria-pressed="true">전체</button><button type="button" class="s" data-rf="eq" aria-pressed="false">주식 유니버스</button><button type="button" class="s" data-rf="q" aria-pressed="false">정량 스캐너</button></span></h2>
+    <div id="rankBoard"><div class="empty">불러오는 중…</div></div></div>
   <!-- 비어 있는 카드(발동 신호·괴리·브리프·검증)는 이 띠에 한 줄씩 모이고, 아래 격자에서는 빠진다 -->
   <div class="card quiet" id="homeQuiet" hidden></div>
   <div class="grid g2" id="homeGrid">
@@ -1442,7 +1479,7 @@
         <dt>읽는 법</dt><dd>소진율 = 손실 ÷ 한도(올해 평가손익, 환헤지 비용 차감 후, 이익이면 0%). 막대 위 눈금 = 한도표에 정한 경고·축소·중단 기준. 포지션은 손절금액의 70% 에 다가가면 경고, 닿으면 축소.</dd>
         <dt>주의</dt><dd>0% 는 '손실이 없다'는 뜻이지 위험이 없다는 뜻이 아닙니다 — 스트레스 카드를 함께 보세요.</dd></dl></div>
       <div class="gd-sec"><h3>유니버스 점수판</h3><dl class="gd-dl">
-        <dt>무엇</dt><dd>주식 유니버스(국내·선진국·신흥국·스타일·섹터·우선주)와 정량 스캐너(주가지수·환율·채권·원자재)의 기술 점수 게이지와 묶음 평균.</dd>
+        <dt>무엇</dt><dd>주식 유니버스(국내·선진국·신흥국·스타일·섹터·우선주)와 정량 스캐너(주가지수·환율·채권·원자재)의 기술 점수 게이지와 카테고리 평균. 바로 아래 '점수 순위' 카드는 같은 항목 전체를 점수 높은 순으로 판정 구간(강세~매우 약세)별로 늘어놓습니다(전체·주식 유니버스·정량 스캐너로 거르기, 칩 채움 = 주식 · 테두리 = 정량).</dd>
         <dt>계산</dt><dd>−100(약세) ~ +100(강세) = 추세(200일선 대비) 35% + 6개월 모멘텀 35% + 1개월 모멘텀 15% + RSI 역추세 15%(과열이면 깎음). 각 항목은 자기 변동성으로 나눠 자산끼리 비교되게 합니다. 일별 종가 1년 이상 필요.</dd>
         <dt>읽는 법</dt><dd>강세 ≥ +30 · 우호 ≥ +10 · 중립 ±10 · 약세 ≤ −10 · 매우 약세 ≤ −30. 반원 왼쪽 끝 −100, 꼭대기 0, 오른쪽 끝 +100. 채권은 금리를 가격으로 바꿔 계산(금리 하락 = 점수 상승). 마우스를 올리면(폰은 한 번 누르면) 1년 차트·점수 구성, 누르면 해당 탭.</dd>
         <dt>주의</dt><dd>관례적 기술 지표로, 지금까지의 흐름 요약입니다. 추세 추종이라 방향이 바뀌는 시점에는 늦습니다.</dd></dl></div>
@@ -2122,26 +2159,64 @@ function sbTile(it){
   return `<button type="button" class="sb-tile ${tone}" data-id="${esc(id)}" data-tab="${it.src === 'eq' ? 'equity' : 'quant'}" aria-label="${esc(`${it.name} 기술 점수 ${sbNum(sc, 0)}, ${t.label || ''} — 누르면 ${it.src === 'eq' ? '주식' : '정량분석'} 탭`)}">`
     + `${sbGauge(sc)}<span class="sb-nm">${esc(it.short)}</span><span class="sb-sc"><b>${sbNum(sc, 0)}</b>${esc(t.label || '')}</span></button>`;
 }
-function sbGroup(name, items, src){
+function sbGroup(name, items){
   if(!items.length) return '';
   const avg = items.reduce((a, it) => a + (+it.t.score), 0) / items.length, tone = sbTone(avg), w = Math.min(50, Math.abs(avg) / 2);
-  return `<div class="sb-grp" style="--n:${items.length}"><div class="sb-gh"><b>${esc(name)}</b>${src ? `<span class="sb-src">${src}</span>` : ''}`
+  return `<section class="sb-grp" style="--n:${items.length}" aria-label="${esc(name)}"><div class="sb-gh"><b>${esc(name)}</b><span class="sb-cnt">${items.length}</span>`
     + `<span class="sb-avg" aria-label="${esc(`${name} 평균 ${sbNum(avg, 0)}`)}">평균<span class="ab"><i class="${tone}" style="${avg >= 0 ? 'left' : 'right'}:50%;width:${w.toFixed(1)}%"></i></span><b class="${tone}">${sbNum(avg, 0)}</b></span></div>`
-    + `<div class="sb-tiles">${items.map(sbTile).join('')}</div></div>`;
+    + `<div class="sb-tiles">${items.map(sbTile).join('')}</div></section>`;
+}
+// 점수판 묶음 = [{fam, name, src, groups:[[카테고리, items]], miss}] — 점수판과 순위표가 같은 목록을 쓴다
+function sbFamilies(){
+  const ok = x => x && x.score !== null && x.score !== undefined && isFinite(x.score);
+  const eqG = (SB.eq && SB.eq.groups) || [], eq = {fam: 'eq', name: '주식 유니버스', groups: [], miss: 0};
+  SB_EQ_GROUPS.forEach(n => { const g = eqG.find(x => x.name === n); if(!g) return;
+    eq.miss += g.rows.filter(r => !ok(r.tech)).length;
+    eq.groups.push([n, g.rows.filter(r => ok(r.tech)).map(r => ({src: 'eq', key: r.key, t: r.tech, name: r.name, short: r.short || r.name, ticker: r.ticker, as_of: r.as_of, row: r, grp: n}))]); });
+  const all = (SB.q && SB.q.scanner) || [], sc = all.filter(ok), used = new Set(SB_Q_GROUPS.flatMap(([, ks]) => ks || []));
+  const q = {fam: 'q', name: '정량 스캐너', groups: [], miss: all.length - sc.length};
+  SB_Q_GROUPS.forEach(([n, ks]) => q.groups.push([n, sc.filter(s => ks ? ks.includes(s.key) : !used.has(s.key)).map(s => ({src: 'q', key: s.key, t: s, name: s.name, short: s.name.replace(/\s*\(가격 환산\)/, ''), as_of: s.as_of, grp: n}))]));
+  return [eq, q].map(f => ({...f, groups: f.groups.filter(([, its]) => its.length)})).filter(f => f.groups.length);
 }
 function renderScoreboard(){
   const box = $('scoreBoard'); if(!box) return;
-  const ok = x => x && x.score !== null && x.score !== undefined && isFinite(x.score);
-  let h = '';
-  const groups = (SB.eq && SB.eq.groups) || [];
-  SB_EQ_GROUPS.forEach(n => { const g = groups.find(x => x.name === n); if(!g) return;
-    h += sbGroup(n, g.rows.filter(r => ok(r.tech)).map(r => ({src: 'eq', key: r.key, t: r.tech, name: r.name, short: r.short || r.name, ticker: r.ticker, as_of: r.as_of, row: r})), ''); });
-  const sc = ((SB.q && SB.q.scanner) || []).filter(ok), used = new Set(SB_Q_GROUPS.flatMap(([, ks]) => ks || []));
-  SB_Q_GROUPS.forEach(([n, ks]) => h += sbGroup(n, sc.filter(s => ks ? ks.includes(s.key) : !used.has(s.key)).map(s => ({src: 'q', key: s.key, t: s, name: s.name, short: s.name.replace(/\s*\(가격 환산\)/, ''), as_of: s.as_of})), '정량'));
+  const fams = sbFamilies();
   const err = [SB.eqErr ? `주식 유니버스: ${SB.eqErr}` : '', SB.qErr ? `정량 스캐너: ${SB.qErr}` : ''].filter(Boolean);
-  if(!h){ box.innerHTML = `<div class="empty">${err.length ? esc(err.join(' · ')) : '불러오는 중…'}</div>`; return; }
-  box.innerHTML = `<div class="sb-wrap">${h}</div><div class="sb-note">강세 ≥ +30 · 우호 ≥ +10 · 중립 ±10 · 약세 ≤ −10 · 매우 약세 ≤ −30 · '정량' = 정량분석 탭 스캐너(채권은 금리를 가격으로 환산)${err.length ? ` · ⚠ ${esc(err.join(' · '))}` : ''}</div>`;
+  if(!fams.length){ const m = `<div class="empty">${err.length ? esc(err.join(' · ')) : '불러오는 중…'}</div>`; box.innerHTML = m; $('rankBoard').innerHTML = m; return; }
+  box.innerHTML = fams.map(f => { const n = f.groups.reduce((a, [, its]) => a + its.length, 0);
+      return `<div class="sb-fam"><div class="sb-fh"><i class="sb-fk ${f.fam}"></i><b>${f.name}</b><span>${f.groups.length}개 카테고리 · ${n}개${f.fam === 'q' ? ' · 정량분석 탭 스캐너' : ''}</span></div>`
+        + `<div class="sb-wrap">${f.groups.map(([g, its]) => sbGroup(g, its)).join('')}</div></div>`; }).join('')
+    + `<div class="sb-note">강세 ≥ +30 · 우호 ≥ +10 · 중립 ±10 · 약세 ≤ −10 · 매우 약세 ≤ −30 · 채권은 금리를 가격으로 환산${err.length ? ` · ⚠ ${esc(err.join(' · '))}` : ''}</div>`;
+  SB.fams = fams; renderRank();
 }
+// ── 홈 · 점수 순위 — 점수판 항목 전체를 높은 순으로. 판정이 바뀌는 곳마다 머리줄, 행 = 순위 · 이름 · 카테고리 · 발산 막대(0 중심 ±100) · 점수
+//    행은 타일과 같은 data-id 를 써서 팝오버(올리면 차트)·누르면 해당 탭 동작을 그대로 받는다
+const RK_TIER = [[30, '강세', '≥ +30'], [10, '우호', '≥ +10'], [-9.5, '중립', '±10'], [-29.5, '약세', '≤ −10'], [-Infinity, '매우 약세', '≤ −30']];
+const rkTier = s => { const r = +(+s).toFixed(0); return RK_TIER.find(([lo]) => r >= lo) || RK_TIER[RK_TIER.length - 1]; };
+SB.rf = 'all';
+function renderRank(){
+  const box = $('rankBoard'); if(!box || !SB.fams) return;
+  const fams = SB.fams.filter(f => SB.rf === 'all' || f.fam === SB.rf);
+  const its = fams.flatMap(f => f.groups.flatMap(([, x]) => x)).sort((a, b) => (+b.t.score) - (+a.t.score) || a.short.localeCompare(b.short, 'ko'));
+  const miss = fams.reduce((a, f) => a + f.miss, 0);
+  if(!its.length){ box.innerHTML = '<div class="empty">점수 있는 항목이 없습니다</div>'; return; }
+  const cnt = new Map(); its.forEach(it => { const k = rkTier(it.t.score)[1]; cnt.set(k, (cnt.get(k) || 0) + 1); });
+  let h = '', cur = null;
+  its.forEach((it, i) => {
+    const sc = +it.t.score, tone = sbTone(sc), tr = rkTier(sc), id = `${it.src}:${it.key}`, w = Math.min(50, Math.abs(sc) / 2);
+    SB.items[id] = it;
+    if(tr[1] !== cur){ cur = tr[1]; h += `<div class="rk-tier ${tone}" role="presentation"><i></i><b>${tr[1]}</b><span>${tr[2]}</span><span class="n">${cnt.get(cur)}개</span></div>`; }
+    h += `<button type="button" class="sb-rrow ${tone}" data-id="${esc(id)}" data-tab="${it.src === 'eq' ? 'equity' : 'quant'}" aria-label="${esc(`${i + 1}위 ${it.name} (${it.grp}) 기술 점수 ${sbNum(sc, 0)}, ${tr[1]} — 누르면 ${it.src === 'eq' ? '주식' : '정량분석'} 탭`)}">`
+      + `<span class="rk">${i + 1}</span><span class="nm">${esc(it.short)}</span><span class="rk-gc ${it.src}">${esc(it.grp)}</span>`
+      + `<span class="rk-bar"><i class="${sc >= 0 ? 'r' : 'l'}" style="width:${w.toFixed(1)}%"></i></span><span class="sc">${sbNum(sc, 0)}</span></button>`;
+  });
+  box.innerHTML = `<div class="rk-list">${h}</div>${miss ? `<div class="rk-note">점수 없음 ${miss}개(일별 종가 1년 미만 등)는 순위에서 뺐습니다</div>` : ''}`;
+}
+$('rankSeg').addEventListener('click', e => {
+  const b = e.target.closest('.s'); if(!b || b.dataset.rf === SB.rf) return;
+  SB.rf = b.dataset.rf; $('rankSeg').querySelectorAll('.s').forEach(x => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); });
+  renderRank();
+});
 // ── 점수판 차트 팝오버 — 타일에 마우스를 올리거나(포커스) 폰에서 한 번 누르면 연다(두 번째 누름 = 해당 탭으로 이동)
 //    1년 가격·200일선·고점 대비 낙폭 / 기간 수익률 / 기술 점수 구성 / (주식) PER 위치 · (정량) 비슷한 국면 6개월 뒤 분포
 const SBP = {id: null, tile: null, showT: null, hideT: null, ptr: 'mouse', spark: null, sparkAt: 0, sparkReq: null};
@@ -2390,7 +2465,7 @@ async function sbLoadSpark(){
   if(SBP.id && !$('sbPop').hidden) sbFill();
 }
 // 팝오버 대상: 점수판 타일(data-id) · 주식 탭 행(data-pop="eq:키" = 수익률·1년 흐름, "val:키" = 밸류 위치 차트)
-const POP_SEL = '.sb-tile, [data-pop]';
+const POP_SEL = '.sb-tile, .sb-rrow, [data-pop]';
 const popId = el => el.dataset.pop || el.dataset.id;
 function eqRow(key){
   for(const g of (EQ && EQ.groups) || []){ const r = g.rows.find(x => x.key === key); if(r) return r; }
@@ -2443,7 +2518,7 @@ document.addEventListener('pointerover', e => {
   clearTimeout(SBP.showT); if(!$('sbPop').hidden) sbHideSoon();
 });
 document.addEventListener('click', e => {
-  const t = e.target.closest('.sb-tile'); if(!t) return;
+  const t = e.target.closest('.sb-tile, .sb-rrow'); if(!t) return;
   if(SBP.ptr === 'touch' && (SBP.tile !== t || $('sbPop').hidden)){ sbShow(t); return; }   // 폰: 첫 누름 = 차트, 두 번째 = 이동
   sbHide(); showTab(t.dataset.tab);
 });
@@ -2455,7 +2530,7 @@ document.addEventListener('click', e => {
   if(t.closest('.prow')) sbHide();
 }, true);
 document.addEventListener('keydown', e => { const t = e.target; if((e.key === 'Enter' || e.key === ' ') && t.matches && t.matches('tr.prow[data-pop]')){ e.preventDefault(); sbHide(); t.click(); } });
-$('scoreCard').addEventListener('pointerenter', sbLoadSpark);   // 차트용 1년 시계열은 점수판에 처음 다가올 때 미리 받는다
+$('scoreCard').addEventListener('pointerenter', sbLoadSpark); $('rankCard').addEventListener('pointerenter', sbLoadSpark);   // 차트용 1년 시계열은 점수판에 처음 다가올 때 미리 받는다
 document.addEventListener('focusout', e => { if(e.target.closest(POP_SEL) && !(e.relatedTarget && e.relatedTarget.closest(POP_SEL))) sbHideSoon(); });
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && !$('sbPop').hidden) sbHide(); });
 // 스크롤하면 닫는다 — 단, 키보드로 고른 타일을 브라우저가 화면 안으로 굴려 온 경우는 따라가 붙는다
