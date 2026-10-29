@@ -143,6 +143,14 @@
   .tabs::-webkit-scrollbar { display:none; }
   .ngrp { font-size:11px; color:var(--muted); font-weight:700; letter-spacing:.06em; padding:12px 10px 4px; }
   .ngrp:first-child { padding-top:2px; }
+  /* Strategy·기타 묶음 — 머리글을 누르면 열고 닫는다(열림 상태는 이 브라우저에만 기억) */
+  .ngrp.fold { display:flex; align-items:center; justify-content:space-between; width:100%; border:0; background:none; font-family:inherit; text-align:left;
+               cursor:pointer; border-radius:9px; text-transform:none; }
+  .ngrp.fold:hover { color:var(--ink2); background:var(--fill-2); }
+  .ngrp.fold:focus-visible { outline:2px solid var(--brand); outline-offset:1px; }
+  .ngrp.fold svg { width:14px; height:14px; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s; }
+  .ngrp.fold[aria-expanded="true"] svg { transform:rotate(90deg); }
+  .ngrp-body { display:flex; flex-direction:column; gap:1px; } .ngrp-body[hidden] { display:none; }
   .tab { display:flex; align-items:center; gap:10px; padding:6px 10px; cursor:pointer; color:var(--ink2); font-weight:600; font-size:14px; border-radius:9px; white-space:nowrap;
          transition:background .2s, color .2s, box-shadow .2s; }
   .tab svg { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; opacity:.85; }
@@ -1025,22 +1033,26 @@
     <div class="ngrp">Main Screen</div>
     <div class="tab on" data-t="equity"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5l5.5-5.5 4 4 7.5-7.5"/><path d="M15 8.5h5.5V14"/></svg><span>주식</span></div>
     <div class="tab" data-t="timing"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12.5h4l2.5-6 4.5 11 2.5-5H21"/></svg><span>마켓타이밍</span></div>
+    <div class="tab" data-t="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l3.5-4"/></svg><span>대시보드</span></div>
     <div class="tab" data-t="funds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h16v10.5H4z"/><path d="M9 8.5V6h6v2.5"/><path d="M4 13h16"/></svg><span>운용사·펀드</span></div>
     <div class="tab" data-t="els"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18.5h16"/><path d="M5 15l4-4.5 3 2.5 3.5-5.5L19 10"/><path d="M5.5 4.5v3M4 6h3"/></svg><span>ELS</span></div>
-    <div class="tab" data-t="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l3.5-4"/></svg><span>대시보드</span></div>
-    <div class="ngrp">Strategy</div>
-    <div class="tab" data-t="bt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 12.5a8 8 0 1 0 2.3-6.2"/><path d="M4 4.5v4.2h4.2"/><path d="M12 8v4.3l2.8 1.7"/></svg><span>백테스트</span></div>
-    <div class="tab" data-t="strategy"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>전략</span></div>
-    <div class="tab" data-t="quant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-9M3 20h18"/></svg><span>정량분석</span></div>
-    <div class="ngrp">기타</div>
-    <div class="tab" data-t="guide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.1"/></svg><span>화면 안내</span></div>
-    <div class="tab" data-t="room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 4.6 4.6 1.9-4.6 1.9L12 16.5l-1.9-4.6L5.5 10l4.6-1.9z"/><path d="M18.5 15.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/></svg><span>에이전트</span></div>
-    <div class="tab" data-t="book"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7" width="17" height="12.5" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3.5 12.5h17"/></svg><span>내 포트</span></div>
-    <div class="tab" data-t="checks"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.2l2.6 2.6 4.9-5.4"/></svg><span>점검</span></div>
-    <div class="tab" data-t="mp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5V12h8.5"/></svg><span>MP</span></div>
-    <div class="tab" data-t="limits"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l7.5 3v5.5c0 4.6-3.2 7.6-7.5 8.5-4.3-.9-7.5-3.9-7.5-8.5V6.5z"/></svg><span>한도·로그</span></div>
-    <div class="tab" data-t="monthly"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>투자위</span></div>
-    <div class="tab" data-t="ref"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.8 3.2 2.8 13.8 0 17M12 3.5c-2.8 3.2-2.8 13.8 0 17"/></svg><span>매크로·토의</span></div>
+    <button type="button" class="ngrp fold" data-g="strategy" aria-expanded="false" aria-controls="ng-strategy"><span>Strategy</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+    <div class="ngrp-body" id="ng-strategy" hidden>
+      <div class="tab" data-t="bt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 12.5a8 8 0 1 0 2.3-6.2"/><path d="M4 4.5v4.2h4.2"/><path d="M12 8v4.3l2.8 1.7"/></svg><span>백테스트</span></div>
+      <div class="tab" data-t="strategy"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span>전략</span></div>
+      <div class="tab" data-t="quant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-9M3 20h18"/></svg><span>정량분석</span></div>
+    </div>
+    <button type="button" class="ngrp fold" data-g="etc" aria-expanded="false" aria-controls="ng-etc"><span>기타</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+    <div class="ngrp-body" id="ng-etc" hidden>
+      <div class="tab" data-t="guide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.1"/></svg><span>화면 안내</span></div>
+      <div class="tab" data-t="room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 4.6 4.6 1.9-4.6 1.9L12 16.5l-1.9-4.6L5.5 10l4.6-1.9z"/><path d="M18.5 15.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/></svg><span>에이전트</span></div>
+      <div class="tab" data-t="book"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7" width="17" height="12.5" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3.5 12.5h17"/></svg><span>내 포트</span></div>
+      <div class="tab" data-t="checks"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.2l2.6 2.6 4.9-5.4"/></svg><span>점검</span></div>
+      <div class="tab" data-t="mp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5V12h8.5"/></svg><span>MP</span></div>
+      <div class="tab" data-t="limits"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l7.5 3v5.5c0 4.6-3.2 7.6-7.5 8.5-4.3-.9-7.5-3.9-7.5-8.5V6.5z"/></svg><span>한도·로그</span></div>
+      <div class="tab" data-t="monthly"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>투자위</span></div>
+      <div class="tab" data-t="ref"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.8 3.2 2.8 13.8 0 17M12 3.5c-2.8 3.2-2.8 13.8 0 17"/></svg><span>매크로·토의</span></div>
+    </div>
   </nav>
   <div class="side-foot">대화창 <kbd>Ctrl</kbd>+<kbd>/</kbd> · 너비는 왼쪽 가장자리를 끌어서</div>
 </aside>
@@ -1247,22 +1259,19 @@
 <!-- 대시보드 -->
 <section class="page" id="page-home">
   <div id="sampleNotice" class="notice" style="display:none"></div>
-  <div class="kpis" id="gauges"></div>
   <div class="card" id="scoreCard"><h2>유니버스 점수판 <span class="sub">기술 점수 −100(약세) ~ +100(강세) = 추세·6개월·1개월 모멘텀·RSI 합성 · 마우스를 올리면(폰은 한 번 누르면) 차트, 누르면 해당 탭</span></h2>
     <div id="scoreBoard"><div class="empty">불러오는 중…</div></div></div>
   <!-- 비어 있는 카드(발동 신호·괴리·브리프·검증)는 이 띠에 한 줄씩 모이고, 아래 격자에서는 빠진다 -->
   <div class="card quiet" id="homeQuiet" hidden></div>
   <div class="grid g2" id="homeGrid">
     <div class="card" id="hcAlerts"><h2>발동 신호 <span class="src code">CODE</span><span class="sub" id="lastRun"></span></h2><div id="alertStrip"></div></div>
-    <div class="card"><h2>오늘 할 일</h2><ul class="todo" id="todo"></ul></div>
     <div class="card" id="hcGap"><h2>MP 대비 괴리 <span class="src code">CODE</span></h2><div id="gapHome"></div></div>
-    <div class="card"><h2>스트레스 — 전체 소진율 <span class="src code">CODE</span></h2><div id="stressHome"></div></div>
     <div class="card" id="hcBrief"><h2>일일 브리프 <span class="src" id="briefSrc">—</span></h2><div id="brief"></div></div>
     <div class="card" id="hcValid"><h2>데이터·한도 검증</h2><div id="validation"></div></div>
   </div>
 </section>
 
-<!-- 화면 안내 — Main Screen(주식·마켓타이밍·위탁운용사·ELS·대시보드)의 데이터·읽는 법. 정적 글이라 공유본에서도 그대로 보인다.
+<!-- 화면 안내 — Main Screen(주식·마켓타이밍·대시보드·운용사·펀드·ELS)의 데이터·읽는 법. 정적 글이라 공유본에서도 그대로 보인다.
      숫자 기준은 코드(equity.py·valhist.py·fundamentals.py·quant.py·timing.py + universe/timing.json·spikes.py·limits.py·datahealth.py) 기준 — 그쪽을 바꾸면 여기도 고친다 -->
 <section class="page" id="page-guide">
   <div class="bhead">
@@ -1273,9 +1282,9 @@
       <button class="btn sm" onclick="$('gd-common').scrollIntoView({behavior:'smooth'})">공통·기호</button>
       <button class="btn sm" onclick="$('gd-equity').scrollIntoView({behavior:'smooth'})">주식</button>
       <button class="btn sm" onclick="$('gd-timing').scrollIntoView({behavior:'smooth'})">마켓타이밍</button>
+      <button class="btn sm" onclick="$('gd-home').scrollIntoView({behavior:'smooth'})">대시보드</button>
       <button class="btn sm" onclick="$('gd-funds').scrollIntoView({behavior:'smooth'})">운용사·펀드</button>
       <button class="btn sm" onclick="$('gd-els').scrollIntoView({behavior:'smooth'})">ELS</button>
-      <button class="btn sm" onclick="$('gd-home').scrollIntoView({behavior:'smooth'})">대시보드</button>
     </div>
   </div>
 
@@ -1421,6 +1430,38 @@
     </ul></div>
   </div>
 
+  <!-- 대시보드 -->
+  <div class="card" id="gd-home">
+    <div class="gd-hd"><h2>대시보드 <span class="sub">유니버스 점수판 · 발동 신호 · MP 괴리 · 브리프</span></h2><button class="btn sm primary" onclick="showTab('home');scrollTo(0,0)">이 화면 열기</button></div>
+    <p class="gd-lead">유니버스 전체가 어느 쪽으로 흐르는지와 발동 신호·MP 괴리·브리프를 모았습니다. 한도 게이지·오늘 할 일·스트레스 전체 소진율은 <a href="#" onclick="showTab('limits');scrollTo(0,0);return false">한도·로그</a> 탭 맨 위에 있습니다.</p>
+    <div class="gd-secs">
+      <div class="gd-sec"><h3>한도 게이지 (전체·채권·주식·환) — 한도·로그 탭</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>한도 소진율(%)과 단계 칩, 손실·한도·여유(억), 포지션 손절 단계.</dd>
+        <dt>데이터</dt><dd>포지션 파일과 한도표(data/positions.json · data/limits.json). 예시·가안이면 화면 위에 안내가 뜹니다.</dd>
+        <dt>읽는 법</dt><dd>소진율 = 손실 ÷ 한도(올해 평가손익, 환헤지 비용 차감 후, 이익이면 0%). 막대 위 눈금 = 한도표에 정한 경고·축소·중단 기준. 포지션은 손절금액의 70% 에 다가가면 경고, 닿으면 축소.</dd>
+        <dt>주의</dt><dd>0% 는 '손실이 없다'는 뜻이지 위험이 없다는 뜻이 아닙니다 — 스트레스 카드를 함께 보세요.</dd></dl></div>
+      <div class="gd-sec"><h3>유니버스 점수판</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>주식 유니버스(국내·선진국·신흥국·스타일·섹터·우선주)와 정량 스캐너(주가지수·환율·채권·원자재)의 기술 점수 게이지와 묶음 평균.</dd>
+        <dt>계산</dt><dd>−100(약세) ~ +100(강세) = 추세(200일선 대비) 35% + 6개월 모멘텀 35% + 1개월 모멘텀 15% + RSI 역추세 15%(과열이면 깎음). 각 항목은 자기 변동성으로 나눠 자산끼리 비교되게 합니다. 일별 종가 1년 이상 필요.</dd>
+        <dt>읽는 법</dt><dd>강세 ≥ +30 · 우호 ≥ +10 · 중립 ±10 · 약세 ≤ −10 · 매우 약세 ≤ −30. 반원 왼쪽 끝 −100, 꼭대기 0, 오른쪽 끝 +100. 채권은 금리를 가격으로 바꿔 계산(금리 하락 = 점수 상승). 마우스를 올리면(폰은 한 번 누르면) 1년 차트·점수 구성, 누르면 해당 탭.</dd>
+        <dt>주의</dt><dd>관례적 기술 지표로, 지금까지의 흐름 요약입니다. 추세 추종이라 방향이 바뀌는 시점에는 늦습니다.</dd></dl></div>
+      <div class="gd-sec"><h3>발동 신호 · 오늘 할 일(한도·로그 탭)</h3><dl class="gd-dl">
+        <dt>무엇</dt><dd>일일 점검(코드)이 낸 한도·손절 경고와 조치 기한, 보류 중 점검 보고서, 점검 권고(시장 급변·손실한도 접근), 채택 안 된 MP.</dd>
+        <dt>읽는 법</dt><dd>등급 하한 = 전체·자산·포지션 단계 중 가장 높은 것. 모두 정상이어도 스트레스 후 축소·중단에 닿으면 '관찰'.</dd>
+        <dt>주의</dt><dd>일일 점검을 실행해야 채워집니다. 비어 있는 카드는 맨 위 한 줄 띠로 모입니다.</dd></dl></div>
+      <div class="gd-sec"><h3>MP 괴리 · 스트레스 · 브리프 · 검증</h3><dl class="gd-dl">
+        <dt>MP 괴리</dt><dd>채택한 모델 포트(MP)와 지금 비중의 차이 상위 5개.</dd>
+        <dt>스트레스</dt><dd>(한도·로그 탭) 시나리오별 손실(억)과 그 뒤 전체 소진율·단계. '참고' 시나리오는 최악 판정에서 빼고, '사이징'은 규모 산정용입니다.</dd>
+        <dt>브리프</dt><dd>일일 점검 때 생성. AGENT 표시 = AI 에이전트가 쓴 해석(숫자는 코드 계산).</dd>
+        <dt>검증</dt><dd>⛔ 오류 · ⚠ 경고 — 데이터·한도표 입력 문제.</dd></dl></div>
+    </div>
+    <div class="gd-myth"><h3>자주 하는 오해</h3><ul class="gd-list">
+      <li>"점수 +60 이면 앞으로 오른다" — 지금까지 흐름이 강했다는 뜻입니다.</li>
+      <li>"게이지가 낮으면 안전하다" — 현재 손익 기준입니다. 급변 시 손실은 스트레스 카드가 보여 줍니다.</li>
+      <li>"브리프는 사람이 검토한 의견" — AGENT 표시는 AI 가 쓴 문장입니다. 근거 숫자를 확인하세요.</li>
+    </ul></div>
+  </div>
+
   <!-- ▼ 위탁운용사(→ 운용사·펀드) 안내 — 실제 화면(static/index.html renderFunds·funds.py·fund_universe.py·universe/fund_classes.json) 기준.
        그쪽을 바꾸면 이 블록(▼~▲)만 고친다 -->
   <div class="card" id="gd-funds">
@@ -1479,37 +1520,6 @@
   </div>
   <!-- ▲ ELS 안내 끝 -->
 
-  <!-- 대시보드 -->
-  <div class="card" id="gd-home">
-    <div class="gd-hd"><h2>대시보드 <span class="sub">한도 · 유니버스 점수판 · 오늘 할 일</span></h2><button class="btn sm primary" onclick="showTab('home');scrollTo(0,0)">이 화면 열기</button></div>
-    <p class="gd-lead">운용 손실한도가 얼마나 찼는지, 유니버스 전체가 어느 쪽으로 흐르는지, 오늘 처리할 일이 무엇인지를 한 화면에 모았습니다.</p>
-    <div class="gd-secs">
-      <div class="gd-sec"><h3>한도 게이지 (전체·채권·주식·환)</h3><dl class="gd-dl">
-        <dt>무엇</dt><dd>한도 소진율(%)과 단계 칩, 손실·한도·여유(억), 포지션 손절 단계.</dd>
-        <dt>데이터</dt><dd>포지션 파일과 한도표(data/positions.json · data/limits.json). 예시·가안이면 화면 위에 안내가 뜹니다.</dd>
-        <dt>읽는 법</dt><dd>소진율 = 손실 ÷ 한도(올해 평가손익, 환헤지 비용 차감 후, 이익이면 0%). 막대 위 눈금 = 한도표에 정한 경고·축소·중단 기준. 포지션은 손절금액의 70% 에 다가가면 경고, 닿으면 축소.</dd>
-        <dt>주의</dt><dd>0% 는 '손실이 없다'는 뜻이지 위험이 없다는 뜻이 아닙니다 — 스트레스 카드를 함께 보세요.</dd></dl></div>
-      <div class="gd-sec"><h3>유니버스 점수판</h3><dl class="gd-dl">
-        <dt>무엇</dt><dd>주식 유니버스(국내·선진국·신흥국·스타일·섹터·우선주)와 정량 스캐너(주가지수·환율·채권·원자재)의 기술 점수 게이지와 묶음 평균.</dd>
-        <dt>계산</dt><dd>−100(약세) ~ +100(강세) = 추세(200일선 대비) 35% + 6개월 모멘텀 35% + 1개월 모멘텀 15% + RSI 역추세 15%(과열이면 깎음). 각 항목은 자기 변동성으로 나눠 자산끼리 비교되게 합니다. 일별 종가 1년 이상 필요.</dd>
-        <dt>읽는 법</dt><dd>강세 ≥ +30 · 우호 ≥ +10 · 중립 ±10 · 약세 ≤ −10 · 매우 약세 ≤ −30. 반원 왼쪽 끝 −100, 꼭대기 0, 오른쪽 끝 +100. 채권은 금리를 가격으로 바꿔 계산(금리 하락 = 점수 상승). 마우스를 올리면(폰은 한 번 누르면) 1년 차트·점수 구성, 누르면 해당 탭.</dd>
-        <dt>주의</dt><dd>관례적 기술 지표로, 지금까지의 흐름 요약입니다. 추세 추종이라 방향이 바뀌는 시점에는 늦습니다.</dd></dl></div>
-      <div class="gd-sec"><h3>발동 신호 · 오늘 할 일</h3><dl class="gd-dl">
-        <dt>무엇</dt><dd>일일 점검(코드)이 낸 한도·손절 경고와 조치 기한, 보류 중 점검 보고서, 점검 권고(시장 급변·손실한도 접근), 채택 안 된 MP.</dd>
-        <dt>읽는 법</dt><dd>등급 하한 = 전체·자산·포지션 단계 중 가장 높은 것. 모두 정상이어도 스트레스 후 축소·중단에 닿으면 '관찰'.</dd>
-        <dt>주의</dt><dd>일일 점검을 실행해야 채워집니다. 비어 있는 카드는 맨 위 한 줄 띠로 모입니다.</dd></dl></div>
-      <div class="gd-sec"><h3>MP 괴리 · 스트레스 · 브리프 · 검증</h3><dl class="gd-dl">
-        <dt>MP 괴리</dt><dd>채택한 모델 포트(MP)와 지금 비중의 차이 상위 5개.</dd>
-        <dt>스트레스</dt><dd>시나리오별 손실(억)과 그 뒤 전체 소진율·단계. '참고' 시나리오는 최악 판정에서 빼고, '사이징'은 규모 산정용입니다.</dd>
-        <dt>브리프</dt><dd>일일 점검 때 생성. AGENT 표시 = AI 에이전트가 쓴 해석(숫자는 코드 계산).</dd>
-        <dt>검증</dt><dd>⛔ 오류 · ⚠ 경고 — 데이터·한도표 입력 문제.</dd></dl></div>
-    </div>
-    <div class="gd-myth"><h3>자주 하는 오해</h3><ul class="gd-list">
-      <li>"점수 +60 이면 앞으로 오른다" — 지금까지 흐름이 강했다는 뜻입니다.</li>
-      <li>"게이지가 낮으면 안전하다" — 현재 손익 기준입니다. 급변 시 손실은 스트레스 카드가 보여 줍니다.</li>
-      <li>"브리프는 사람이 검토한 의견" — AGENT 표시는 AI 가 쓴 문장입니다. 근거 숫자를 확인하세요.</li>
-    </ul></div>
-  </div>
 </section>
 
 <!-- 점검 보고서 -->
@@ -1559,6 +1569,11 @@
 
 <!-- 한도·로그 -->
 <section class="page" id="page-limits">
+  <div class="kpis" id="gauges"></div>
+  <div class="grid g2">
+    <div class="card"><h2>오늘 할 일</h2><ul class="todo" id="todo"></ul></div>
+    <div class="card"><h2>스트레스 — 전체 소진율 <span class="src code">CODE</span></h2><div id="stressHome"></div></div>
+  </div>
   <div class="card"><h2>한도 구조 — 전체 → 자산별 → 포지션 <span class="src code">CODE</span></h2><div id="limitTree"></div></div>
   <div class="grid g2">
     <div class="card"><h2>스트레스 시나리오 <span class="src code">CODE</span></h2><div id="stressFull"></div></div>
@@ -1637,8 +1652,21 @@ document.querySelectorAll('#tabs .tab').forEach(t => {
   t.onclick = () => showTab(t.dataset.t);
   t.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showTab(t.dataset.t); } };
 });
+// Strategy·기타 묶음 접기 — 열림 상태는 이 브라우저에만 기억(저장이 막혀도 닫힌 채로 동작)
+function setFold(g, open, save){
+  const b = document.querySelector(`#tabs .ngrp.fold[data-g="${g}"]`); if(!b) return;
+  b.setAttribute('aria-expanded', open); $('ng-' + g).hidden = !open;
+  if(save) try { localStorage.setItem('nav.fold.' + g, open ? '1' : '0'); } catch(e){}
+}
+document.querySelectorAll('#tabs .ngrp.fold').forEach(b => {
+  let open = false; try { open = localStorage.getItem('nav.fold.' + b.dataset.g) === '1'; } catch(e){}
+  setFold(b.dataset.g, open, false);
+  b.onclick = () => setFold(b.dataset.g, b.getAttribute('aria-expanded') !== 'true', true);
+});
 function showTab(t){
   document.body.classList.remove('side-open');
+  const body = (document.querySelector(`#tabs .tab[data-t="${t}"]`) || {}).parentElement;   // 닫힌 묶음 안의 탭이면 펼친다
+  if(body && body.classList.contains('ngrp-body')) setFold(body.id.slice(3), true, false);
   document.querySelectorAll('#tabs .tab').forEach(x => { x.classList.toggle('on', x.dataset.t === t); x.setAttribute('aria-selected', x.dataset.t === t); });
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === 'page-' + t));
   if(t === 'room') loadRoom();
@@ -3784,10 +3812,10 @@ const QUICK = {
   book: ['여기서 제일 위험한 포지션은?', '전략 배분이 목표와 다른 이유는?', '최악 스트레스가 오면 뭘 줄여야 해?'],
   strategy: ['제일 먼저 할 일을 쉽게 설명해줘', '규모 조정이 왜 필요한 거야?', '새 기회 중에 뭐가 제일 나아?'],
   quant: ['손절 확률이 높은 포지션은 어떻게 할까?', '두 방법 결과가 왜 이렇게 달라?', '스캐너에서 볼 만한 기회는?'],
-  home: ['이 화면 요약해줘', '오늘 할 일 우선순위는?'],
+  home: ['이 화면 요약해줘', '유니버스에서 제일 강한 곳·약한 곳은?'],
   checks: ['점검 보고서는 언제 돌려야 해?', '이 점검 결과 요약해줘'],
   mp: ['MP 가 뭐고 지금 왜 비어 있어?', '괴리가 큰 버킷은?'],
-  limits: ['한도 구조 설명해줘', '어느 한도가 제일 빠듯해?'],
+  limits: ['한도 구조 설명해줘', '어느 한도가 제일 빠듯해?', '오늘 할 일 우선순위는?'],
   monthly: ['투자위에 뭘 보고해야 해?'],
   ref: ['지금 매크로에서 제일 중요한 변수는?', '시장 지표 요약해줘'],
   bt: ['이 백테스트 결과 쉽게 설명해줘', '위험 대비 제일 나은 전략은?', '이 결과를 그대로 믿어도 돼?'],
