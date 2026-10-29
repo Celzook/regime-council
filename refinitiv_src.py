@@ -3,6 +3,7 @@
 
 - 데스크톱 세션: Workspace 가 켜져 로그인돼 있어야 하고, Windows 파이썬(python.exe)에서만 붙는다.
   프록시가 Windows loopback 127.0.0.1:9000 에만 열려 WSL 리눅스 파이썬에서는 닿지 않는다.
+  재로그인하면 포트가 9000 → 9002 처럼 바뀐다(2026-10-29 실측) — eikon 처럼 PROXY_PORTS 를 차례로 찾는다.
 - App Key: 환경변수 EIKON_APP_KEY → config.REFINITIV_APPKEY_FILES 순서로 찾는다. 코드에 박지 않는다.
 - 키 체계: 호출하는 쪽은 기존 yfinance 표기(^KS11, 069500.KS, SPY, KRW=X …)를 그대로 쓰고
   여기서 RIC 으로 바꾼다. 그래서 CSV 열 이름·backtest 의 UNDER 표는 바뀌지 않는다.
@@ -16,7 +17,6 @@ import logging
 import os
 import socket
 import threading
-import urllib.error
 import urllib.request
 import warnings
 from pathlib import Path
@@ -47,6 +47,7 @@ US_RIC = {
 # .SPX·.VXN·.N225·.VIX3M 은 get_timeseries 권한은 없지만 get_data TR.PriceClose 일별로는 나온다(_close_series 폴백).
 YF_ONLY = {"^VIX"}   # ^MOVE·^VIX3M 은 .MOVE·.VIX3M 일별 확인 후 TICKER_RIC 로 옮김(2026-10-26 — 최근 20일 yfinance 와 같은 값)
 
+PROXY_PORTS = range(9000, 9011)
 _LOCK = threading.Lock()
 _EK = None
 _STATE = {"ok": None, "checked": None, "error": ""}
@@ -119,19 +120,12 @@ def available(force: bool = False) -> bool:
     if not force and _STATE["checked"] and (now - _STATE["checked"]).seconds < 300:
         return bool(_STATE["ok"])
     ok, err = False, ""
-    s = socket.socket()
-    s.settimeout(2)
     try:
-        if s.connect_ex(("127.0.0.1", 9000)) != 0:
-            err = "Workspace 프록시(127.0.0.1:9000) 닫힘 — Workspace 실행·로그인 확인, Windows 파이썬으로 실행"
+        # 포트는 열려 있는데 프록시가 멈춘 경우(2026-10-24 실측)에도 화면이 매달리지 않게 — 상태 응답·잠금 모두 시간 제한
+        if _proxy_port() is None:
+            err = (f"Workspace 프록시(127.0.0.1:{PROXY_PORTS[0]}~{PROXY_PORTS[-1]}) 응답 없음 — Workspace 실행·로그인 확인"
+                   "(멈췄으면 재시작), Windows 파이썬으로 실행")
         else:
-            # 포트는 열려 있는데 프록시가 멈춘 경우(2026-10-24 실측)에도 화면이 매달리지 않게 — 응답·잠금 모두 시간 제한
-            try:
-                urllib.request.urlopen("http://127.0.0.1:9000/api/status", timeout=3).close()
-            except urllib.error.HTTPError:
-                pass  # 상태 코드가 오면 살아 있음
-            except OSError as e:
-                raise RuntimeError(f"Workspace 프록시 응답 없음({e}) — Workspace 재시작·재로그인") from None
             if not _LOCK.acquire(timeout=3):
                 raise RuntimeError("이전 Refinitiv 요청이 끝나지 않음 — Workspace 응답 확인")
             try:
@@ -141,10 +135,25 @@ def available(force: bool = False) -> bool:
             ok = True
     except Exception as e:  # noqa: BLE001
         err = f"Refinitiv 연결 실패: {e}"
-    finally:
-        s.close()
     _STATE.update(ok=ok, checked=now, error=err)
     return ok
+
+
+def _proxy_port() -> int | None:
+    """PROXY_PORTS 가운데 /api/status 가 ST_PROXY_READY 인 첫 포트(없으면 None).
+    포트가 열려 있는 것만으로는 안 된다 — 9001 은 Windows 시스템(PID 4)이 열어 두고 404 를 준다(2026-10-29 실측)."""
+    for port in PROXY_PORTS:
+        with socket.socket() as s:
+            s.settimeout(0.5)
+            if s.connect_ex(("127.0.0.1", port)) != 0:
+                continue
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/status", timeout=3) as r:
+                if b"ST_PROXY_READY" in r.read(512):
+                    return port
+        except OSError:
+            continue
+    return None
 
 
 def status() -> dict:

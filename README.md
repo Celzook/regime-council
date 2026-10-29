@@ -33,7 +33,7 @@ python fetch_history.py && python main.py fetch && python equity.py --full && py
 ```
 
 **시장 데이터 출처는 Refinitiv(LSEG) Workspace 다(2026-10-23 전환).** 접근은 `refinitiv_src.py` 한 곳에서만 한다.
-- Workspace 가 켜져 로그인돼 있어야 하고, **Windows 파이썬**으로 실행한다(프록시가 127.0.0.1:9000 에만 열려 WSL 리눅스 파이썬에서는 닿지 않는다 — WSL 셸에서는 `python.exe`).
+- Workspace 가 켜져 로그인돼 있어야 하고, **Windows 파이썬**으로 실행한다(프록시가 Windows loopback 127.0.0.1:9000 번대에만 열려 WSL 리눅스 파이썬에서는 닿지 않는다 — WSL 셸에서는 `python.exe`). 재로그인하면 포트가 9002 처럼 바뀌므로 `refinitiv_src` 가 9000~9010 에서 `ST_PROXY_READY` 를 답하는 포트를 찾는다.
 - 이 계정에 권한이 없어 예외로 남긴 것: **VIX**(yfinance), **미국 IG·HY OAS·유효수익률**(FRED — ICE BofA 지수는 Refinitiv 에 있지만 권한 없음).
   `.SPX`·`.VXN`·`.N225` 는 시계열 권한은 없지만 `TR.PriceClose` 일별로 받는다.
 - 주식·ETF 가격은 `TR.TotalReturn` 일별 수익률로 만든 배당 재투자 가격이다(yfinance `auto_adjust` 와 같은 뜻).
